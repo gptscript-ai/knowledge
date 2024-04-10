@@ -19,3 +19,14 @@
 
 # Go workspace file
 go.work
+
+# SQLite
+*.sqlite3
+*.db
+
+# IDEs
+.idea/
+.vscode/
+
+# Env
+.env
