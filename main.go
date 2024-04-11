@@ -1,8 +1,10 @@
 package main
 
-import "log/slog"
+import (
+	acmd "github.com/acorn-io/cmd"
+	"github.com/gptscript-ai/knowledge/pkg/cmd"
+)
 
 func main() {
-	// Start the server
-	slog.Info("Starting server...")
+	acmd.Main(cmd.New())
 }

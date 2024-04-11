@@ -1,0 +1,15 @@
+info:
+  contact: {}
+paths:
+  /datasets/create:
+    post:
+      consumes:
+      - application/json
+      description: Create a new dataset
+      produces:
+      - application/json
+      responses: {}
+      summary: Create a new dataset
+      tags:
+      - datasets
+swagger: "2.0"
