@@ -5,8 +5,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gptscript-ai/knowledge/pkg/db"
 	"github.com/gptscript-ai/knowledge/pkg/docs"
+	"github.com/gptscript-ai/knowledge/pkg/vectorstore/chromem"
+	cg "github.com/philippgille/chromem-go"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"github.com/tmc/langchaingo/vectorstores"
+	"log/slog"
 	"net/http"
 )
 
@@ -16,6 +20,7 @@ type Config struct {
 
 type Server struct {
 	db *db.DB
+	vs vectorstores.VectorStore
 }
 
 func NewServer(db *db.DB) *Server {
@@ -25,6 +30,8 @@ func NewServer(db *db.DB) *Server {
 // Start starts the server with the given configuration.
 func (s *Server) Start(ctx context.Context, cfg Config) error {
 	router := gin.Default()
+
+	slog.SetLogLoggerLevel(slog.LevelDebug)
 
 	// Database migration
 	if err := s.db.AutoMigrate(); err != nil {
@@ -62,6 +69,30 @@ func (s *Server) Start(ctx context.Context, cfg Config) error {
 			v1Datasets.DELETE("/:id/files/:file_id", s.RemoveFileFromDataset)
 		}
 	}
+
+	vsdb, err := cg.NewPersistentDB("vector.db", false)
+	if err != nil {
+		return err
+	}
+
+	normalized := true
+	ef := cg.NewEmbeddingFuncOpenAICompat(
+		"http://localhost:8080/v1",
+		"sk-foo",
+		"text-embedding-ada-002",
+		&normalized,
+	)
+
+	col, err := vsdb.GetOrCreateCollection("default", nil, ef)
+	if err != nil {
+		return err
+	}
+
+	vs, err := chromem.New(chromem.WithDB(vsdb), chromem.WithEmbeddingFunc(ef), chromem.WithCollection(col))
+	if err != nil {
+		return err
+	}
+	s.vs = vs
 
 	// Start server
 	return router.Run(":" + cfg.Port)

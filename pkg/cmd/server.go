@@ -11,7 +11,7 @@ import (
 // Server is the Server CLI command
 type Server struct {
 	ServerURL     string `usage:"Server URL" default:"http://localhost" env:"KNOW_SERVER_URL"`
-	ServerPort    string `usage:"Server port" default:"8080" env:"KNOW_SERVER_PORT"`
+	ServerPort    string `usage:"Server port" default:"8000" env:"KNOW_SERVER_PORT"`
 	ServerAPIBase string `usage:"Server API base" default:"/v1" env:"KNOW_SERVER_API_BASE"`
 
 	DSN         string `usage:"Server database connection string" default:"sqlite://knowledge.db" env:"KNOW_DSN"`

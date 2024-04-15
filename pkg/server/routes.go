@@ -1,14 +1,19 @@
 package server
 
 import (
+	"bytes"
+	"encoding/base64"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/gptscript-ai/knowledge/pkg/db"
 	"github.com/gptscript-ai/knowledge/pkg/types"
 	"github.com/gptscript-ai/knowledge/pkg/types/defaults"
+	"github.com/tmc/langchaingo/documentloaders"
+	"github.com/tmc/langchaingo/schema"
 	"log/slog"
 	"net/http"
+	"path"
 )
 
 // CreateDataset creates a new dataset.
@@ -121,8 +126,21 @@ func (s *Server) RetrieveFromDataset(c *gin.Context) {
 		return
 	}
 
-	// TODO: DB query logic here
-	c.JSON(http.StatusOK, gin.H{"id": id, "query": query})
+	if query.TopK == nil {
+		t := defaults.TopK
+		query.TopK = &t
+
+	}
+	slog.Debug("Retrieving content from dataset", "dataset", id, "query", query)
+
+	docs, err := s.vs.SimilaritySearch(c, query.Prompt, *query.TopK)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+
+	}
+	slog.Debug("Retrieved documents", "count", len(docs), "docs", docs)
+	c.JSON(http.StatusOK, gin.H{"documents": docs, "query": query})
 }
 
 // IngestIntoDataset ingests content into a dataset by ID.
@@ -139,12 +157,61 @@ func (s *Server) IngestIntoDataset(c *gin.Context) {
 
 	var ingest types.Ingest
 	if err := c.ShouldBindJSON(&ingest); err != nil {
+		slog.Error("Failed to bind JSON", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	// TODO: DB ingest logic here
-	c.JSON(http.StatusOK, gin.H{"id": id, "ingest": ingest})
+	// decode content
+	data, err := base64.StdEncoding.DecodeString(ingest.Content)
+	if err != nil {
+		slog.Error("Failed to decode content", "error", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if ingest.Filename == nil {
+		n := "doc"
+		ingest.Filename = &n
+	}
+
+	var docs []schema.Document
+
+	switch path.Ext(*ingest.Filename) {
+	case ".pdf":
+		docs, err = documentloaders.NewPDF(bytes.NewReader(data), int64(len(data))).Load(c)
+	case ".md":
+		docs, err = documentloaders.NewText(bytes.NewReader(data)).Load(c)
+	default:
+		slog.Error("Unsupported file type", "filename", *ingest.Filename)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "unsupported file type"})
+		return
+	}
+
+	if err != nil {
+		slog.Error("Failed to load document", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(docs) == 0 {
+		slog.Error("No documents found")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "no documents found"})
+		return
+
+	}
+
+	slog.Debug("Ingested documents", "count", len(docs))
+
+	docIDs, err := s.vs.AddDocuments(c, docs)
+	if err != nil {
+		slog.Error("Failed to add documents", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+
+	}
+
+	c.JSON(http.StatusOK, gin.H{"documents": docIDs, "ingest": ingest})
 }
 
 // RemoveDocumentFromDataset removes a document from a dataset by ID.
