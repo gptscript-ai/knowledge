@@ -4,7 +4,6 @@
         "title": "Knowledge API",
         "contact": {}
     },
-    "basePath": "/v1",
     "paths": {
         "/datasets/create": {
             "post": {

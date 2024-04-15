@@ -7,6 +7,7 @@ import (
 	"github.com/gptscript-ai/knowledge/pkg/docs"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"net/http"
 )
 
 type Config struct {
@@ -32,13 +33,24 @@ func (s *Server) Start(ctx context.Context, cfg Config) error {
 
 	// API routes
 	docs.SwaggerInfo.BasePath = cfg.APIBase
+	swaggerHandler := ginSwagger.WrapHandler(swaggerFiles.Handler)
+	router.GET("/swagger/*any", swaggerHandler) // http://localhost:8080/swagger/index.html
 
 	// @title Knowledge API
 	v1 := router.Group(cfg.APIBase)
 	{
-		v1.POST("/datasets/create", CreateDataset)
+		// Swagger >>>
+		v1.GET("/docs/*any", swaggerHandler)
+		v1.GET("/docs", func(c *gin.Context) {
+			c.Redirect(http.StatusMovedPermanently, cfg.APIBase+"/docs/index.html")
+		})
+		// <<< Swagger
+
+		v1Datasets := v1.Group("/datasets")
+		{
+			v1Datasets.POST("/create", CreateDataset)
+		}
 	}
-	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler)) // http://localhost:8080/swagger/index.html
 
 	// Start server
 	return router.Run(":" + cfg.Port)
