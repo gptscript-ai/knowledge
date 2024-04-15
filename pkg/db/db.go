@@ -65,8 +65,8 @@ func (db *DB) AutoMigrate() error {
 
 	return db.gormDB.AutoMigrate(
 		&Dataset{},
-		&FileIndex{},
-		&DocumentIndex{},
+		&File{},
+		&Document{},
 	)
 }
 

@@ -6,20 +6,20 @@ import (
 
 type Dataset struct {
 	gorm.Model
-	Name  string      `gorm:"primaryKey"`
-	Files []FileIndex `gorm:"constraint:OnDelete:CASCADE;"`
+	Name  string `gorm:"primaryKey"`
+	Files []File `gorm:"foreignKey:Dataset;references:Name;constraint:OnDelete:CASCADE;"`
 }
 
-type FileIndex struct {
+type File struct {
 	gorm.Model
-	FileID    string          `gorm:"primaryKey"`
-	Dataset   string          `gorm:"primaryKey"` // Foreign key to Dataset
-	Documents []DocumentIndex `gorm:"constraint:OnDelete:CASCADE;"`
+	FileID    string     `gorm:"primaryKey"`
+	Dataset   string     `gorm:"primaryKey"` // Foreign key to Dataset
+	Documents []Document `gorm:"gorm:foreignKey:Dataset,FileID;constraint:OnDelete:CASCADE;"`
 }
 
-type DocumentIndex struct {
+type Document struct {
 	gorm.Model
 	DocumentID string `gorm:"primaryKey"`
 	Dataset    string `gorm:"primaryKey"` // Foreign key to Dataset, part of composite primary key with FileID
-	FileID     string `gorm:"primaryKey"` // Foreign key to FileIndex, part of composite primary key with Dataset
+	FileID     string `gorm:"primaryKey"` // Foreign key to File, part of composite primary key with Dataset
 }

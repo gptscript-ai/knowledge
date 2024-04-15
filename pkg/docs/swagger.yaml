@@ -1,5 +1,7 @@
+basePath: /v1
 info:
   contact: {}
+  title: Knowledge API
 paths:
   /datasets/create:
     post:
