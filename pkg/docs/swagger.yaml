@@ -1,6 +1,24 @@
+definitions:
+  types.Dataset:
+    properties:
+      embed_dim:
+        default: 1536
+        example: 1536
+        type: integer
+      id:
+        description: Dataset ID - must be a valid RFC 1123 hostname
+        example: asst-12345
+        format: hostname_rfc1123
+        type: string
+    required:
+    - id
+    type: object
 info:
-  contact: {}
+  contact:
+    name: Acorn Labs Inc.
+  description: This is the Knowledge API server for GPTStudio.
   title: Knowledge API
+  version: "1"
 paths:
   /datasets:
     get:
@@ -140,6 +158,13 @@ paths:
       consumes:
       - application/json
       description: Create a new dataset
+      parameters:
+      - description: Dataset object
+        in: body
+        name: dataset
+        required: true
+        schema:
+          $ref: '#/definitions/types.Dataset'
       produces:
       - application/json
       responses: {}

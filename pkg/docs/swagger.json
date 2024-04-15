@@ -1,8 +1,12 @@
 {
     "swagger": "2.0",
     "info": {
+        "description": "This is the Knowledge API server for GPTStudio.",
         "title": "Knowledge API",
-        "contact": {}
+        "contact": {
+            "name": "Acorn Labs Inc."
+        },
+        "version": "1"
     },
     "paths": {
         "/datasets": {
@@ -31,6 +35,17 @@
                     "datasets"
                 ],
                 "summary": "Create a new dataset",
+                "parameters": [
+                    {
+                        "description": "Dataset object",
+                        "name": "dataset",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.Dataset"
+                        }
+                    }
+                ],
                 "responses": {}
             }
         },
@@ -213,6 +228,27 @@
                     }
                 ],
                 "responses": {}
+            }
+        }
+    },
+    "definitions": {
+        "types.Dataset": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "embed_dim": {
+                    "type": "integer",
+                    "default": 1536,
+                    "example": 1536
+                },
+                "id": {
+                    "description": "Dataset ID - must be a valid RFC 1123 hostname",
+                    "type": "string",
+                    "format": "hostname_rfc1123",
+                    "example": "asst-12345"
+                }
             }
         }
     }

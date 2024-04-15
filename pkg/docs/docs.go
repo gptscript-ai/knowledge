@@ -9,7 +9,9 @@ const docTemplate = `{
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
-        "contact": {},
+        "contact": {
+            "name": "Acorn Labs Inc."
+        },
         "version": "{{.Version}}"
     },
     "host": "{{.Host}}",
@@ -41,6 +43,17 @@ const docTemplate = `{
                     "datasets"
                 ],
                 "summary": "Create a new dataset",
+                "parameters": [
+                    {
+                        "description": "Dataset object",
+                        "name": "dataset",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.Dataset"
+                        }
+                    }
+                ],
                 "responses": {}
             }
         },
@@ -225,17 +238,38 @@ const docTemplate = `{
                 "responses": {}
             }
         }
+    },
+    "definitions": {
+        "types.Dataset": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "embed_dim": {
+                    "type": "integer",
+                    "default": 1536,
+                    "example": 1536
+                },
+                "id": {
+                    "description": "Dataset ID - must be a valid RFC 1123 hostname",
+                    "type": "string",
+                    "format": "hostname_rfc1123",
+                    "example": "asst-12345"
+                }
+            }
+        }
     }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "",
+	Version:          "1",
 	Host:             "",
 	BasePath:         "",
 	Schemes:          []string{},
 	Title:            "Knowledge API",
-	Description:      "",
+	Description:      "This is the Knowledge API server for GPTStudio.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

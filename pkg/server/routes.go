@@ -1,9 +1,12 @@
 package server
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"github.com/gptscript-ai/knowledge/pkg/db"
 	"github.com/gptscript-ai/knowledge/pkg/types"
+	"github.com/gptscript-ai/knowledge/pkg/types/defaults"
 	"log/slog"
 	"net/http"
 )
@@ -14,15 +17,29 @@ import (
 // @Tags datasets
 // @Accept json
 // @Produce json
+// @Param dataset body types.Dataset true "Dataset object"
 // @Router /datasets/create [post]
-func CreateDataset(c *gin.Context) {
-	var dataset db.Dataset
+func (s *Server) CreateDataset(c *gin.Context) {
+	var dataset types.Dataset
 	if err := c.ShouldBindJSON(&dataset); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	slog.Info("Creating dataset: %v", dataset)
-	// TODO: DB insert logic here
+
+	// Set defaults
+	if dataset.EmbedDimension == nil || *dataset.EmbedDimension <= 0 {
+		f := defaults.EmbeddingDimension
+		dataset.EmbedDimension = &f
+	}
+
+	// Create dataset
+	slog.Info("Creating dataset", "id", dataset.ID)
+	tx := s.db.WithContext(c).Create(&dataset)
+	if tx.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": tx.Error.Error()})
+		return
+	}
+
 	c.JSON(http.StatusOK, dataset)
 }
 
@@ -33,10 +50,16 @@ func CreateDataset(c *gin.Context) {
 // @Produce json
 // @Param id path string true "Dataset ID"
 // @Router /datasets/{id} [delete]
-func DeleteDataset(c *gin.Context) {
+func (s *Server) DeleteDataset(c *gin.Context) {
 	id := c.Param("id")
-	slog.Info("Deleting dataset: %s", id)
-	// TODO: DB delete logic here
+	slog.Info("Deleting dataset", "id", id)
+
+	tx := s.db.WithContext(c).Delete(&types.Dataset{}, "id = ?", id)
+	if tx.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": tx.Error.Error()})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{"id": id})
 }
 
@@ -48,16 +71,34 @@ func DeleteDataset(c *gin.Context) {
 // @Produce json
 // @Param id path string true "Dataset ID"
 // @Router /datasets/{id}/query [post]
-func QueryDataset(c *gin.Context) {
+func (s *Server) QueryDataset(c *gin.Context) {
 	id := c.Param("id")
-	slog.Info("Querying dataset: %s", id)
+	slog.Info("Querying dataset", "id", id)
 
 	var query types.Query
 	if err := c.ShouldBindJSON(&query); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	slog.Info("Query: %v", query)
+	slog.Info("Query", "query", query)
+
+	// validate
+	v := validator.New()
+	if err := v.Struct(query); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	d := s.db.WithContext(c)
+
+	ds, err := db.GetDataset(d, id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": fmt.Errorf("dataset not found: %v", err), "id": id})
+		return
+	}
+
+	slog.Info("Dataset", "id", ds.ID)
+
 	// TODO: DB query logic here
 	c.JSON(http.StatusOK, gin.H{"id": id, "query": query})
 }
@@ -70,16 +111,15 @@ func QueryDataset(c *gin.Context) {
 // @Produce json
 // @Param id path string true "Dataset ID"
 // @Router /datasets/{id}/retrieve [post]
-func RetrieveFromDataset(c *gin.Context) {
+func (s *Server) RetrieveFromDataset(c *gin.Context) {
 	id := c.Param("id")
-	slog.Info("Retrieving content from dataset: %s", id)
+	slog.Info("Retrieving content from dataset", "dataset", id)
 
 	var query types.Query
 	if err := c.ShouldBindJSON(&query); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	slog.Info("Query: %v", query)
 
 	// TODO: DB query logic here
 	c.JSON(http.StatusOK, gin.H{"id": id, "query": query})
@@ -93,16 +133,15 @@ func RetrieveFromDataset(c *gin.Context) {
 // @Produce json
 // @Param id path string true "Dataset ID"
 // @Router /datasets/{id}/ingest [post]
-func IngestIntoDataset(c *gin.Context) {
+func (s *Server) IngestIntoDataset(c *gin.Context) {
 	id := c.Param("id")
-	slog.Info("Ingesting content into dataset: %s", id)
+	slog.Info("Ingesting content into dataset", "dataset", id)
 
 	var ingest types.Ingest
 	if err := c.ShouldBindJSON(&ingest); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	slog.Info("Ingest: %v", ingest)
 
 	// TODO: DB ingest logic here
 	c.JSON(http.StatusOK, gin.H{"id": id, "ingest": ingest})
@@ -117,10 +156,10 @@ func IngestIntoDataset(c *gin.Context) {
 // @Param id path string true "Dataset ID"
 // @Param doc_id path string true "Document ID"
 // @Router /datasets/{id}/documents/{doc_id} [delete]
-func RemoveDocumentFromDataset(c *gin.Context) {
+func (s *Server) RemoveDocumentFromDataset(c *gin.Context) {
 	id := c.Param("id")
 	docID := c.Param("doc_id")
-	slog.Info("Removing document from dataset: %s, %s", id, docID)
+	slog.Info("Removing document from dataset", "dataset", id, "document", docID)
 	// TODO: DB remove logic here
 	c.JSON(http.StatusOK, gin.H{"id": id, "doc_id": docID})
 }
@@ -134,10 +173,10 @@ func RemoveDocumentFromDataset(c *gin.Context) {
 // @Param id path string true "Dataset ID"
 // @Param file_id path string true "File ID"
 // @Router /datasets/{id}/files/{file_id} [delete]
-func RemoveFileFromDataset(c *gin.Context) {
+func (s *Server) RemoveFileFromDataset(c *gin.Context) {
 	id := c.Param("id")
 	fileID := c.Param("file_id")
-	slog.Info("Removing file from dataset: %s, %s", id, fileID)
+	slog.Info("Removing file from dataset", "dataset", id, "file", fileID)
 	// TODO: DB remove logic here
 	c.JSON(http.StatusOK, gin.H{"id": id, "file_id": fileID})
 }
@@ -148,10 +187,21 @@ func RemoveFileFromDataset(c *gin.Context) {
 // @Tags datasets
 // @Produce json
 // @Router /datasets [get]
-func ListDatasets(c *gin.Context) {
+func (s *Server) ListDatasets(c *gin.Context) {
 	slog.Info("Listing datasets")
-	// TODO: DB list logic here
-	c.JSON(http.StatusOK, gin.H{})
+	tx := s.db.WithContext(c).Find(&[]types.Dataset{})
+	if tx.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": tx.Error.Error()})
+		return
+
+	}
+
+	var datasets []types.Dataset
+	if err := tx.Scan(&datasets).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, datasets)
 }
 
 // GetDataset gets a dataset by ID.
@@ -161,9 +211,15 @@ func ListDatasets(c *gin.Context) {
 // @Produce json
 // @Param id path string true "Dataset ID"
 // @Router /datasets/{id} [get]
-func GetDataset(c *gin.Context) {
+func (s *Server) GetDataset(c *gin.Context) {
 	id := c.Param("id")
-	slog.Info("Getting dataset: %s", id)
-	// TODO: DB get logic here
-	c.JSON(http.StatusOK, gin.H{"id": id})
+	slog.Info("Getting dataset", "id", id)
+	dataset := &types.Dataset{}
+	tx := s.db.WithContext(c).First(dataset, "id = ?", id)
+	if tx.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": tx.Error.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, dataset)
 }
