@@ -48,7 +48,15 @@ func (s *Server) Start(ctx context.Context, cfg Config) error {
 
 		v1Datasets := v1.Group("/datasets")
 		{
+			v1Datasets.GET("/", ListDatasets)
+			v1Datasets.GET("/:id", GetDataset)
 			v1Datasets.POST("/create", CreateDataset)
+			v1Datasets.DELETE("/:id", DeleteDataset)
+			v1Datasets.POST("/:id/ingest", IngestIntoDataset)
+			v1Datasets.POST("/:id/query", QueryDataset)
+			v1Datasets.POST("/:id/retrieve", RetrieveFromDataset)
+			v1Datasets.DELETE("/:id/documents/:doc_id", RemoveDocumentFromDataset)
+			v1Datasets.DELETE("/:id/files/:file_id", RemoveFileFromDataset)
 		}
 	}
 
