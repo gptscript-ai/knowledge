@@ -3,9 +3,8 @@ package chromem
 import (
 	"context"
 	"github.com/google/uuid"
+	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 	"github.com/philippgille/chromem-go"
-	"github.com/tmc/langchaingo/schema"
-	"github.com/tmc/langchaingo/vectorstores"
 	"log/slog"
 	"maps"
 	"runtime"
@@ -13,44 +12,52 @@ import (
 )
 
 type Store struct {
-	db         *chromem.DB
-	collection *chromem.Collection
-
+	db            *chromem.DB
 	embeddingFunc chromem.EmbeddingFunc
 }
 
 // New creates a new Chromem vector store.
-func New(opts ...Option) (Store, error) {
-	// Apply options
-	store, err := applyClientOptions(opts...)
-	if err != nil {
-		return Store{}, err
+func New(db *chromem.DB, embeddingFunc chromem.EmbeddingFunc) Store {
+	return Store{
+		db:            db,
+		embeddingFunc: embeddingFunc,
 	}
-
-	return store, nil
 }
 
-func (s Store) AddDocuments(ctx context.Context, docs []schema.Document, options ...vectorstores.Option) ([]string, error) {
+func (s Store) CreateCollection(_ context.Context, name string) error {
+	_, err := s.db.CreateCollection(name, nil, s.embeddingFunc)
+	if err != nil {
+		return err
+	}
 
+	return nil
+}
+
+func (s Store) AddDocuments(ctx context.Context, docs []vs.Document, collection string) ([]string, error) {
 	ids := make([]string, len(docs))
 	chromemDocs := make([]chromem.Document, len(docs))
 	for docIdx, doc := range docs {
 		ids[docIdx] = uuid.New().String()
 		mc := make(map[string]any)
 		maps.Copy(mc, doc.Metadata)
-		if len(doc.PageContent) == 0 {
+		if len(doc.Content) == 0 {
 			slog.Debug("Document has no content", "id", ids[docIdx], "index", docIdx)
-			doc.PageContent = "<no content>"
+			doc.Content = "<no content>"
 		}
 		chromemDocs[docIdx] = chromem.Document{
 			ID:        ids[docIdx],
 			Metadata:  anyMapToStringMap(mc),
 			Embedding: nil, // Embeddings will be computed downstream
-			Content:   doc.PageContent,
+			Content:   doc.Content,
 		}
 	}
 
-	err := s.collection.AddDocuments(ctx, chromemDocs, runtime.NumCPU()/2)
+	col := s.db.GetCollection(collection, s.embeddingFunc)
+	if col == nil {
+		return nil, vs.ErrCollectionNotFound{Collection: collection}
+	}
+
+	err := col.AddDocuments(ctx, chromemDocs, runtime.NumCPU()/2)
 	if err != nil {
 		return nil, err
 	}
@@ -91,9 +98,13 @@ func convertStringMapToAnyMap(m map[string]string) map[string]any {
 	return convertedMap
 }
 
-func (s Store) SimilaritySearch(ctx context.Context, query string, numDocuments int, options ...vectorstores.Option) ([]schema.Document, error) {
+func (s Store) SimilaritySearch(ctx context.Context, query string, numDocuments int, collection string) ([]vs.Document, error) {
+	col := s.db.GetCollection(collection, s.embeddingFunc)
+	if col == nil {
+		return nil, vs.ErrCollectionNotFound{Collection: collection}
+	}
 
-	qr, err := s.collection.Query(ctx, query, numDocuments, nil, nil)
+	qr, err := col.Query(ctx, query, numDocuments, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -102,19 +113,19 @@ func (s Store) SimilaritySearch(ctx context.Context, query string, numDocuments 
 		return nil, nil
 	}
 
-	var sDocs []schema.Document
+	var sDocs []vs.Document
 
 	for _, qrd := range qr {
-		sDocs = append(sDocs, schema.Document{
-			Metadata:    convertStringMapToAnyMap(qrd.Metadata),
-			Score:       qrd.Similarity,
-			PageContent: qrd.Content,
+		sDocs = append(sDocs, vs.Document{
+			Metadata:        convertStringMapToAnyMap(qrd.Metadata),
+			SimilarityScore: qrd.Similarity,
+			Content:         qrd.Content,
 		})
 	}
 
 	return sDocs, nil
 }
 
-func (s Store) RemoveCollection(ctx context.Context) error {
-	return s.db.DeleteCollection(s.collection.Name)
+func (s Store) RemoveCollection(_ context.Context, collection string) error {
+	return s.db.DeleteCollection(collection)
 }

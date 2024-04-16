@@ -1,5 +1,3 @@
-# cloud.google.com/go/aiplatform v1.60.0
-## explicit; go 1.19
 # github.com/AssemblyAI/assemblyai-go-sdk v1.3.0
 ## explicit; go 1.18
 github.com/AssemblyAI/assemblyai-go-sdk
@@ -12,6 +10,9 @@ github.com/PuerkitoBio/goquery
 # github.com/acorn-io/cmd v0.0.0-20240404013709-34f690bde37b
 ## explicit; go 1.21.0
 github.com/acorn-io/cmd
+# github.com/acorn-io/z v0.0.0-20231104012607-4cab1b3ec5e5
+## explicit; go 1.20
+github.com/acorn-io/z
 # github.com/andybalholm/cascadia v1.3.2
 ## explicit; go 1.16
 github.com/andybalholm/cascadia
@@ -146,7 +147,7 @@ github.com/klauspost/compress/flate
 # github.com/klauspost/cpuid/v2 v2.2.7
 ## explicit; go 1.15
 github.com/klauspost/cpuid/v2
-# github.com/ledongthuc/pdf v0.0.0-20220302134840-0c2507a12d80
+# github.com/ledongthuc/pdf v0.0.0-20240201131950-da5b75280b06
 ## explicit
 github.com/ledongthuc/pdf
 # github.com/leodido/go-urn v1.4.0
@@ -206,14 +207,9 @@ github.com/swaggo/gin-swagger
 github.com/swaggo/swag
 # github.com/tmc/langchaingo v0.1.8
 ## explicit; go 1.22.0
-github.com/tmc/langchaingo/callbacks
 github.com/tmc/langchaingo/documentloaders
-github.com/tmc/langchaingo/embeddings
-github.com/tmc/langchaingo/internal/util
-github.com/tmc/langchaingo/llms
 github.com/tmc/langchaingo/schema
 github.com/tmc/langchaingo/textsplitter
-github.com/tmc/langchaingo/vectorstores
 # github.com/twitchyliquid64/golang-asm v0.15.1
 ## explicit; go 1.13
 github.com/twitchyliquid64/golang-asm/asm/arch
@@ -294,12 +290,6 @@ golang.org/x/tools/go/buildutil
 golang.org/x/tools/go/internal/cgo
 golang.org/x/tools/go/loader
 golang.org/x/tools/internal/versions
-# google.golang.org/api v0.166.0
-## explicit; go 1.19
-# google.golang.org/genproto v0.0.0-20240213162025-012b6fc9bca9
-## explicit; go 1.19
-# google.golang.org/genproto/googleapis/api v0.0.0-20240221002015-b0ce06bbee7c
-## explicit; go 1.19
 # google.golang.org/protobuf v1.33.0
 ## explicit; go 1.17
 google.golang.org/protobuf/encoding/protowire

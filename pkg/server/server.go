@@ -2,14 +2,15 @@ package server
 
 import (
 	"context"
+	"github.com/acorn-io/z"
 	"github.com/gin-gonic/gin"
 	"github.com/gptscript-ai/knowledge/pkg/db"
 	"github.com/gptscript-ai/knowledge/pkg/docs"
+	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 	"github.com/gptscript-ai/knowledge/pkg/vectorstore/chromem"
 	cg "github.com/philippgille/chromem-go"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"github.com/tmc/langchaingo/vectorstores"
 	"log/slog"
 	"net/http"
 )
@@ -18,13 +19,18 @@ type Config struct {
 	ServerURL, Port, APIBase string
 }
 
-type Server struct {
-	db *db.DB
-	vs vectorstores.VectorStore
+type OpenAIConfig struct {
+	APIBase, APIKey, EmbeddingModel string
 }
 
-func NewServer(db *db.DB) *Server {
-	return &Server{db: db}
+type Server struct {
+	db           *db.DB
+	vs           vs.VectorStore
+	openAIConfig OpenAIConfig
+}
+
+func NewServer(db *db.DB, openAIConfig OpenAIConfig) *Server {
+	return &Server{db: db, openAIConfig: openAIConfig}
 }
 
 // Start starts the server with the given configuration.
@@ -70,29 +76,20 @@ func (s *Server) Start(ctx context.Context, cfg Config) error {
 		}
 	}
 
+	// Setup VectorStore
 	vsdb, err := cg.NewPersistentDB("vector.db", false)
 	if err != nil {
 		return err
 	}
 
-	normalized := true
-	ef := cg.NewEmbeddingFuncOpenAICompat(
-		"http://localhost:8080/v1",
-		"sk-foo",
-		"text-embedding-ada-002",
-		&normalized,
+	embeddingFunc := cg.NewEmbeddingFuncOpenAICompat(
+		s.openAIConfig.APIBase,
+		s.openAIConfig.APIKey,
+		s.openAIConfig.EmbeddingModel,
+		z.Pointer(true),
 	)
 
-	col, err := vsdb.GetOrCreateCollection("default", nil, ef)
-	if err != nil {
-		return err
-	}
-
-	vs, err := chromem.New(chromem.WithDB(vsdb), chromem.WithEmbeddingFunc(ef), chromem.WithCollection(col))
-	if err != nil {
-		return err
-	}
-	s.vs = vs
+	s.vs = chromem.New(vsdb, embeddingFunc)
 
 	// Start server
 	return router.Run(":" + cfg.Port)

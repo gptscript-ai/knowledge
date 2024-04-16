@@ -50,6 +50,7 @@ Search:
 				num--
 			}
 		}
+		break
 	}
 	return Page{}
 }

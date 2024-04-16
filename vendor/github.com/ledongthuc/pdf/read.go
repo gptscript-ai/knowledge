@@ -114,6 +114,10 @@ func Open(file string) (*os.File, *Reader, error) {
 		return nil, nil, err
 	}
 	reader, err := NewReader(f, fi.Size())
+	if err != nil {
+		f.Close()
+		return nil, nil, err
+	}
 	return f, reader, err
 }
 

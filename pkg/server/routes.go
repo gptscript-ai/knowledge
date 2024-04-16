@@ -9,7 +9,7 @@ import (
 	"github.com/gptscript-ai/knowledge/pkg/db"
 	"github.com/gptscript-ai/knowledge/pkg/types"
 	"github.com/gptscript-ai/knowledge/pkg/types/defaults"
-	"github.com/gptscript-ai/knowledge/pkg/vectorstore/chromem"
+	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 	"github.com/tmc/langchaingo/documentloaders"
 	"github.com/tmc/langchaingo/schema"
 	"log/slog"
@@ -46,6 +46,14 @@ func (s *Server) CreateDataset(c *gin.Context) {
 		return
 	}
 
+	// Create collection
+	err := s.vs.CreateCollection(c, dataset.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+
+	}
+
 	c.JSON(http.StatusOK, dataset)
 }
 
@@ -67,12 +75,11 @@ func (s *Server) DeleteDataset(c *gin.Context) {
 		return
 	}
 
-	err := s.vs.(chromem.Store).RemoveCollection(c)
+	err := s.vs.RemoveCollection(c, id)
 	if err != nil {
 		slog.Error("Failed to delete dataset (from vector store)", "error", err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
-
 	}
 
 	c.JSON(http.StatusOK, gin.H{"id": id})
@@ -139,15 +146,13 @@ func (s *Server) RetrieveFromDataset(c *gin.Context) {
 	if query.TopK == nil {
 		t := defaults.TopK
 		query.TopK = &t
-
 	}
 	slog.Debug("Retrieving content from dataset", "dataset", id, "query", query)
 
-	docs, err := s.vs.SimilaritySearch(c, query.Prompt, *query.TopK)
+	docs, err := s.vs.SimilaritySearch(c, query.Prompt, *query.TopK, id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
-
 	}
 	slog.Debug("Retrieved documents", "count", len(docs), "docs", docs)
 	c.JSON(http.StatusOK, gin.H{"results": docs})
@@ -185,13 +190,13 @@ func (s *Server) IngestIntoDataset(c *gin.Context) {
 		ingest.Filename = &n
 	}
 
-	var docs []schema.Document
+	var lcdocs []schema.Document
 
 	switch path.Ext(*ingest.Filename) {
 	case ".pdf":
-		docs, err = documentloaders.NewPDF(bytes.NewReader(data), int64(len(data))).Load(c)
+		lcdocs, err = documentloaders.NewPDF(bytes.NewReader(data), int64(len(data))).Load(c)
 	case ".md":
-		docs, err = documentloaders.NewText(bytes.NewReader(data)).Load(c)
+		lcdocs, err = documentloaders.NewText(bytes.NewReader(data)).Load(c)
 	default:
 		slog.Error("Unsupported file type", "filename", *ingest.Filename)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "unsupported file type"})
@@ -204,21 +209,28 @@ func (s *Server) IngestIntoDataset(c *gin.Context) {
 		return
 	}
 
+	docs := make([]vs.Document, len(lcdocs))
+	for idx, doc := range lcdocs {
+		doc.Metadata["filename"] = *ingest.Filename
+		docs[idx] = vs.Document{
+			Metadata: doc.Metadata,
+			Content:  doc.PageContent,
+		}
+	}
+
 	if len(docs) == 0 {
 		slog.Error("No documents found")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "no documents found"})
 		return
-
 	}
 
-	slog.Debug("Ingested documents", "count", len(docs))
+	slog.Debug("Ingesting documents", "count", len(lcdocs))
 
-	docIDs, err := s.vs.AddDocuments(c, docs)
+	docIDs, err := s.vs.AddDocuments(c, docs, id)
 	if err != nil {
 		slog.Error("Failed to add documents", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
-
 	}
 
 	c.JSON(http.StatusOK, gin.H{"documents": docIDs, "ingest": ingest})
@@ -270,7 +282,6 @@ func (s *Server) ListDatasets(c *gin.Context) {
 	if tx.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": tx.Error.Error()})
 		return
-
 	}
 
 	var datasets []types.Dataset
