@@ -9,6 +9,7 @@ import (
 	"github.com/gptscript-ai/knowledge/pkg/db"
 	"github.com/gptscript-ai/knowledge/pkg/types"
 	"github.com/gptscript-ai/knowledge/pkg/types/defaults"
+	"github.com/gptscript-ai/knowledge/pkg/vectorstore/chromem"
 	"github.com/tmc/langchaingo/documentloaders"
 	"github.com/tmc/langchaingo/schema"
 	"log/slog"
@@ -61,8 +62,17 @@ func (s *Server) DeleteDataset(c *gin.Context) {
 
 	tx := s.db.WithContext(c).Delete(&types.Dataset{}, "id = ?", id)
 	if tx.Error != nil {
+		slog.Error("Failed to delete dataset (from DB)", "error", tx.Error.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"error": tx.Error.Error()})
 		return
+	}
+
+	err := s.vs.(chromem.Store).RemoveCollection(c)
+	if err != nil {
+		slog.Error("Failed to delete dataset (from vector store)", "error", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+
 	}
 
 	c.JSON(http.StatusOK, gin.H{"id": id})
@@ -140,7 +150,7 @@ func (s *Server) RetrieveFromDataset(c *gin.Context) {
 
 	}
 	slog.Debug("Retrieved documents", "count", len(docs), "docs", docs)
-	c.JSON(http.StatusOK, gin.H{"documents": docs, "query": query})
+	c.JSON(http.StatusOK, gin.H{"results": docs})
 }
 
 // IngestIntoDataset ingests content into a dataset by ID.

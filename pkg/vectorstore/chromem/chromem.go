@@ -45,7 +45,7 @@ func (s Store) AddDocuments(ctx context.Context, docs []schema.Document, options
 		chromemDocs[docIdx] = chromem.Document{
 			ID:        ids[docIdx],
 			Metadata:  anyMapToStringMap(mc),
-			Embedding: nil, // Embeddings will be downstream
+			Embedding: nil, // Embeddings will be computed downstream
 			Content:   doc.PageContent,
 		}
 	}
@@ -113,4 +113,8 @@ func (s Store) SimilaritySearch(ctx context.Context, query string, numDocuments 
 	}
 
 	return sDocs, nil
+}
+
+func (s Store) RemoveCollection(ctx context.Context) error {
+	return s.db.DeleteCollection(s.collection.Name)
 }
