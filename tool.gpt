@@ -1,0 +1,6 @@
+name: retrieval
+description: A tool that queries the knowledge retrieval API to get similar documents from the Vector database. Response source texts with references that can be used for citations. It does not contain a generated answer, only source text.
+
+args: prompt: The query prompt to ask the vector database. URL Encoded string.
+
+#!http://${knowledge_retrieval_api_url}/datasets/${knowledge_retrieval_dataset}/retrieve
