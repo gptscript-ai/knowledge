@@ -9,3 +9,12 @@ Just run this from the repository root:
 ```bash
 make run # it will be available at http://localhost:8000
 ```
+
+## Supported File Types
+
+- `.md`
+- `.txt`
+- `.html`
+- `.pdf`
+- `.ipynb`
+- `.csv`

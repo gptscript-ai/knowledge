@@ -10,8 +10,10 @@ import (
 	"github.com/gptscript-ai/knowledge/pkg/types"
 	"github.com/gptscript-ai/knowledge/pkg/types/defaults"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
-	"github.com/tmc/langchaingo/documentloaders"
-	"github.com/tmc/langchaingo/schema"
+	golcdocloaders "github.com/hupe1980/golc/documentloader"
+	golcschema "github.com/hupe1980/golc/schema"
+	lcgodocloaders "github.com/tmc/langchaingo/documentloaders"
+	lcgoschema "github.com/tmc/langchaingo/schema"
 	"log/slog"
 	"net/http"
 	"path"
@@ -190,13 +192,32 @@ func (s *Server) IngestIntoDataset(c *gin.Context) {
 		ingest.Filename = &n
 	}
 
-	var lcdocs []schema.Document
+	/*
+	 * Load documents from the content
+	 * For now, we're using documentloaders from both langchaingo and golc
+	 * and translate them to our document schema.
+	 */
+
+	var lcgodocs []lcgoschema.Document
+	var golcdocs []golcschema.Document
 
 	switch path.Ext(*ingest.Filename) {
 	case ".pdf":
-		lcdocs, err = documentloaders.NewPDF(bytes.NewReader(data), int64(len(data))).Load(c)
-	case ".md":
-		lcdocs, err = documentloaders.NewText(bytes.NewReader(data)).Load(c)
+		r, err := golcdocloaders.NewPDF(bytes.NewReader(data), int64(len(data)))
+		if err != nil {
+			slog.Error("Failed to create PDF loader", "error", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		golcdocs, err = r.Load(c)
+	case ".html":
+		lcgodocs, err = lcgodocloaders.NewHTML(bytes.NewReader(data)).Load(c)
+	case ".md", ".txt":
+		lcgodocs, err = lcgodocloaders.NewText(bytes.NewReader(data)).Load(c)
+	case ".csv":
+		golcdocs, err = golcdocloaders.NewCSV(bytes.NewReader(data)).Load(c)
+	case ".ipynb":
+		golcdocs, err = golcdocloaders.NewNotebook(bytes.NewReader(data)).Load(c)
 	default:
 		slog.Error("Unsupported file type", "filename", *ingest.Filename)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "unsupported file type"})
@@ -209,13 +230,22 @@ func (s *Server) IngestIntoDataset(c *gin.Context) {
 		return
 	}
 
-	docs := make([]vs.Document, len(lcdocs))
-	for idx, doc := range lcdocs {
+	docs := make([]vs.Document, len(lcgodocs)+len(golcdocs))
+	for idx, doc := range lcgodocs {
 		doc.Metadata["filename"] = *ingest.Filename
 		docs[idx] = vs.Document{
 			Metadata: doc.Metadata,
 			Content:  doc.PageContent,
 		}
+	}
+
+	for idx, doc := range golcdocs {
+		doc.Metadata["filename"] = *ingest.Filename
+		docs[idx] = vs.Document{
+			Metadata: doc.Metadata,
+			Content:  doc.PageContent,
+		}
+
 	}
 
 	if len(docs) == 0 {
@@ -224,7 +254,7 @@ func (s *Server) IngestIntoDataset(c *gin.Context) {
 		return
 	}
 
-	slog.Debug("Ingesting documents", "count", len(lcdocs))
+	slog.Debug("Ingesting documents", "count", len(lcgodocs))
 
 	docIDs, err := s.vs.AddDocuments(c, docs, id)
 	if err != nil {
