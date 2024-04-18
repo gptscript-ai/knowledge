@@ -3,6 +3,8 @@ package server
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/csv"
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -216,6 +218,17 @@ func (s *Server) IngestIntoDataset(c *gin.Context) {
 		lcgodocs, err = lcgodocloaders.NewText(bytes.NewReader(data)).Load(c)
 	case ".csv":
 		golcdocs, err = golcdocloaders.NewCSV(bytes.NewReader(data)).Load(c)
+		if err != nil && errors.Is(err, csv.ErrBareQuote) {
+			oerr := err
+			err = nil
+			var nerr error
+			golcdocs, nerr = golcdocloaders.NewCSV(bytes.NewReader(data), func(o *golcdocloaders.CSVOptions) {
+				o.LazyQuotes = true
+			}).Load(c)
+			if nerr != nil {
+				err = errors.Join(oerr, nerr)
+			}
+		}
 	case ".ipynb":
 		golcdocs, err = golcdocloaders.NewNotebook(bytes.NewReader(data)).Load(c)
 	default:
@@ -254,7 +267,7 @@ func (s *Server) IngestIntoDataset(c *gin.Context) {
 		return
 	}
 
-	slog.Debug("Ingesting documents", "count", len(lcgodocs))
+	slog.Debug("Ingesting documents", "count", len(docs))
 
 	docIDs, err := s.vs.AddDocuments(c, docs, id)
 	if err != nil {
