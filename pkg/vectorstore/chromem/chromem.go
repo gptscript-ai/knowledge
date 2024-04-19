@@ -129,3 +129,11 @@ func (s Store) SimilaritySearch(ctx context.Context, query string, numDocuments 
 func (s Store) RemoveCollection(_ context.Context, collection string) error {
 	return s.db.DeleteCollection(collection)
 }
+
+func (s Store) RemoveDocument(ctx context.Context, documentID string, collection string) error {
+	col := s.db.GetCollection(collection, s.embeddingFunc)
+	if col == nil {
+		return vs.ErrCollectionNotFound{Collection: collection}
+	}
+	return col.RemoveDocument(ctx, documentID)
+}

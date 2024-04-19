@@ -2,9 +2,12 @@ module github.com/gptscript-ai/knowledge
 
 go 1.22.0
 
+replace github.com/philippgille/chromem-go => github.com/iwilltry42/chromem-go v0.0.0-20240419121044-1ef1eb87f43d
+
 require (
 	github.com/acorn-io/cmd v0.0.0-20240404013709-34f690bde37b
 	github.com/acorn-io/z v0.0.0-20231104012607-4cab1b3ec5e5
+	github.com/gabriel-vasile/mimetype v1.4.3
 	github.com/gin-gonic/gin v1.9.1
 	github.com/glebarez/sqlite v1.11.0
 	github.com/go-playground/validator/v10 v10.19.0
@@ -42,7 +45,6 @@ require (
 	github.com/dlclark/regexp2 v1.11.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
-	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/glebarez/go-sqlite v1.21.2 // indirect
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
