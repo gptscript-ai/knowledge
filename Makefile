@@ -1,9 +1,11 @@
 GO_TAGS ?= netgo
-build: openapi
+build:
 	CGO_ENABLED=0 go build -o bin/knowledge -tags "${GO_TAGS}" -ldflags "-s -w" .
 
-run: openapi build
+run: build
 	bin/knowledge server
+
+run-dev: openapi run
 
 clean-dev:
 	rm knowledge.db
