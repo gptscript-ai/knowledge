@@ -11,7 +11,7 @@ type Dataset struct {
 type File struct {
 	ID        string     `gorm:"primaryKey" json:"id"`
 	Dataset   string     `gorm:"primaryKey" json:"dataset"` // Foreign key to Dataset
-	Documents []Document `gorm:"foreignKey:Dataset,ID;references:Dataset,ID;constraint:OnDelete:CASCADE;"`
+	Documents []Document `gorm:"foreignKey:FileID,Dataset;references:ID,Dataset;constraint:OnDelete:CASCADE;"`
 }
 
 type Document struct {

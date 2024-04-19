@@ -42,6 +42,12 @@ func New(dsn string, autoMigrate bool) (*DB, error) {
 		return nil, err
 	}
 
+	// Enable foreign key constraint to make sure that deletes cascade
+	tx := db.Exec("PRAGMA foreign_keys = ON")
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+
 	sqlDB, err := db.DB()
 	if err != nil {
 		return nil, err

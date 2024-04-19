@@ -37,7 +37,7 @@ func (s Store) AddDocuments(ctx context.Context, docs []vs.Document, collection 
 	ids := make([]string, len(docs))
 	chromemDocs := make([]chromem.Document, len(docs))
 	for docIdx, doc := range docs {
-		ids[docIdx] = uuid.New().String()
+		ids[docIdx] = uuid.NewString()
 		mc := make(map[string]any)
 		maps.Copy(mc, doc.Metadata)
 		if len(doc.Content) == 0 {

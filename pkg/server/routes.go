@@ -10,6 +10,7 @@ import (
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 	"github.com/gptscript-ai/knowledge/pkg/db"
 	"github.com/gptscript-ai/knowledge/pkg/types"
 	"github.com/gptscript-ai/knowledge/pkg/types/defaults"
@@ -183,6 +184,17 @@ func (s *Server) IngestIntoDataset(c *gin.Context) {
 		return
 	}
 
+	// Generate ID if none was provided
+	if ingest.FileID == nil {
+		fid, err := uuid.NewUUID()
+		if err != nil {
+			slog.Error("Failed to generate UUID", "error", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		ingest.FileID = z.Pointer(fid.String())
+	}
+
 	// decode content
 	data, err := base64.StdEncoding.DecodeString(ingest.Content)
 	if err != nil {
@@ -287,8 +299,8 @@ func (s *Server) IngestIntoDataset(c *gin.Context) {
 		return
 	}
 
+	// Add documents to VectorStore -> This generates the embeddings
 	slog.Debug("Ingesting documents", "count", len(docs))
-
 	docIDs, err := s.vs.AddDocuments(c, docs, id)
 	if err != nil {
 		slog.Error("Failed to add documents", "error", err)
@@ -296,10 +308,32 @@ func (s *Server) IngestIntoDataset(c *gin.Context) {
 		return
 	}
 
+	// Record file and documents in database
+	dbDocs := make([]db.Document, len(docIDs))
+	for idx, docID := range docIDs {
+		dbDocs[idx] = db.Document{
+			ID:      docID,
+			FileID:  *ingest.FileID,
+			Dataset: id,
+		}
+	}
+	dbFile := db.File{
+		ID:        *ingest.FileID,
+		Dataset:   id,
+		Documents: dbDocs,
+	}
+
+	tx := s.db.WithContext(c).Create(&dbFile)
+	if tx.Error != nil {
+		slog.Error("Failed to create file", "error", tx.Error)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": tx.Error.Error()})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{"documents": docIDs, "ingest": ingest})
 }
 
-// RemoveDocumentFromDataset removes a document from a dataset by ID.
+// RemoveDocumentFromDataset removes a document from a dataset by ID. If the owning file context is now empty, the FileIndex is removed.
 // @Summary Remove a document from a dataset
 // @Description Remove a document from a dataset by ID
 // @Tags datasets
@@ -312,7 +346,50 @@ func (s *Server) RemoveDocumentFromDataset(c *gin.Context) {
 	id := c.Param("id")
 	docID := c.Param("doc_id")
 	slog.Info("Removing document from dataset", "dataset", id, "document", docID)
-	// TODO: DB remove logic here
+
+	// Find in Database
+	var document db.Document
+	tx := s.db.WithContext(c).First(&document, "id = ? AND dataset = ?", docID, id)
+	if tx.Error != nil {
+		slog.Error("Failed to find document", "error", tx.Error.Error(), "dataset", id, "document", docID)
+		c.JSON(http.StatusNotFound, gin.H{"error": tx.Error.Error()})
+		return
+	}
+
+	// Remove from VectorStore
+	if err := s.vs.RemoveDocument(c, docID, id); err != nil {
+		slog.Error("Failed to remove document", "error", err, "dataset", id, "document", docID)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Remove from Database
+	tx = s.db.WithContext(c).Delete(&document)
+	if tx.Error != nil {
+		slog.Error("Failed to delete document", "error", tx.Error.Error(), "dataset", id, "document", docID)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": tx.Error.Error()})
+		return
+	}
+
+	// Check if owning file should be removed
+	var count int64
+	tx = s.db.WithContext(c).Model(&db.Document{}).Where("file_id = ?", document.FileID).Count(&count)
+	if tx.Error != nil {
+		slog.Error("Failed to count documents", "error", tx.Error.Error(), "file", document.FileID)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": tx.Error.Error()})
+		return
+	}
+
+	if count == 0 {
+		slog.Info("Removing file, because all associated documents are gone", "file", document.FileID)
+		tx = s.db.WithContext(c).Delete(&db.File{}, "id = ?", document.FileID)
+		if tx.Error != nil {
+			slog.Error("Failed to delete file", "error", tx.Error.Error(), "file", document.FileID)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": tx.Error.Error()})
+			return
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{"id": id, "doc_id": docID})
 }
 
@@ -329,7 +406,40 @@ func (s *Server) RemoveFileFromDataset(c *gin.Context) {
 	id := c.Param("id")
 	fileID := c.Param("file_id")
 	slog.Info("Removing file from dataset", "dataset", id, "file", fileID)
-	// TODO: DB remove logic here
+
+	// Find file in database with associated documents
+	var file db.File
+	tx := s.db.WithContext(c).Preload("Documents").Where("id = ? AND dataset = ?", fileID, id).First(&file)
+	if tx.Error != nil {
+		slog.Error("Failed to find file", "error", tx.Error.Error(), "dataset", id, "file", fileID)
+		c.JSON(http.StatusNotFound, gin.H{"error": tx.Error.Error()})
+		return
+	}
+
+	// Remove owned documents from VectorStore and Database
+	for _, doc := range file.Documents {
+		if err := s.vs.RemoveDocument(c, doc.ID, id); err != nil {
+			slog.Error("Failed to remove document", "error", err, "dataset", id, "document", doc.ID)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		tx = s.db.WithContext(c).Delete(&doc)
+		if tx.Error != nil {
+			slog.Error("Failed to delete document", "error", tx.Error.Error(), "dataset", id, "document", doc.ID)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": tx.Error.Error()})
+			return
+		}
+	}
+
+	// Remove file DB
+	tx = s.db.WithContext(c).Delete(&file)
+	if tx.Error != nil {
+		slog.Error("Failed to delete file", "error", tx.Error.Error(), "dataset", id, "file", fileID)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": tx.Error.Error()})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{"id": id, "file_id": fileID})
 }
 
@@ -365,12 +475,17 @@ func (s *Server) ListDatasets(c *gin.Context) {
 func (s *Server) GetDataset(c *gin.Context) {
 	id := c.Param("id")
 	slog.Info("Getting dataset", "id", id)
-	dataset := &types.Dataset{}
-	tx := s.db.WithContext(c).First(dataset, "id = ?", id)
+
+	// Get dataset with files and associated documents preloaded
+	var dataset db.Dataset
+	tx := s.db.WithContext(c).Preload("Files.Documents").First(&dataset, "id = ?", id)
 	if tx.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": tx.Error.Error()})
+		slog.Error("Failed to find dataset", "error", tx.Error.Error(), "id", id)
+		c.JSON(http.StatusNotFound, gin.H{"error": tx.Error.Error()})
 		return
 	}
+
+	slog.Info("Found dataset", "id", dataset.ID, "files", len(dataset.Files))
 
 	c.JSON(http.StatusOK, dataset)
 }
