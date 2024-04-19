@@ -6,6 +6,8 @@ import (
 	"encoding/csv"
 	"errors"
 	"fmt"
+	"github.com/acorn-io/z"
+	"github.com/gabriel-vasile/mimetype"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/gptscript-ai/knowledge/pkg/db"
@@ -189,10 +191,28 @@ func (s *Server) IngestIntoDataset(c *gin.Context) {
 		return
 	}
 
-	if ingest.Filename == nil {
-		n := "doc"
-		ingest.Filename = &n
+	/*
+	 * Detect filetype
+	 */
+	var filetype string
+	if ingest.Filename != nil {
+		filetype = path.Ext(*ingest.Filename)
 	}
+	if filetype == "" {
+		filetype = http.DetectContentType(data)
+		if filetype == "application/octet-stream" { // fallback to mimetype
+			filetype = mimetype.Detect(data).String()
+		}
+	}
+
+	/*
+	 * Set filename if not provided
+	 */
+	if ingest.Filename == nil {
+		ingest.Filename = z.Pointer("<unnamed_document>")
+	}
+
+	slog.Debug("Loading data", "type", filetype, "filename", *ingest.Filename, "size", len(data))
 
 	/*
 	 * Load documents from the content
@@ -203,8 +223,8 @@ func (s *Server) IngestIntoDataset(c *gin.Context) {
 	var lcgodocs []lcgoschema.Document
 	var golcdocs []golcschema.Document
 
-	switch path.Ext(*ingest.Filename) {
-	case ".pdf":
+	switch filetype {
+	case ".pdf", "application/pdf":
 		r, err := golcdocloaders.NewPDF(bytes.NewReader(data), int64(len(data)))
 		if err != nil {
 			slog.Error("Failed to create PDF loader", "error", err)
@@ -212,11 +232,11 @@ func (s *Server) IngestIntoDataset(c *gin.Context) {
 			return
 		}
 		golcdocs, err = r.Load(c)
-	case ".html":
+	case ".html", "text/html":
 		lcgodocs, err = lcgodocloaders.NewHTML(bytes.NewReader(data)).Load(c)
-	case ".md", ".txt":
+	case ".md", ".txt", "text/plain", "text/markdown":
 		lcgodocs, err = lcgodocloaders.NewText(bytes.NewReader(data)).Load(c)
-	case ".csv":
+	case ".csv", "text/csv":
 		golcdocs, err = golcdocloaders.NewCSV(bytes.NewReader(data)).Load(c)
 		if err != nil && errors.Is(err, csv.ErrBareQuote) {
 			oerr := err
