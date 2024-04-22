@@ -135,5 +135,5 @@ func (s Store) RemoveDocument(ctx context.Context, documentID string, collection
 	if col == nil {
 		return vs.ErrCollectionNotFound{Collection: collection}
 	}
-	return col.RemoveDocument(ctx, documentID)
+	return col.Delete(ctx, nil, nil, documentID)
 }

@@ -2,8 +2,6 @@ module github.com/gptscript-ai/knowledge
 
 go 1.22.0
 
-replace github.com/philippgille/chromem-go => github.com/iwilltry42/chromem-go v0.0.0-20240419121044-1ef1eb87f43d
-
 require (
 	github.com/acorn-io/cmd v0.0.0-20240404013709-34f690bde37b
 	github.com/acorn-io/z v0.0.0-20231104012607-4cab1b3ec5e5
@@ -13,7 +11,7 @@ require (
 	github.com/go-playground/validator/v10 v10.19.0
 	github.com/google/uuid v1.6.0
 	github.com/hupe1980/golc v0.0.110
-	github.com/philippgille/chromem-go v0.5.0
+	github.com/philippgille/chromem-go v0.5.1-0.20240422192035-df6c86386820
 	github.com/spf13/cobra v1.8.0
 	github.com/swaggo/files v1.0.1
 	github.com/swaggo/gin-swagger v1.6.0
