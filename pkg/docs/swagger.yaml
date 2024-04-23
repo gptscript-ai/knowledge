@@ -1,4 +1,7 @@
 definitions:
+  gin.H:
+    additionalProperties: {}
+    type: object
   types.Dataset:
     properties:
       embed_dim:
@@ -25,7 +28,13 @@ paths:
       description: List all datasets
       produces:
       - application/json
-      responses: {}
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/types.Dataset'
+            type: array
       summary: List all datasets
       tags:
       - datasets
@@ -40,7 +49,11 @@ paths:
         type: string
       produces:
       - application/json
-      responses: {}
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gin.H'
       summary: Delete a dataset
       tags:
       - datasets
@@ -54,7 +67,11 @@ paths:
         type: string
       produces:
       - application/json
-      responses: {}
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.Dataset'
       summary: Get a dataset
       tags:
       - datasets
@@ -76,7 +93,11 @@ paths:
         type: string
       produces:
       - application/json
-      responses: {}
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gin.H'
       summary: Remove a document from a dataset
       tags:
       - datasets
@@ -98,7 +119,11 @@ paths:
         type: string
       produces:
       - application/json
-      responses: {}
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gin.H'
       summary: Remove a file from a dataset
       tags:
       - datasets
@@ -115,7 +140,11 @@ paths:
         type: string
       produces:
       - application/json
-      responses: {}
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gin.H'
       summary: Ingest content into a dataset
       tags:
       - datasets
@@ -132,7 +161,11 @@ paths:
         type: string
       produces:
       - application/json
-      responses: {}
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gin.H'
       summary: Query a dataset
       tags:
       - datasets
@@ -149,7 +182,11 @@ paths:
         type: string
       produces:
       - application/json
-      responses: {}
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gin.H'
       summary: Retrieve content from a dataset
       tags:
       - datasets
@@ -167,7 +204,11 @@ paths:
           $ref: '#/definitions/types.Dataset'
       produces:
       - application/json
-      responses: {}
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.Dataset'
       summary: Create a new dataset
       tags:
       - datasets

@@ -32,6 +32,7 @@ import (
 // @Produce json
 // @Param dataset body types.Dataset true "Dataset object"
 // @Router /datasets/create [post]
+// @Success 200 {object} types.Dataset
 func (s *Server) CreateDataset(c *gin.Context) {
 	var dataset types.Dataset
 	if err := c.ShouldBindJSON(&dataset); err != nil {
@@ -71,6 +72,7 @@ func (s *Server) CreateDataset(c *gin.Context) {
 // @Produce json
 // @Param id path string true "Dataset ID"
 // @Router /datasets/{id} [delete]
+// @Success 200 {object} gin.H
 func (s *Server) DeleteDataset(c *gin.Context) {
 	id := c.Param("id")
 	slog.Info("Deleting dataset", "id", id)
@@ -100,6 +102,7 @@ func (s *Server) DeleteDataset(c *gin.Context) {
 // @Produce json
 // @Param id path string true "Dataset ID"
 // @Router /datasets/{id}/query [post]
+// @Success 200 {object} gin.H
 func (s *Server) QueryDataset(c *gin.Context) {
 	id := c.Param("id")
 	slog.Info("Querying dataset", "id", id)
@@ -140,6 +143,7 @@ func (s *Server) QueryDataset(c *gin.Context) {
 // @Produce json
 // @Param id path string true "Dataset ID"
 // @Router /datasets/{id}/retrieve [post]
+// @Success 200 {object} gin.H
 func (s *Server) RetrieveFromDataset(c *gin.Context) {
 	id := c.Param("id")
 	slog.Info("Retrieving content from dataset", "dataset", id)
@@ -158,6 +162,7 @@ func (s *Server) RetrieveFromDataset(c *gin.Context) {
 
 	docs, err := s.vs.SimilaritySearch(c, query.Prompt, *query.TopK, id)
 	if err != nil {
+		slog.Error("Failed to retrieve documents", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -173,6 +178,7 @@ func (s *Server) RetrieveFromDataset(c *gin.Context) {
 // @Produce json
 // @Param id path string true "Dataset ID"
 // @Router /datasets/{id}/ingest [post]
+// @Success 200 {object} gin.H
 func (s *Server) IngestIntoDataset(c *gin.Context) {
 	id := c.Param("id")
 	slog.Info("Ingesting content into dataset", "dataset", id)
@@ -342,6 +348,7 @@ func (s *Server) IngestIntoDataset(c *gin.Context) {
 // @Param id path string true "Dataset ID"
 // @Param doc_id path string true "Document ID"
 // @Router /datasets/{id}/documents/{doc_id} [delete]
+// @Success 200 {object} gin.H
 func (s *Server) RemoveDocumentFromDataset(c *gin.Context) {
 	id := c.Param("id")
 	docID := c.Param("doc_id")
@@ -402,6 +409,7 @@ func (s *Server) RemoveDocumentFromDataset(c *gin.Context) {
 // @Param id path string true "Dataset ID"
 // @Param file_id path string true "File ID"
 // @Router /datasets/{id}/files/{file_id} [delete]
+// @Success 200 {object} gin.H
 func (s *Server) RemoveFileFromDataset(c *gin.Context) {
 	id := c.Param("id")
 	fileID := c.Param("file_id")
@@ -449,6 +457,7 @@ func (s *Server) RemoveFileFromDataset(c *gin.Context) {
 // @Tags datasets
 // @Produce json
 // @Router /datasets [get]
+// @Success 200 {object} []types.Dataset
 func (s *Server) ListDatasets(c *gin.Context) {
 	slog.Info("Listing datasets")
 	tx := s.db.WithContext(c).Find(&[]types.Dataset{})
@@ -472,6 +481,7 @@ func (s *Server) ListDatasets(c *gin.Context) {
 // @Produce json
 // @Param id path string true "Dataset ID"
 // @Router /datasets/{id} [get]
+// @Success 200 {object} types.Dataset
 func (s *Server) GetDataset(c *gin.Context) {
 	id := c.Param("id")
 	slog.Info("Getting dataset", "id", id)
