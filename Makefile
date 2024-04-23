@@ -5,11 +5,16 @@ build:
 run: build
 	bin/knowledge server
 
-run-dev: openapi run
+run-dev: generate run
 
 clean-dev:
 	rm knowledge.db
 	rm -r vector.db
 
+generate: tools openapi
+
 openapi:
-	swag init -g pkg/server/server.go -o pkg/docs
+	swag init --parseDependency -g pkg/server/server.go -o pkg/docs
+
+tools:
+	if ! command -v swag &> /dev/null; then go install github.com/swaggo/swag/cmd/swag@latest; fi

@@ -18,3 +18,7 @@ make run # it will be available at http://localhost:8000
 - `.pdf`
 - `.ipynb`
 - `.csv`
+
+## OpenAPI / Swagger
+
+The API is documented using OpenAPI 2.0 (Swagger), automatically generated using [`swaggo/swag`](https://github.com/swaggo/swag) (`make openapi`).
