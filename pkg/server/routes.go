@@ -22,6 +22,7 @@ import (
 	"log/slog"
 	"net/http"
 	"path"
+	"strings"
 )
 
 // CreateDataset creates a new dataset.
@@ -222,6 +223,13 @@ func (s *Server) IngestIntoDataset(c *gin.Context) {
 			filetype = mimetype.Detect(data).String()
 		}
 	}
+	if filetype == "" {
+		slog.Error("Failed to detect filetype", "filename", *ingest.Filename)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to detect filetype"})
+		return
+	}
+
+	filetype = strings.Split(filetype, ";")[0] // remove charset (mimetype), e.g. from "text/plain; charset=utf-8"
 
 	/*
 	 * Set filename if not provided
@@ -270,7 +278,7 @@ func (s *Server) IngestIntoDataset(c *gin.Context) {
 	case ".ipynb":
 		golcdocs, err = golcdocloaders.NewNotebook(bytes.NewReader(data)).Load(c)
 	default:
-		slog.Error("Unsupported file type", "filename", *ingest.Filename)
+		slog.Error("Unsupported file type", "filename", *ingest.Filename, "type", filetype)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "unsupported file type"})
 		return
 	}

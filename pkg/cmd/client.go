@@ -13,7 +13,7 @@ import (
 )
 
 type Client struct {
-	RunServer bool `usage:"Run Server in parallel if it's not running elsewhere" default:"true"`
+	ExternalServer bool `usage:"Run Server in parallel if it's not running elsewhere" default:"false" env:"KNOW_CLIENT_RUN_SERVER"`
 	Server
 }
 
@@ -32,7 +32,8 @@ func (s *Client) Run(cmd *cobra.Command, _ []string) error {
 }
 
 func (s *Client) runServer(cmd *cobra.Command) {
-	if !s.RunServer {
+	if s.ExternalServer {
+		slog.Info("Using external server")
 		return
 	}
 	slog.Info("Starting server")

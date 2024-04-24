@@ -1,0 +1,29 @@
+tools: Create Dataset, sys.find, Ingest, Retrieve
+
+Create a new Knowledge Base Dataset with a random ID you come up with.
+Then, ingest the files "README.md" and "Makefile" into the Dataset. Do not do this in parallel.
+Then, retrieve from the dataset what are the supported filetypes.
+Then, retrieve from the dataset what are the Makefile targets.
+
+---
+name: Create Dataset
+description: Create a new Dataset in the Knowledge Base
+args: id: ID of the Dataset
+
+#!bin/knowledge client create-dataset ${id}
+
+---
+name: Ingest
+description: Ingest a file into a Knowledge Base Dataset
+args: id: ID of the Dataset
+args: filepath: Path to the file to be ingested
+
+#!bin/knowledge client ingest ${id} ${filepath}
+
+---
+name: Retrieve
+description: Retrieve information from a Knowledge Base Dataset
+args: id: ID of the Dataset
+args: query: Query to be executed against the Knowledge Base Dataset
+
+#!bin/knowledge client retrieve ${id} ${query}
