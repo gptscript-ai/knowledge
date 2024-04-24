@@ -104,6 +104,11 @@ func (s Store) SimilaritySearch(ctx context.Context, query string, numDocuments 
 		return nil, vs.ErrCollectionNotFound{Collection: collection}
 	}
 
+	if numDocuments > col.Count() {
+		numDocuments = col.Count()
+		slog.Debug("Reduced number of documents to search for", "numDocuments", numDocuments)
+	}
+
 	qr, err := col.Query(ctx, query, numDocuments, nil, nil)
 	if err != nil {
 		return nil, err
