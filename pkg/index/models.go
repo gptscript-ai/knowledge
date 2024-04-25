@@ -1,4 +1,4 @@
-package db
+package index
 
 // Dataset refers to a VectorDB data space.
 // @Description Dataset refers to a VectorDB data space.

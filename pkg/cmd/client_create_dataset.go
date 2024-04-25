@@ -3,9 +3,6 @@ package cmd
 import (
 	"fmt"
 	"github.com/spf13/cobra"
-	"io"
-	"net/http"
-	"strings"
 )
 
 type ClientCreateDataset struct {
@@ -20,33 +17,18 @@ func (s *ClientCreateDataset) Customize(cmd *cobra.Command) {
 }
 
 func (s *ClientCreateDataset) Run(cmd *cobra.Command, args []string) error {
-
-	go s.Client.runServer(cmd)
-	s.Client.waitForServer()
-
-	url := s.Client.baseURL() + "/datasets/create"
-
-	payload := strings.NewReader(fmt.Sprintf("{\"id\": \"%s\", \"embed_dim\": %d}", args[0], s.EmbedDim))
-
-	req, _ := http.NewRequest("POST", url, payload)
-
-	req.Header.Add("Content-Type", "application/json")
-
-	res, err := http.DefaultClient.Do(req)
+	c, err := s.getClient()
 	if err != nil {
 		return err
 	}
 
-	if res.StatusCode >= 400 {
-		return fmt.Errorf("ERROR: server returned status %d", res.StatusCode)
+	datasetID := args[0]
+
+	ds, err := c.CreateDataset(cmd.Context(), datasetID)
+	if err != nil {
+		return err
 	}
 
-	if res.Body != nil {
-		defer res.Body.Close()
-		body, _ := io.ReadAll(res.Body)
-		fmt.Println(string(body))
-	}
-
+	fmt.Printf("Created dataset %q\n", ds.ID)
 	return nil
-
 }

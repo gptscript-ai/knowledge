@@ -240,38 +240,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/datasets/{id}/query": {
-            "post": {
-                "description": "Query a dataset by ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "datasets"
-                ],
-                "summary": "Query a dataset",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Dataset ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/gin.H"
-                        }
-                    }
-                }
-            }
-        },
         "/datasets/{id}/retrieve": {
             "post": {
                 "description": "Retrieve content from a dataset by ID",
@@ -298,7 +266,10 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/vectorstore.Document"
+                            }
                         }
                     }
                 }
@@ -326,6 +297,21 @@ const docTemplate = `{
                     "type": "string",
                     "format": "hostname_rfc1123",
                     "example": "asst-12345"
+                }
+            }
+        },
+        "vectorstore.Document": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "similarity_score": {
+                    "type": "number"
                 }
             }
         }

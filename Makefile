@@ -8,8 +8,7 @@ run: build
 run-dev: generate run
 
 clean-dev:
-	rm knowledge.db
-	rm -r vector.db
+	rm -rf knowledge.db vector.db
 
 generate: tools openapi
 

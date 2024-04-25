@@ -17,14 +17,14 @@ type Store struct {
 }
 
 // New creates a new Chromem vector store.
-func New(db *chromem.DB, embeddingFunc chromem.EmbeddingFunc) Store {
-	return Store{
+func New(db *chromem.DB, embeddingFunc chromem.EmbeddingFunc) *Store {
+	return &Store{
 		db:            db,
 		embeddingFunc: embeddingFunc,
 	}
 }
 
-func (s Store) CreateCollection(_ context.Context, name string) error {
+func (s *Store) CreateCollection(_ context.Context, name string) error {
 	_, err := s.db.CreateCollection(name, nil, s.embeddingFunc)
 	if err != nil {
 		return err
@@ -33,7 +33,7 @@ func (s Store) CreateCollection(_ context.Context, name string) error {
 	return nil
 }
 
-func (s Store) AddDocuments(ctx context.Context, docs []vs.Document, collection string) ([]string, error) {
+func (s *Store) AddDocuments(ctx context.Context, docs []vs.Document, collection string) ([]string, error) {
 	ids := make([]string, len(docs))
 	chromemDocs := make([]chromem.Document, len(docs))
 	for docIdx, doc := range docs {
@@ -98,7 +98,7 @@ func convertStringMapToAnyMap(m map[string]string) map[string]any {
 	return convertedMap
 }
 
-func (s Store) SimilaritySearch(ctx context.Context, query string, numDocuments int, collection string) ([]vs.Document, error) {
+func (s *Store) SimilaritySearch(ctx context.Context, query string, numDocuments int, collection string) ([]vs.Document, error) {
 	col := s.db.GetCollection(collection, s.embeddingFunc)
 	if col == nil {
 		return nil, vs.ErrCollectionNotFound{Collection: collection}
@@ -131,11 +131,11 @@ func (s Store) SimilaritySearch(ctx context.Context, query string, numDocuments 
 	return sDocs, nil
 }
 
-func (s Store) RemoveCollection(_ context.Context, collection string) error {
+func (s *Store) RemoveCollection(_ context.Context, collection string) error {
 	return s.db.DeleteCollection(collection)
 }
 
-func (s Store) RemoveDocument(ctx context.Context, documentID string, collection string) error {
+func (s *Store) RemoveDocument(ctx context.Context, documentID string, collection string) error {
 	col := s.db.GetCollection(collection, s.embeddingFunc)
 	if col == nil {
 		return vs.ErrCollectionNotFound{Collection: collection}

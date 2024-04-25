@@ -8,7 +8,6 @@ require (
 	github.com/gabriel-vasile/mimetype v1.4.3
 	github.com/gin-gonic/gin v1.9.1
 	github.com/glebarez/sqlite v1.11.0
-	github.com/go-playground/validator/v10 v10.19.0
 	github.com/google/uuid v1.6.0
 	github.com/hupe1980/golc v0.0.110
 	github.com/philippgille/chromem-go v0.5.1-0.20240422192035-df6c86386820
@@ -55,6 +54,7 @@ require (
 	github.com/go-openapi/swag v0.23.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
+	github.com/go-playground/validator/v10 v10.19.0 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/google/go-querystring v1.1.0 // indirect

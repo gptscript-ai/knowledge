@@ -2,13 +2,10 @@ package server
 
 import (
 	"context"
-	"github.com/acorn-io/z"
 	"github.com/gin-gonic/gin"
-	"github.com/gptscript-ai/knowledge/pkg/db"
+	"github.com/gptscript-ai/knowledge/pkg/datastore"
 	"github.com/gptscript-ai/knowledge/pkg/docs"
-	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
-	"github.com/gptscript-ai/knowledge/pkg/vectorstore/chromem"
-	cg "github.com/philippgille/chromem-go"
+	"github.com/gptscript-ai/knowledge/pkg/types"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"log/slog"
@@ -19,18 +16,13 @@ type Config struct {
 	ServerURL, Port, APIBase string
 }
 
-type OpenAIConfig struct {
-	APIBase, APIKey, EmbeddingModel string
-}
-
 type Server struct {
-	db           *db.DB
-	vs           vs.VectorStore
-	openAIConfig OpenAIConfig
+	*datastore.Datastore
+	openAIConfig types.OpenAIConfig
 }
 
-func NewServer(db *db.DB, openAIConfig OpenAIConfig) *Server {
-	return &Server{db: db, openAIConfig: openAIConfig}
+func NewServer(d *datastore.Datastore, oaiconfig types.OpenAIConfig) *Server {
+	return &Server{Datastore: d, openAIConfig: oaiconfig}
 }
 
 // Start starts the server with the given configuration.
@@ -40,7 +32,7 @@ func (s *Server) Start(ctx context.Context, cfg Config) error {
 	slog.SetLogLoggerLevel(slog.LevelDebug)
 
 	// Database migration
-	if err := s.db.AutoMigrate(); err != nil {
+	if err := s.Index.AutoMigrate(); err != nil {
 		return err
 	}
 
@@ -64,32 +56,16 @@ func (s *Server) Start(ctx context.Context, cfg Config) error {
 
 		v1Datasets := v1.Group("/datasets")
 		{
-			v1Datasets.GET("/", s.ListDatasets)
-			v1Datasets.GET("/:id", s.GetDataset)
-			v1Datasets.POST("/create", s.CreateDataset)
-			v1Datasets.DELETE("/:id", s.DeleteDataset)
-			v1Datasets.POST("/:id/ingest", s.IngestIntoDataset)
-			v1Datasets.POST("/:id/query", s.QueryDataset)
-			v1Datasets.POST("/:id/retrieve", s.RetrieveFromDataset)
-			v1Datasets.DELETE("/:id/documents/:doc_id", s.RemoveDocumentFromDataset)
-			v1Datasets.DELETE("/:id/files/:file_id", s.RemoveFileFromDataset)
+			v1Datasets.GET("/", s.ListDS)
+			v1Datasets.GET("/:id", s.GetDS)
+			v1Datasets.POST("/create", s.CreateDS)
+			v1Datasets.DELETE("/:id", s.DeleteDS)
+			v1Datasets.POST("/:id/ingest", s.IngestIntoDS)
+			v1Datasets.POST("/:id/retrieve", s.RetrieveFromDS)
+			v1Datasets.DELETE("/:id/documents/:doc_id", s.RemoveDocFromDS)
+			v1Datasets.DELETE("/:id/files/:file_id", s.RemoveFileFromDS)
 		}
 	}
-
-	// Setup VectorStore
-	vsdb, err := cg.NewPersistentDB("vector.db", false)
-	if err != nil {
-		return err
-	}
-
-	embeddingFunc := cg.NewEmbeddingFuncOpenAICompat(
-		s.openAIConfig.APIBase,
-		s.openAIConfig.APIKey,
-		s.openAIConfig.EmbeddingModel,
-		z.Pointer(true),
-	)
-
-	s.vs = chromem.New(vsdb, embeddingFunc)
 
 	// Start server
 	return router.Run(":" + cfg.Port)

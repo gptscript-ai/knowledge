@@ -16,6 +16,16 @@ definitions:
     required:
     - id
     type: object
+  vectorstore.Document:
+    properties:
+      content:
+        type: string
+      metadata:
+        additionalProperties: {}
+        type: object
+      similarity_score:
+        type: number
+    type: object
 info:
   contact:
     name: Acorn Labs Inc.
@@ -148,27 +158,6 @@ paths:
       summary: Ingest content into a dataset
       tags:
       - datasets
-  /datasets/{id}/query:
-    post:
-      consumes:
-      - application/json
-      description: Query a dataset by ID
-      parameters:
-      - description: Dataset ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/gin.H'
-      summary: Query a dataset
-      tags:
-      - datasets
   /datasets/{id}/retrieve:
     post:
       consumes:
@@ -186,7 +175,9 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/gin.H'
+            items:
+              $ref: '#/definitions/vectorstore.Document'
+            type: array
       summary: Retrieve content from a dataset
       tags:
       - datasets

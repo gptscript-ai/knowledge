@@ -1,4 +1,4 @@
-package db
+package index
 
 import (
 	"context"

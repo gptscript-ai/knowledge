@@ -1,11 +1,9 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/spf13/cobra"
-	"io"
-	"net/http"
-	"strings"
 )
 
 type ClientRetrieve struct {
@@ -20,35 +18,25 @@ func (s *ClientRetrieve) Customize(cmd *cobra.Command) {
 }
 
 func (s *ClientRetrieve) Run(cmd *cobra.Command, args []string) error {
-
-	go s.Client.runServer(cmd)
-	s.Client.waitForServer()
-
-	url := s.Client.baseURL() + "/datasets/" + args[0] + "/retrieve"
-
-	req, err := http.NewRequest("POST", url, strings.NewReader(fmt.Sprintf("{\"prompt\": \"%s\", \"topk\": %d}", args[1], s.TopK)))
+	c, err := s.getClient()
 	if err != nil {
 		return err
 	}
 
-	req.Header.Add("Content-Type", "application/json")
+	datasetID := args[0]
+	query := args[1]
 
-	res, err := http.DefaultClient.Do(req)
+	sources, err := c.Retrieve(cmd.Context(), datasetID, query)
 	if err != nil {
 		return err
 	}
 
-	if res.StatusCode >= 400 {
-		return fmt.Errorf("ERROR: server returned status %d", res.StatusCode)
-	}
-
-	body, err := io.ReadAll(res.Body)
+	jsonSources, err := json.Marshal(sources)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(string(body))
+	fmt.Printf("Retrieved the following %d sources for the query %q from dataset %q: %s\n", len(sources), query, datasetID, jsonSources)
 
 	return nil
-
 }

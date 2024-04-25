@@ -3,8 +3,6 @@ package cmd
 import (
 	"fmt"
 	"github.com/spf13/cobra"
-	"io"
-	"net/http"
 )
 
 type ClientDeleteDataset struct {
@@ -18,33 +16,18 @@ func (s *ClientDeleteDataset) Customize(cmd *cobra.Command) {
 }
 
 func (s *ClientDeleteDataset) Run(cmd *cobra.Command, args []string) error {
-
-	go s.Client.runServer(cmd)
-	s.Client.waitForServer()
-
-	url := s.Client.baseURL() + "/datasets/" + args[0]
-
-	req, err := http.NewRequest("DELETE", url, nil)
+	c, err := s.getClient()
 	if err != nil {
 		return err
 	}
 
-	res, err := http.DefaultClient.Do(req)
+	datasetID := args[0]
+
+	err = c.DeleteDataset(cmd.Context(), datasetID)
 	if err != nil {
 		return err
 	}
 
-	if res.StatusCode >= 400 {
-		return fmt.Errorf("ERROR: server returned status %d", res.StatusCode)
-	}
-
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		return err
-	}
-
-	fmt.Println(string(body))
-
+	fmt.Printf("Deleted dataset %q\n", datasetID)
 	return nil
-
 }
