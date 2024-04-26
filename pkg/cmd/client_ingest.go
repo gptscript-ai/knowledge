@@ -2,11 +2,14 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/gptscript-ai/knowledge/pkg/client"
 	"github.com/spf13/cobra"
+	"strings"
 )
 
 type ClientIngest struct {
 	Client
+	IgnoreExtensions string `usage:"Comma-separated list of file extensions to ignore" env:"KNOW_INGEST_IGNORE_EXTENSIONS"`
 }
 
 func (s *ClientIngest) Customize(cmd *cobra.Command) {
@@ -24,7 +27,11 @@ func (s *ClientIngest) Run(cmd *cobra.Command, args []string) error {
 	datasetID := args[0]
 	filePath := args[1]
 
-	err = c.IngestPaths(cmd.Context(), datasetID, filePath)
+	ingestOpts := &client.IngestPathsOpts{
+		IgnoreExtensions: strings.Split(s.IgnoreExtensions, ","),
+	}
+
+	err = c.IngestPaths(cmd.Context(), datasetID, ingestOpts, filePath)
 	if err != nil {
 		return err
 	}

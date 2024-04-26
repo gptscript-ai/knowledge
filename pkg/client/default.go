@@ -114,7 +114,7 @@ func (c *DefaultClient) Ingest(_ context.Context, datasetID string, data []byte,
 	return docs, nil
 }
 
-func (c *DefaultClient) IngestPaths(ctx context.Context, datasetID string, paths ...string) error {
+func (c *DefaultClient) IngestPaths(ctx context.Context, datasetID string, opts *IngestPathsOpts, paths ...string) error {
 	ingestFile := func(path string) error {
 		content, err := os.ReadFile(path)
 		if err != nil {
@@ -150,7 +150,7 @@ func (c *DefaultClient) IngestPaths(ctx context.Context, datasetID string, paths
 		return err
 	}
 
-	return ingestPaths(ingestFile, paths...)
+	return ingestPaths(opts, ingestFile, paths...)
 }
 
 func (c *DefaultClient) DeleteDocuments(_ context.Context, datasetID string, documentIDs ...string) error {

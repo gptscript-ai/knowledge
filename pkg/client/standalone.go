@@ -51,7 +51,7 @@ func (c *StandaloneClient) Ingest(ctx context.Context, datasetID string, data []
 	return c.Datastore.Ingest(ctx, datasetID, bytes.NewReader(data), opts)
 }
 
-func (c *StandaloneClient) IngestPaths(ctx context.Context, datasetID string, paths ...string) error {
+func (c *StandaloneClient) IngestPaths(ctx context.Context, datasetID string, opts *IngestPathsOpts, paths ...string) error {
 	ingestFile := func(path string) error {
 		// Gather metadata
 		finfo, err := os.Stat(path)
@@ -81,7 +81,7 @@ func (c *StandaloneClient) IngestPaths(ctx context.Context, datasetID string, pa
 		return err
 	}
 
-	return ingestPaths(ingestFile, paths...)
+	return ingestPaths(opts, ingestFile, paths...)
 }
 
 func (c *StandaloneClient) DeleteDocuments(ctx context.Context, datasetID string, documentIDs ...string) error {
