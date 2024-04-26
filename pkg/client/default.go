@@ -124,9 +124,27 @@ func (c *DefaultClient) IngestPaths(ctx context.Context, datasetID string, paths
 		b64 := make([]byte, base64.StdEncoding.EncodedLen(len(content)))
 		base64.StdEncoding.Encode(b64, content)
 
+		// Gather metadata
+		finfo, err := os.Stat(path)
+		if err != nil {
+			return fmt.Errorf("failed to stat file %s: %w", path, err)
+		}
+
+		abspath, err := filepath.Abs(path)
+		if err != nil {
+			return fmt.Errorf("failed to get absolute path for %s: %w", path, err)
+		}
+
 		payload := datastore.IngestOpts{
 			Filename: z.Pointer(filepath.Base(path)),
-			FileID:   nil,
+			FileMetadata: &index.FileMetadata{
+				Name:         filepath.Base(path),
+				AbsolutePath: abspath,
+				Size:         finfo.Size(),
+				ModifiedAt:   finfo.ModTime(),
+			},
+			FileID:              nil,
+			IsDuplicateFuncName: "file_metadata",
 		}
 		_, err = c.Ingest(ctx, datasetID, b64, payload)
 		return err

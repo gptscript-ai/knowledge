@@ -7,7 +7,6 @@ import (
 )
 
 func ingestPaths(ingestionFunc func(path string) error, paths ...string) error {
-
 	// Iterate over all paths
 	for _, path := range paths {
 		fileInfo, err := os.Stat(path)
