@@ -4,6 +4,9 @@ dario.cat/mergo
 # github.com/AssemblyAI/assemblyai-go-sdk v1.3.0
 ## explicit; go 1.18
 github.com/AssemblyAI/assemblyai-go-sdk
+# github.com/EndFirstCorp/peekingReader v0.0.0-20171012052444-257fb6f1a1a6
+## explicit
+github.com/EndFirstCorp/peekingReader
 # github.com/KyleBanks/depth v1.2.1
 ## explicit
 github.com/KyleBanks/depth
@@ -348,6 +351,13 @@ github.com/ledongthuc/pdf
 ## explicit; go 1.18
 github.com/leodido/go-urn
 github.com/leodido/go-urn/scim/schema
+# github.com/lu4p/cat v0.1.5
+## explicit; go 1.15
+github.com/lu4p/cat
+github.com/lu4p/cat/docxtxt
+github.com/lu4p/cat/odtxt
+github.com/lu4p/cat/plaintxt
+github.com/lu4p/cat/rtftxt
 # github.com/mailru/easyjson v0.7.7
 ## explicit; go 1.12
 github.com/mailru/easyjson/buffer

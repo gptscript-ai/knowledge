@@ -13,19 +13,26 @@ import (
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 	golcdocloaders "github.com/hupe1980/golc/documentloader"
 	golcschema "github.com/hupe1980/golc/schema"
+	"github.com/lu4p/cat"
 	lcgodocloaders "github.com/tmc/langchaingo/documentloaders"
 	lcgoschema "github.com/tmc/langchaingo/schema"
+	lcgosplitter "github.com/tmc/langchaingo/textsplitter"
 	"io"
 	"log/slog"
 	"path"
 	"strings"
 )
 
+const defaultTokenModel = "gpt-4"
+
 var firstclassFileExtensions = map[string]struct{}{
 	".pdf":   {},
 	".html":  {},
 	".md":    {},
 	".txt":   {},
+	".docx":  {},
+	".odt":   {},
+	".rtf":   {},
 	".csv":   {},
 	".ipynb": {},
 }
@@ -129,11 +136,31 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, reader io.Read
 			slog.Error("Failed to create PDF loader", "error", err)
 			return nil, err
 		}
-		golcdocs, err = r.Load(ctx)
+		rdocs, err := r.Load(ctx)
+		if err != nil {
+			slog.Error("Failed to load PDF", "error", err)
+			return nil, fmt.Errorf("failed to load PDF: %w", err)
+		}
+
+		// TODO: consolidate splitters in this repo, so we don't have to convert back and forth
+		splitter := lcgosplitter.NewTokenSplitter(lcgosplitter.WithModelName(defaultTokenModel))
+		lcgodocs = make([]lcgoschema.Document, len(rdocs))
+		for idx, rdoc := range rdocs {
+			lcgodocs[idx] = lcgoschema.Document{
+				PageContent: rdoc.PageContent,
+				Metadata:    rdoc.Metadata,
+			}
+		}
+		lcgodocs, err = lcgosplitter.SplitDocuments(splitter, lcgodocs)
 	case ".html", "text/html":
-		lcgodocs, err = lcgodocloaders.NewHTML(reader).Load(ctx)
-	case ".md", ".txt", "text/plain", "text/markdown":
-		lcgodocs, err = lcgodocloaders.NewText(reader).Load(ctx)
+		splitter := lcgosplitter.NewTokenSplitter(lcgosplitter.WithModelName(defaultTokenModel))
+		lcgodocs, err = lcgodocloaders.NewHTML(reader).LoadAndSplit(ctx, splitter)
+	case ".md", "text/markdown":
+		splitter := lcgosplitter.NewMarkdownTextSplitter(lcgosplitter.WithModelName(defaultTokenModel))
+		lcgodocs, err = lcgodocloaders.NewText(reader).LoadAndSplit(ctx, splitter)
+	case ".txt", "text/plain":
+		splitter := lcgosplitter.NewTokenSplitter(lcgosplitter.WithModelName(defaultTokenModel))
+		lcgodocs, err = lcgodocloaders.NewText(reader).LoadAndSplit(ctx, splitter)
 	case ".csv", "text/csv":
 		golcdocs, err = golcdocloaders.NewCSV(reader).Load(ctx)
 		if err != nil && errors.Is(err, csv.ErrBareQuote) {
@@ -149,6 +176,17 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, reader io.Read
 		}
 	case ".ipynb":
 		golcdocs, err = golcdocloaders.NewNotebook(reader).Load(ctx)
+	case ".docx", ".odt", ".rtf", "application/vnd.oasis.opendocument.text", "text/rtf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+		data, err := io.ReadAll(reader)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read %s data: %w", filetype, err)
+		}
+		text, err := cat.FromBytes(data)
+		if err != nil {
+			return nil, fmt.Errorf("failed to extract text from %s: %w", filetype, err)
+		}
+		splitter := lcgosplitter.NewTokenSplitter(lcgosplitter.WithModelName(defaultTokenModel))
+		lcgodocs, err = lcgodocloaders.NewText(strings.NewReader(text)).LoadAndSplit(ctx, splitter)
 	default:
 		// TODO(@iwilltry42): Fallback to plaintext reader? Example: Makefile, Dockerfile, Source Files, etc.
 		slog.Error("Unsupported file type", "filename", *opts.Filename, "type", filetype)

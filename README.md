@@ -18,6 +18,9 @@ make run # it will be available at http://localhost:8000
 - `.pdf`
 - `.ipynb`
 - `.csv`
+- `.docx`
+- `.rtf`
+- `.odt`
 
 ## OpenAPI / Swagger
 

@@ -10,6 +10,7 @@ require (
 	github.com/glebarez/sqlite v1.11.0
 	github.com/google/uuid v1.6.0
 	github.com/hupe1980/golc v0.0.110
+	github.com/lu4p/cat v0.1.5
 	github.com/philippgille/chromem-go v0.5.1-0.20240422192035-df6c86386820
 	github.com/spf13/cobra v1.8.0
 	github.com/swaggo/files v1.0.1
@@ -22,6 +23,7 @@ require (
 require (
 	dario.cat/mergo v1.0.0 // indirect
 	github.com/AssemblyAI/assemblyai-go-sdk v1.3.0 // indirect
+	github.com/EndFirstCorp/peekingReader v0.0.0-20171012052444-257fb6f1a1a6 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/ProtonMail/go-crypto v1.0.0 // indirect
