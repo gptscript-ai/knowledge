@@ -53,12 +53,30 @@ func (c *StandaloneClient) Ingest(ctx context.Context, datasetID string, data []
 
 func (c *StandaloneClient) IngestPaths(ctx context.Context, datasetID string, paths ...string) error {
 	ingestFile := func(path string) error {
+		// Gather metadata
+		finfo, err := os.Stat(path)
+		if err != nil {
+			return fmt.Errorf("failed to stat file %s: %w", path, err)
+		}
+
+		abspath, err := filepath.Abs(path)
+		if err != nil {
+			return fmt.Errorf("failed to get absolute path for %s: %w", path, err)
+		}
+
 		file, err := os.Open(path)
 		if err != nil {
 			return fmt.Errorf("failed to open file %s: %w", path, err)
 		}
 		_, err = c.Datastore.Ingest(ctx, datasetID, file, datastore.IngestOpts{
 			Filename: z.Pointer(filepath.Base(path)),
+			FileMetadata: &index.FileMetadata{
+				Name:         filepath.Base(path),
+				AbsolutePath: abspath,
+				Size:         finfo.Size(),
+				ModifiedAt:   finfo.ModTime(),
+			},
+			IsDuplicateFunc: datastore.DedupeByFileMetadata,
 		})
 		return err
 	}

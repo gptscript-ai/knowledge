@@ -1,5 +1,9 @@
 package index
 
+import (
+	"time"
+)
+
 // Dataset refers to a VectorDB data space.
 // @Description Dataset refers to a VectorDB data space.
 type Dataset struct {
@@ -12,6 +16,15 @@ type File struct {
 	ID        string     `gorm:"primaryKey" json:"id"`
 	Dataset   string     `gorm:"primaryKey" json:"dataset"` // Foreign key to Dataset
 	Documents []Document `gorm:"foreignKey:FileID,Dataset;references:ID,Dataset;constraint:OnDelete:CASCADE;"`
+	// File metadata, commonly used for deduplication
+	FileMetadata `json:",inline"`
+}
+
+type FileMetadata struct {
+	Name         string    `json:"name"`
+	AbsolutePath string    `json:"absolute_path"`
+	Size         int64     `json:"size"`
+	ModifiedAt   time.Time `json:"modified_at"`
 }
 
 type Document struct {

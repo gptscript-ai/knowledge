@@ -1,5 +1,7 @@
 package types
 
+import "github.com/gptscript-ai/knowledge/pkg/index"
+
 // Dataset represents a new knowledge vector space
 type Dataset struct {
 	// Dataset ID - must be a valid RFC 1123 hostname
@@ -15,7 +17,8 @@ type Query struct {
 
 // Ingest represents incoming content that should be ingested
 type Ingest struct {
-	Filename *string `json:"filename" `
-	FileID   *string `json:"file_id"`
-	Content  string  `json:"content" binding:"required,base64"`
+	Filename     *string             `json:"filename" `
+	FileID       *string             `json:"file_id"`
+	Content      string              `json:"content" binding:"required,base64"`
+	FileMetadata *index.FileMetadata `json:"metadata"`
 }

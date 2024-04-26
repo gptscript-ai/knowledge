@@ -31,12 +31,26 @@ var firstclassFileExtensions = map[string]struct{}{
 }
 
 type IngestOpts struct {
-	FileID   *string
-	Filename *string
+	FileID              *string
+	Filename            *string
+	FileMetadata        *index.FileMetadata
+	IsDuplicateFuncName string
+	IsDuplicateFunc     IsDuplicateFunc
 }
 
 // Ingest loads a document from a reader and adds it to the dataset.
 func (s *Datastore) Ingest(ctx context.Context, datasetID string, reader io.Reader, opts IngestOpts) ([]string, error) {
+	isDuplicate := DummyDedupe // default: no deduplication
+	if opts.IsDuplicateFuncName != "" {
+		df, ok := IsDuplicateFuncs[opts.IsDuplicateFuncName]
+		if !ok {
+			return nil, fmt.Errorf("unknown deduplication function: %s", opts.IsDuplicateFuncName)
+		}
+		isDuplicate = df
+	} else if opts.IsDuplicateFunc != nil {
+		isDuplicate = opts.IsDuplicateFunc
+	}
+
 	// Generate ID if none was provided
 	if opts.FileID == nil {
 		fid, err := uuid.NewUUID()
@@ -80,6 +94,19 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, reader io.Read
 	}
 
 	slog.Debug("Loading data", "type", filetype, "filename", *opts.Filename)
+
+	/*
+	 * Exit early if the document is a duplicate
+	 */
+	isDupe, err := isDuplicate(ctx, s, datasetID, nil, opts)
+	if err != nil {
+		slog.Error("Failed to check for duplicates", "error", err)
+		return nil, fmt.Errorf("failed to check for duplicates: %w", err)
+	}
+	if isDupe {
+		slog.Info("Ignoring duplicate document", "filename", *opts.Filename, "absolute_path", opts.FileMetadata.AbsolutePath)
+		return nil, nil
+	}
 
 	/*
 	 * Load documents from the content
@@ -174,10 +201,17 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, reader io.Read
 			Dataset: datasetID,
 		}
 	}
+
 	dbFile := index.File{
 		ID:        *opts.FileID,
 		Dataset:   datasetID,
 		Documents: dbDocs,
+		FileMetadata: index.FileMetadata{
+			Name:         *opts.Filename,
+			AbsolutePath: opts.FileMetadata.AbsolutePath,
+			Size:         opts.FileMetadata.Size,
+			ModifiedAt:   opts.FileMetadata.ModifiedAt,
+		},
 	}
 
 	tx := s.Index.WithContext(ctx).Create(&dbFile)
@@ -185,6 +219,8 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, reader io.Read
 		slog.Error("Failed to create file", "error", tx.Error)
 		return nil, fmt.Errorf("failed to create file: %w", tx.Error)
 	}
+
+	slog.Info("Ingested document", "filename", *opts.Filename, "count", len(docIDs), "absolute_path", opts.FileMetadata.AbsolutePath)
 
 	return docIDs, nil
 }
