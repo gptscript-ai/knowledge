@@ -1,7 +1,6 @@
 package server
 
 import (
-	"bytes"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -119,7 +118,7 @@ func (s *Server) IngestIntoDS(c *gin.Context) {
 	}
 
 	// ingest content
-	docIDs, err := s.Ingest(c, id, bytes.NewReader(data), datastore.IngestOpts{
+	docIDs, err := s.Ingest(c, id, data, datastore.IngestOpts{
 		Filename:     ingest.Filename,
 		FileMetadata: ingest.FileMetadata,
 	})

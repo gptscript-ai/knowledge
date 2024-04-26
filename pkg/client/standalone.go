@@ -1,7 +1,6 @@
 package client
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"github.com/acorn-io/z"
@@ -48,7 +47,7 @@ func (c *StandaloneClient) ListDatasets(ctx context.Context) ([]types.Dataset, e
 }
 
 func (c *StandaloneClient) Ingest(ctx context.Context, datasetID string, data []byte, opts datastore.IngestOpts) ([]string, error) {
-	return c.Datastore.Ingest(ctx, datasetID, bytes.NewReader(data), opts)
+	return c.Datastore.Ingest(ctx, datasetID, data, opts)
 }
 
 func (c *StandaloneClient) IngestPaths(ctx context.Context, datasetID string, opts *IngestPathsOpts, paths ...string) error {
@@ -64,7 +63,7 @@ func (c *StandaloneClient) IngestPaths(ctx context.Context, datasetID string, op
 			return fmt.Errorf("failed to get absolute path for %s: %w", path, err)
 		}
 
-		file, err := os.Open(path)
+		file, err := os.ReadFile(path)
 		if err != nil {
 			return fmt.Errorf("failed to open file %s: %w", path, err)
 		}

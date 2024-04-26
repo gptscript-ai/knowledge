@@ -45,7 +45,7 @@ type IngestOpts struct {
 }
 
 // Ingest loads a document from a reader and adds it to the dataset.
-func (s *Datastore) Ingest(ctx context.Context, datasetID string, reader io.Reader, opts IngestOpts) ([]string, error) {
+func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte, opts IngestOpts) ([]string, error) {
 	isDuplicate := DummyDedupe // default: no deduplication
 	if opts.IsDuplicateFuncName != "" {
 		df, ok := IsDuplicateFuncs[opts.IsDuplicateFuncName]
@@ -70,6 +70,7 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, reader io.Read
 	/*
 	 * Detect filetype
 	 */
+	reader := bytes.NewReader(content)
 	var filetype string
 	if opts.Filename != nil {
 		filetype = path.Ext(*opts.Filename)
@@ -78,7 +79,7 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, reader io.Read
 		}
 	}
 	if filetype == "" {
-		filetype, reader, err = mimetypeFromReader(reader)
+		filetype, _, err = mimetypeFromReader(bytes.NewReader(content))
 		if err != nil {
 			slog.Error("Failed to detect filetype", "error", err)
 			return nil, fmt.Errorf("failed to detect filetype: %w", err)
@@ -138,7 +139,7 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, reader io.Read
 		}
 		rdocs, err := r.Load(ctx)
 		if err != nil {
-			slog.Error("Failed to load PDF", "error", err)
+			slog.Error("Failed to load PDF", "filename", *opts.Filename, "error", err)
 			return nil, fmt.Errorf("failed to load PDF: %w", err)
 		}
 

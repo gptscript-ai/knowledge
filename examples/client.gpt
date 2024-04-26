@@ -11,7 +11,7 @@ name: Create Dataset
 description: Create a new Dataset in the Knowledge Base
 args: id: ID of the Dataset
 
-#!bin/knowledge client create-dataset ${id}
+#!knowledge client create-dataset ${id}
 
 ---
 name: Ingest
@@ -19,7 +19,7 @@ description: Ingest a file or all files from a directory into a Knowledge Base D
 args: id: ID of the Dataset
 args: filepath: Path to the file or directory to be ingested
 
-#!bin/knowledge client ingest ${id} ${filepath}
+#!knowledge client ingest ${id} ${filepath}
 
 ---
 name: Retrieve
@@ -27,4 +27,5 @@ description: Retrieve information from a Knowledge Base Dataset
 args: id: ID of the Dataset
 args: query: Query to be executed against the Knowledge Base Dataset
 
-#!bin/knowledge client retrieve ${id} ${query}
+#!knowledge client retrieve ${id} ${query}
+

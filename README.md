@@ -25,3 +25,7 @@ make run # it will be available at http://localhost:8000
 ## OpenAPI / Swagger
 
 The API is documented using OpenAPI 2.0 (Swagger), automatically generated using [`swaggo/swag`](https://github.com/swaggo/swag) (`make openapi`).
+
+## Examples
+
+Note: The examples in the `examples/` directory expect the `knowledge` binary to be in your `$PATH`.
