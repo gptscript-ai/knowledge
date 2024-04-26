@@ -63,33 +63,7 @@ func (c *StandaloneClient) IngestPaths(ctx context.Context, datasetID string, pa
 		return err
 	}
 
-	for _, path := range paths {
-		fileInfo, err := os.Stat(path)
-		if err != nil {
-			return fmt.Errorf("failed to get file info for %s: %w", path, err)
-		}
-
-		if fileInfo.IsDir() {
-			// Read directory contents non-recursively
-			err := filepath.WalkDir(path, func(path string, d os.DirEntry, err error) error {
-				if d.IsDir() {
-					return nil
-				}
-				return ingestFile(path)
-			})
-			if err != nil {
-				return err
-			}
-		} else {
-			// Read file directly
-			err := ingestFile(path)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
+	return ingestPaths(ingestFile, paths...)
 }
 
 func (c *StandaloneClient) DeleteDocuments(ctx context.Context, datasetID string, documentIDs ...string) error {
