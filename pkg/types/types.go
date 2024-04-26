@@ -18,7 +18,10 @@ type Query struct {
 // Ingest represents incoming content that should be ingested
 type Ingest struct {
 	Filename     *string             `json:"filename" `
-	FileID       *string             `json:"file_id"`
 	Content      string              `json:"content" binding:"required,base64"`
 	FileMetadata *index.FileMetadata `json:"metadata"`
+}
+
+type IngestResponse struct {
+	Documents []string `json:"documents"`
 }

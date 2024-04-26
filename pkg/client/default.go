@@ -91,9 +91,12 @@ func (c *DefaultClient) ListDatasets(_ context.Context) ([]types.Dataset, error)
 func (c *DefaultClient) Ingest(_ context.Context, datasetID string, data []byte, opts datastore.IngestOpts) ([]string, error) {
 	payload := types.Ingest{
 		Filename: opts.Filename,
-		FileID:   opts.FileID,
 		Content:  base64.StdEncoding.EncodeToString(data),
 	}
+	if opts.FileMetadata != nil {
+		payload.FileMetadata = opts.FileMetadata
+	}
+
 	data, err := json.Marshal(payload)
 	if err != nil {
 		return nil, err
@@ -103,15 +106,13 @@ func (c *DefaultClient) Ingest(_ context.Context, datasetID string, data []byte,
 		return nil, err
 	}
 
-	res := map[string]any{}
+	var res types.IngestResponse
 	err = json.Unmarshal(resp, &res)
 	if err != nil {
 		return nil, err
 	}
 
-	docs := res["documents"].([]string)
-
-	return docs, nil
+	return res.Documents, nil
 }
 
 func (c *DefaultClient) IngestPaths(ctx context.Context, datasetID string, opts *IngestPathsOpts, paths ...string) error {
@@ -143,7 +144,6 @@ func (c *DefaultClient) IngestPaths(ctx context.Context, datasetID string, opts 
 				Size:         finfo.Size(),
 				ModifiedAt:   finfo.ModTime(),
 			},
-			FileID:              nil,
 			IsDuplicateFuncName: "file_metadata",
 		}
 		_, err = c.Ingest(ctx, datasetID, b64, payload)

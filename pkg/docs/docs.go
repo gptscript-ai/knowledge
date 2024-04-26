@@ -234,7 +234,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "$ref": "#/definitions/types.IngestResponse"
                         }
                     }
                 }
@@ -297,6 +297,17 @@ const docTemplate = `{
                     "type": "string",
                     "format": "hostname_rfc1123",
                     "example": "asst-12345"
+                }
+            }
+        },
+        "types.IngestResponse": {
+            "type": "object",
+            "properties": {
+                "documents": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },

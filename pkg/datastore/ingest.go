@@ -31,7 +31,6 @@ var firstclassFileExtensions = map[string]struct{}{
 }
 
 type IngestOpts struct {
-	FileID              *string
 	Filename            *string
 	FileMetadata        *index.FileMetadata
 	IsDuplicateFuncName string
@@ -51,21 +50,20 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, reader io.Read
 		isDuplicate = opts.IsDuplicateFunc
 	}
 
-	// Generate ID if none was provided
-	if opts.FileID == nil {
-		fid, err := uuid.NewUUID()
-		if err != nil {
-			slog.Error("Failed to generate UUID", "error", err)
-			return nil, err
-		}
-		opts.FileID = z.Pointer(fid.String())
+	slog.Info("IngestOpts", "opts", opts)
+
+	// Generate ID
+	fUUID, err := uuid.NewUUID()
+	if err != nil {
+		slog.Error("Failed to generate UUID", "error", err)
+		return nil, err
 	}
+	fileID := fUUID.String()
 
 	/*
 	 * Detect filetype
 	 */
 	var filetype string
-	var err error
 	if opts.Filename != nil {
 		filetype = path.Ext(*opts.Filename)
 		if _, ok := firstclassFileExtensions[filetype]; !ok {
@@ -197,21 +195,24 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, reader io.Read
 	for idx, docID := range docIDs {
 		dbDocs[idx] = index.Document{
 			ID:      docID,
-			FileID:  *opts.FileID,
+			FileID:  fileID,
 			Dataset: datasetID,
 		}
 	}
 
 	dbFile := index.File{
-		ID:        *opts.FileID,
+		ID:        fileID,
 		Dataset:   datasetID,
 		Documents: dbDocs,
 		FileMetadata: index.FileMetadata{
-			Name:         *opts.Filename,
-			AbsolutePath: opts.FileMetadata.AbsolutePath,
-			Size:         opts.FileMetadata.Size,
-			ModifiedAt:   opts.FileMetadata.ModifiedAt,
+			Name: *opts.Filename,
 		},
+	}
+
+	if opts.FileMetadata != nil {
+		dbFile.FileMetadata.AbsolutePath = opts.FileMetadata.AbsolutePath
+		dbFile.FileMetadata.Size = opts.FileMetadata.Size
+		dbFile.FileMetadata.ModifiedAt = opts.FileMetadata.ModifiedAt
 	}
 
 	tx := s.Index.WithContext(ctx).Create(&dbFile)
@@ -220,7 +221,7 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, reader io.Read
 		return nil, fmt.Errorf("failed to create file: %w", tx.Error)
 	}
 
-	slog.Info("Ingested document", "filename", *opts.Filename, "count", len(docIDs), "absolute_path", opts.FileMetadata.AbsolutePath)
+	slog.Info("Ingested document", "filename", *opts.Filename, "count", len(docIDs), "absolute_path", dbFile.FileMetadata.AbsolutePath)
 
 	return docIDs, nil
 }

@@ -1,14 +1,17 @@
+# Set KNOW_SERVER_URL=standalone to use the client in standalone mode (i.e. without a server running)
+
 tools: Create Dataset, sys.find, Ingest, Retrieve
 
-Create a new Knowledge Base Dataset with a random ID you come up with. If it exists, try with a different one.
+Create a new Knowledge Base Dataset with a random unique ID you come up with.
 Then, ingest the directory pkg/cmd into the dataset.
 Then, figure out which commands are defined in the previously ingested files.
+
 ---
 name: Create Dataset
 description: Create a new Dataset in the Knowledge Base
 args: id: ID of the Dataset
 
-#!bin/knowledge client --server=standalone create-dataset ${id}
+#!bin/knowledge client create-dataset ${id}
 
 ---
 name: Ingest
@@ -16,7 +19,7 @@ description: Ingest a file or all files from a directory into a Knowledge Base D
 args: id: ID of the Dataset
 args: filepath: Path to the file or directory to be ingested
 
-#!bin/knowledge client --server=standalone ingest ${id} ${filepath}
+#!bin/knowledge client ingest ${id} ${filepath}
 
 ---
 name: Retrieve
@@ -24,4 +27,4 @@ description: Retrieve information from a Knowledge Base Dataset
 args: id: ID of the Dataset
 args: query: Query to be executed against the Knowledge Base Dataset
 
-#!bin/knowledge client --server=standalone retrieve ${id} ${query}
+#!bin/knowledge client retrieve ${id} ${query}

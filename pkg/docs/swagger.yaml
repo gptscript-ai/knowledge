@@ -16,6 +16,13 @@ definitions:
     required:
     - id
     type: object
+  types.IngestResponse:
+    properties:
+      documents:
+        items:
+          type: string
+        type: array
+    type: object
   vectorstore.Document:
     properties:
       content:
@@ -154,7 +161,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/gin.H'
+            $ref: '#/definitions/types.IngestResponse'
       summary: Ingest content into a dataset
       tags:
       - datasets

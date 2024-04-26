@@ -96,7 +96,7 @@ func (s *Server) RetrieveFromDS(c *gin.Context) {
 // @Produce json
 // @Param id path string true "Dataset ID"
 // @Router /datasets/{id}/ingest [post]
-// @Success 200 {object} gin.H
+// @Success 200 {object} types.IngestResponse
 func (s *Server) IngestIntoDS(c *gin.Context) {
 	id := c.Param("id")
 	slog.Info("Ingesting content into dataset", "dataset", id)
@@ -108,6 +108,8 @@ func (s *Server) IngestIntoDS(c *gin.Context) {
 		return
 	}
 
+	slog.Debug("Received ingest request", "content_size", len(ingest.Content), "metadata", ingest.FileMetadata)
+
 	// decode content
 	data, err := base64.StdEncoding.DecodeString(ingest.Content)
 	if err != nil {
@@ -118,11 +120,11 @@ func (s *Server) IngestIntoDS(c *gin.Context) {
 
 	// ingest content
 	docIDs, err := s.Ingest(c, id, bytes.NewReader(data), datastore.IngestOpts{
-		FileID:   ingest.FileID,
-		Filename: ingest.Filename,
+		Filename:     ingest.Filename,
+		FileMetadata: ingest.FileMetadata,
 	})
 
-	c.JSON(http.StatusOK, gin.H{"documents": docIDs, "ingest": ingest})
+	c.JSON(http.StatusOK, types.IngestResponse{Documents: docIDs})
 }
 
 // RemoveDocFromDS removes a document from a dataset by ID. If the owning file context is now empty, the FileIndex is removed.
