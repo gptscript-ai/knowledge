@@ -114,106 +114,10 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 		return nil, nil
 	}
 
-	/*
-	 * Load documents from the content
-	 * For now, we're using documentloaders from both langchaingo and golc
-	 * and translate them to our document schema.
-	 */
-
-	var lcgodocs []lcgoschema.Document
-	var golcdocs []golcschema.Document
-
-	switch filetype {
-	case ".pdf", "application/pdf":
-		// The PDF loader requires a size argument, so we can either read the whole file into memory
-		// or write it to a temporary file and pass load directly from that file.
-		// We choose the former for now.
-		data, err := io.ReadAll(reader)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read PDF data: %w", err)
-		}
-		r, err := golcdocloaders.NewPDF(bytes.NewReader(data), int64(len(data)))
-		if err != nil {
-			slog.Error("Failed to create PDF loader", "error", err)
-			return nil, err
-		}
-		rdocs, err := r.Load(ctx)
-		if err != nil {
-			slog.Error("Failed to load PDF", "filename", *opts.Filename, "error", err)
-			return nil, fmt.Errorf("failed to load PDF: %w", err)
-		}
-
-		// TODO: consolidate splitters in this repo, so we don't have to convert back and forth
-		splitter := lcgosplitter.NewTokenSplitter(lcgosplitter.WithModelName(defaultTokenModel))
-		lcgodocs = make([]lcgoschema.Document, len(rdocs))
-		for idx, rdoc := range rdocs {
-			lcgodocs[idx] = lcgoschema.Document{
-				PageContent: rdoc.PageContent,
-				Metadata:    rdoc.Metadata,
-			}
-		}
-		lcgodocs, err = lcgosplitter.SplitDocuments(splitter, lcgodocs)
-	case ".html", "text/html":
-		splitter := lcgosplitter.NewTokenSplitter(lcgosplitter.WithModelName(defaultTokenModel))
-		lcgodocs, err = lcgodocloaders.NewHTML(reader).LoadAndSplit(ctx, splitter)
-	case ".md", "text/markdown":
-		splitter := lcgosplitter.NewMarkdownTextSplitter(lcgosplitter.WithModelName(defaultTokenModel))
-		lcgodocs, err = lcgodocloaders.NewText(reader).LoadAndSplit(ctx, splitter)
-	case ".txt", "text/plain":
-		splitter := lcgosplitter.NewTokenSplitter(lcgosplitter.WithModelName(defaultTokenModel))
-		lcgodocs, err = lcgodocloaders.NewText(reader).LoadAndSplit(ctx, splitter)
-	case ".csv", "text/csv":
-		golcdocs, err = golcdocloaders.NewCSV(reader).Load(ctx)
-		if err != nil && errors.Is(err, csv.ErrBareQuote) {
-			oerr := err
-			err = nil
-			var nerr error
-			golcdocs, nerr = golcdocloaders.NewCSV(reader, func(o *golcdocloaders.CSVOptions) {
-				o.LazyQuotes = true
-			}).Load(ctx)
-			if nerr != nil {
-				err = errors.Join(oerr, nerr)
-			}
-		}
-	case ".ipynb":
-		golcdocs, err = golcdocloaders.NewNotebook(reader).Load(ctx)
-	case ".docx", ".odt", ".rtf", "application/vnd.oasis.opendocument.text", "text/rtf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-		data, err := io.ReadAll(reader)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read %s data: %w", filetype, err)
-		}
-		text, err := cat.FromBytes(data)
-		if err != nil {
-			return nil, fmt.Errorf("failed to extract text from %s: %w", filetype, err)
-		}
-		splitter := lcgosplitter.NewTokenSplitter(lcgosplitter.WithModelName(defaultTokenModel))
-		lcgodocs, err = lcgodocloaders.NewText(strings.NewReader(text)).LoadAndSplit(ctx, splitter)
-	default:
-		// TODO(@iwilltry42): Fallback to plaintext reader? Example: Makefile, Dockerfile, Source Files, etc.
-		slog.Error("Unsupported file type", "filename", *opts.Filename, "type", filetype)
-		return nil, fmt.Errorf("unsupported file type: %s", filetype)
-	}
-
+	docs, err := GetDocuments(ctx, *opts.Filename, filetype, reader)
 	if err != nil {
-		slog.Error("Failed to load document", "error", err)
-		return nil, fmt.Errorf("failed to load document: %w", err)
-	}
-
-	docs := make([]vs.Document, len(lcgodocs)+len(golcdocs))
-	for idx, doc := range lcgodocs {
-		doc.Metadata["filename"] = *opts.Filename
-		docs[idx] = vs.Document{
-			Metadata: doc.Metadata,
-			Content:  doc.PageContent,
-		}
-	}
-
-	for idx, doc := range golcdocs {
-		doc.Metadata["filename"] = *opts.Filename
-		docs[idx] = vs.Document{
-			Metadata: doc.Metadata,
-			Content:  doc.PageContent,
-		}
+		slog.Error("Failed to load documents", "error", err)
+		return nil, fmt.Errorf("failed to load documents: %w", err)
 	}
 
 	if len(docs) == 0 {
@@ -277,4 +181,112 @@ func mimetypeFromReader(reader io.Reader) (string, io.Reader, error) {
 	newReader := io.MultiReader(header, reader)
 
 	return mtype.String(), newReader, err
+}
+
+func GetDocuments(ctx context.Context, filename, filetype string, reader io.Reader) ([]vs.Document, error) {
+	/*
+	 * Load documents from the content
+	 * For now, we're using documentloaders from both langchaingo and golc
+	 * and translate them to our document schema.
+	 */
+
+	var lcgodocs []lcgoschema.Document
+	var golcdocs []golcschema.Document
+
+	var err error
+
+	switch filetype {
+	case ".pdf", "application/pdf":
+		// The PDF loader requires a size argument, so we can either read the whole file into memory
+		// or write it to a temporary file and pass load directly from that file.
+		// We choose the former for now.
+		data, err := io.ReadAll(reader)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read PDF data: %w", err)
+		}
+		r, err := golcdocloaders.NewPDF(bytes.NewReader(data), int64(len(data)))
+		if err != nil {
+			slog.Error("Failed to create PDF loader", "error", err)
+			return nil, err
+		}
+		rdocs, err := r.Load(ctx)
+		if err != nil {
+			slog.Error("Failed to load PDF", "filename", filename, "error", err)
+			return nil, fmt.Errorf("failed to load PDF: %w", err)
+		}
+
+		// TODO: consolidate splitters in this repo, so we don't have to convert back and forth
+		splitter := lcgosplitter.NewTokenSplitter(lcgosplitter.WithModelName(defaultTokenModel))
+		lcgodocs = make([]lcgoschema.Document, len(rdocs))
+		for idx, rdoc := range rdocs {
+			lcgodocs[idx] = lcgoschema.Document{
+				PageContent: rdoc.PageContent,
+				Metadata:    rdoc.Metadata,
+			}
+		}
+		lcgodocs, err = lcgosplitter.SplitDocuments(splitter, lcgodocs)
+	case ".html", "text/html":
+		splitter := lcgosplitter.NewTokenSplitter(lcgosplitter.WithModelName(defaultTokenModel))
+		lcgodocs, err = lcgodocloaders.NewHTML(reader).LoadAndSplit(ctx, splitter)
+	case ".md", "text/markdown":
+		splitter := lcgosplitter.NewMarkdownTextSplitter(lcgosplitter.WithModelName(defaultTokenModel))
+		lcgodocs, err = lcgodocloaders.NewText(reader).LoadAndSplit(ctx, splitter)
+	case ".txt", "text/plain":
+		splitter := lcgosplitter.NewTokenSplitter(lcgosplitter.WithModelName(defaultTokenModel))
+		lcgodocs, err = lcgodocloaders.NewText(reader).LoadAndSplit(ctx, splitter)
+	case ".csv", "text/csv":
+		golcdocs, err = golcdocloaders.NewCSV(reader).Load(ctx)
+		if err != nil && errors.Is(err, csv.ErrBareQuote) {
+			oerr := err
+			err = nil
+			var nerr error
+			golcdocs, nerr = golcdocloaders.NewCSV(reader, func(o *golcdocloaders.CSVOptions) {
+				o.LazyQuotes = true
+			}).Load(ctx)
+			if nerr != nil {
+				err = errors.Join(oerr, nerr)
+			}
+		}
+	case ".ipynb":
+		golcdocs, err = golcdocloaders.NewNotebook(reader).Load(ctx)
+	case ".docx", ".odt", ".rtf", "application/vnd.oasis.opendocument.text", "text/rtf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+		data, err := io.ReadAll(reader)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read %s data: %w", filetype, err)
+		}
+		text, err := cat.FromBytes(data)
+		if err != nil {
+			return nil, fmt.Errorf("failed to extract text from %s: %w", filetype, err)
+		}
+		splitter := lcgosplitter.NewTokenSplitter(lcgosplitter.WithModelName(defaultTokenModel))
+		lcgodocs, err = lcgodocloaders.NewText(strings.NewReader(text)).LoadAndSplit(ctx, splitter)
+	default:
+		// TODO(@iwilltry42): Fallback to plaintext reader? Example: Makefile, Dockerfile, Source Files, etc.
+		slog.Error("Unsupported file type", "filename", filename, "type", filetype)
+		return nil, fmt.Errorf("unsupported file type: %s", filetype)
+	}
+
+	if err != nil {
+		slog.Error("Failed to load document", "error", err)
+		return nil, fmt.Errorf("failed to load document: %w", err)
+	}
+
+	docs := make([]vs.Document, len(lcgodocs)+len(golcdocs))
+	for idx, doc := range lcgodocs {
+		doc.Metadata["filename"] = filename
+		docs[idx] = vs.Document{
+			Metadata: doc.Metadata,
+			Content:  doc.PageContent,
+		}
+	}
+
+	for idx, doc := range golcdocs {
+		doc.Metadata["filename"] = filename
+		docs[idx] = vs.Document{
+			Metadata: doc.Metadata,
+			Content:  doc.PageContent,
+		}
+	}
+
+	return docs, nil
 }

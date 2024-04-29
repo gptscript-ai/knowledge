@@ -158,6 +158,7 @@ github.com/cloudflare/circl/sign/ed448
 github.com/cyphar/filepath-securejoin
 # github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 ## explicit
+github.com/davecgh/go-spew/spew
 # github.com/dlclark/regexp2 v1.11.0
 ## explicit; go 1.13
 github.com/dlclark/regexp2
@@ -344,7 +345,7 @@ github.com/klauspost/compress/flate
 # github.com/klauspost/cpuid/v2 v2.2.7
 ## explicit; go 1.15
 github.com/klauspost/cpuid/v2
-# github.com/ledongthuc/pdf v0.0.0-20240201131950-da5b75280b06
+# github.com/ledongthuc/pdf v0.0.0-20240201131950-da5b75280b06 => github.com/romanpickl/pdf v0.0.0-20240314090751-a2a84ec735c3
 ## explicit
 github.com/ledongthuc/pdf
 # github.com/leodido/go-urn v1.4.0
@@ -392,7 +393,7 @@ github.com/pelletier/go-toml/v2/internal/characters
 github.com/pelletier/go-toml/v2/internal/danger
 github.com/pelletier/go-toml/v2/internal/tracker
 github.com/pelletier/go-toml/v2/unstable
-# github.com/philippgille/chromem-go v0.5.1-0.20240422192035-df6c86386820
+# github.com/philippgille/chromem-go v0.6.0
 ## explicit; go 1.21
 github.com/philippgille/chromem-go
 # github.com/pjbgf/sha1cd v0.3.0
@@ -405,6 +406,7 @@ github.com/pjbgf/sha1cd/ubc
 github.com/pkoukk/tiktoken-go
 # github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2
 ## explicit
+github.com/pmezard/go-difflib/difflib
 # github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec
 ## explicit; go 1.12
 github.com/remyoudompheng/bigfft
@@ -435,6 +437,10 @@ github.com/spf13/cobra
 # github.com/spf13/pflag v1.0.5
 ## explicit; go 1.12
 github.com/spf13/pflag
+# github.com/stretchr/testify v1.9.0
+## explicit; go 1.17
+github.com/stretchr/testify/assert
+github.com/stretchr/testify/require
 # github.com/swaggo/files v1.0.1
 ## explicit; go 1.16
 github.com/swaggo/files
@@ -688,3 +694,4 @@ nhooyr.io/websocket/internal/errd
 nhooyr.io/websocket/internal/wsjs
 nhooyr.io/websocket/internal/xsync
 nhooyr.io/websocket/wsjson
+# github.com/ledongthuc/pdf => github.com/romanpickl/pdf v0.0.0-20240314090751-a2a84ec735c3
