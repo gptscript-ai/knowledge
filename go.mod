@@ -2,6 +2,8 @@ module github.com/gptscript-ai/knowledge
 
 go 1.22.0
 
+replace github.com/ledongthuc/pdf => github.com/romanpickl/pdf v0.0.0-20240314090751-a2a84ec735c3 // fix for reading some PDFs: https://github.com/ledongthuc/pdf/pull/36
+
 require (
 	github.com/acorn-io/cmd v0.0.0-20240404013709-34f690bde37b
 	github.com/acorn-io/z v0.0.0-20231104012607-4cab1b3ec5e5
@@ -11,8 +13,9 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/hupe1980/golc v0.0.110
 	github.com/lu4p/cat v0.1.5
-	github.com/philippgille/chromem-go v0.5.1-0.20240422192035-df6c86386820
+	github.com/philippgille/chromem-go v0.6.0
 	github.com/spf13/cobra v1.8.0
+	github.com/stretchr/testify v1.9.0
 	github.com/swaggo/files v1.0.1
 	github.com/swaggo/gin-swagger v1.6.0
 	github.com/swaggo/swag v1.16.3
