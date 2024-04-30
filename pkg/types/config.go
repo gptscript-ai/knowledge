@@ -1,9 +1,9 @@
 package types
 
 type OpenAIConfig struct {
-	APIBase        string `usage:"OpenAI API base" default:"http://localhost:8080/v1" env:"KNOW_OPENAI_API_BASE"` // clicky-chats
-	APIKey         string `usage:"OpenAI API key (not required if used with clicky-chats)" default:"sk-foo" env:"KNOW_OPENAI_API_KEY"`
-	EmbeddingModel string `usage:"OpenAI Embedding model" default:"text-embedding-ada-002" env:"KNOW_OPENAI_EMBEDDING_MODEL"`
+	APIBase        string `usage:"OpenAI API base" default:"https://api.openai.com/v1" env:"OPENAI_BASE_URL"` // clicky-chats
+	APIKey         string `usage:"OpenAI API key (not required if used with clicky-chats)" default:"sk-foo" env:"OPENAI_API_KEY"`
+	EmbeddingModel string `usage:"OpenAI Embedding model" default:"text-embedding-ada-002" env:"OPENAI_EMBEDDING_MODEL"`
 }
 
 type DatabaseConfig struct {
