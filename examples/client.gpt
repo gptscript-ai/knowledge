@@ -2,7 +2,7 @@ tools: create_dataset, sys.find, ingest, retrieve, delete_dataset, get_dataset, 
 
 Create a new Knowledge Base Dataset with a random unique ID, if it doesn't exist yet.
 Then, ingest the directory pkg/ into the dataset.
-Then, figure out which CLI commands are defined in the previously ingested codebase.
+Then, retrieve from the knowledge base how I can ingest the current working directory into a dataset from the CLI.
 
 ---
 name: create_dataset
