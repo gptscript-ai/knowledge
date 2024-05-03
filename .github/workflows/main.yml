@@ -63,7 +63,8 @@ jobs:
           allowUpdates: true
           artifactErrorsFailBuild: true
           artifacts: dist/*
-          discussionCategory: releases
+          # discussionCategory: releases
+          makeLatest: ${{ steps.semver.outputs.prerelease == '' }}
           generateReleaseNotes: true
           prerelease: ${{ steps.semver.outputs.prerelease != '' }}
           replacesArtifacts: true
