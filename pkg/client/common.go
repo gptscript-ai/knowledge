@@ -9,7 +9,10 @@ import (
 	"path/filepath"
 )
 
-func ingestPaths(ctx context.Context, opts *IngestPathsOpts, ingestionFunc func(path string) error, paths ...string) error {
+func ingestPaths(ctx context.Context, opts *IngestPathsOpts, ingestionFunc func(path string) error, paths ...string) (int, error) {
+
+	ingestedFilesCount := 0
+
 	if opts.Concurrency < 1 {
 		opts.Concurrency = 10
 	}
@@ -19,43 +22,57 @@ func ingestPaths(ctx context.Context, opts *IngestPathsOpts, ingestionFunc func(
 
 	for _, p := range paths {
 		path := p
-		g.Go(func() error {
-			// Wait for a free slot, or exit if the context is done
-			if err := sem.Acquire(ctx, 1); err != nil {
-				return err
-			}
-			defer sem.Release(1)
 
-			fileInfo, err := os.Stat(path)
-			if err != nil {
-				return fmt.Errorf("failed to get file info for %s: %w", path, err)
-			}
+		fileInfo, err := os.Stat(path)
+		if err != nil {
+			return ingestedFilesCount, fmt.Errorf("failed to get file info for %s: %w", path, err)
+		}
 
-			if fileInfo.IsDir() {
-				// Process each file in the directory but skip directories (i.e. don't recurse)
-				err := filepath.WalkDir(path, func(path string, d os.DirEntry, err error) error {
-					if err != nil {
+		if fileInfo.IsDir() {
+			// Process directory
+			err = filepath.WalkDir(path, func(subPath string, d os.DirEntry, err error) error {
+				if err != nil {
+					return err
+				}
+				if d.IsDir() {
+					if subPath == path {
+						return nil // Always process the top-level directory
+					}
+					if !opts.Recursive {
+						return filepath.SkipDir // Skip subdirectories if not recursive
+					}
+					return nil
+				}
+
+				sp := subPath
+				g.Go(func() error {
+					if err := sem.Acquire(ctx, 1); err != nil {
 						return err
 					}
-					if d.IsDir() {
-						return nil
-					}
-					return ingestionFunc(path)
+					defer sem.Release(1)
+
+					ingestedFilesCount++
+					return ingestionFunc(sp)
 				})
-				if err != nil {
-					return err
-				}
-			} else {
-				// Process single file
-				err := ingestionFunc(path)
-				if err != nil {
-					return err
-				}
+				return nil
+			})
+			if err != nil {
+				return ingestedFilesCount, err
 			}
-			return nil
-		})
+		} else {
+			// Process a file directly
+			g.Go(func() error {
+				if err := sem.Acquire(ctx, 1); err != nil {
+					return err
+				}
+				defer sem.Release(1)
+
+				ingestedFilesCount++
+				return ingestionFunc(path)
+			})
+		}
 	}
 
-	// Wait for all goroutines in the group to finish
-	return g.Wait()
+	// Wait for all goroutines to finish
+	return ingestedFilesCount, g.Wait()
 }

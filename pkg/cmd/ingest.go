@@ -11,7 +11,8 @@ type ClientIngest struct {
 	Client
 	Dataset          string `usage:"Target Dataset ID" default:"default" env:"KNOW_TARGET_DATASET"`
 	IgnoreExtensions string `usage:"Comma-separated list of file extensions to ignore" env:"KNOW_INGEST_IGNORE_EXTENSIONS"`
-	Concurrency      int    `usage:"Number of concurrent ingestion processes" default:"10" env:"KNOW_INGEST_CONCURRENCY"`
+	Concurrency      int    `usage:"Number of concurrent ingestion processes" short:"c" default:"10" env:"KNOW_INGEST_CONCURRENCY"`
+	Recursive        bool   `usage:"Recursively ingest directories" short:"r" default:"false" env:"KNOW_INGEST_RECURSIVE"`
 }
 
 func (s *ClientIngest) Customize(cmd *cobra.Command) {
@@ -32,13 +33,14 @@ func (s *ClientIngest) Run(cmd *cobra.Command, args []string) error {
 	ingestOpts := &client.IngestPathsOpts{
 		IgnoreExtensions: strings.Split(s.IgnoreExtensions, ","),
 		Concurrency:      s.Concurrency,
+		Recursive:        s.Recursive,
 	}
 
-	err = c.IngestPaths(cmd.Context(), datasetID, ingestOpts, filePath)
+	filesIngested, err := c.IngestPaths(cmd.Context(), datasetID, ingestOpts, filePath)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("Ingested %q into dataset %q\n", filePath, datasetID)
+	fmt.Printf("Ingested %d files from %q into dataset %q\n", filesIngested, filePath, datasetID)
 	return nil
 }

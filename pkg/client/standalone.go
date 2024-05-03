@@ -50,7 +50,7 @@ func (c *StandaloneClient) Ingest(ctx context.Context, datasetID string, data []
 	return c.Datastore.Ingest(ctx, datasetID, data, opts)
 }
 
-func (c *StandaloneClient) IngestPaths(ctx context.Context, datasetID string, opts *IngestPathsOpts, paths ...string) error {
+func (c *StandaloneClient) IngestPaths(ctx context.Context, datasetID string, opts *IngestPathsOpts, paths ...string) (int, error) {
 	ingestFile := func(path string) error {
 		// Gather metadata
 		finfo, err := os.Stat(path)

@@ -115,7 +115,7 @@ func (c *DefaultClient) Ingest(_ context.Context, datasetID string, data []byte,
 	return res.Documents, nil
 }
 
-func (c *DefaultClient) IngestPaths(ctx context.Context, datasetID string, opts *IngestPathsOpts, paths ...string) error {
+func (c *DefaultClient) IngestPaths(ctx context.Context, datasetID string, opts *IngestPathsOpts, paths ...string) (int, error) {
 	ingestFile := func(path string) error {
 		content, err := os.ReadFile(path)
 		if err != nil {
