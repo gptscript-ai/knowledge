@@ -19,6 +19,8 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: "${{ env.GO_VERSION }}"
+      - name: Setup CI Tools
+        run: make ci-setup
       # Tests
       - name: Run Go Tests
         run: make test
