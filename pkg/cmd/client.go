@@ -23,7 +23,7 @@ func (s *Client) getClient() (client.Client, error) {
 		if err != nil {
 			return nil, err
 		}
-		return c, c.Datastore.Index.AutoMigrate()
+		return c, nil
 	}
 	return client.NewDefaultClient(s.Server), nil
 }

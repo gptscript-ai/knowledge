@@ -8,13 +8,14 @@ import (
 
 type ClientRetrieve struct {
 	Client
-	TopK int `usage:"Number of sources to retrieve" default:"3"`
+	Dataset string `usage:"Target Dataset ID" default:"default" env:"KNOW_TARGET_DATASET"`
+	TopK    int    `usage:"Number of sources to retrieve" default:"3"`
 }
 
 func (s *ClientRetrieve) Customize(cmd *cobra.Command) {
-	cmd.Use = "retrieve <dataset-id> <query>"
+	cmd.Use = "retrieve [--dataset <dataset-id>] <query>"
 	cmd.Short = "Retrieve sources for a query from a dataset"
-	cmd.Args = cobra.ExactArgs(2)
+	cmd.Args = cobra.ExactArgs(1)
 }
 
 func (s *ClientRetrieve) Run(cmd *cobra.Command, args []string) error {
@@ -23,8 +24,8 @@ func (s *ClientRetrieve) Run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	datasetID := args[0]
-	query := args[1]
+	datasetID := s.Dataset
+	query := args[0]
 
 	sources, err := c.Retrieve(cmd.Context(), datasetID, query)
 	if err != nil {

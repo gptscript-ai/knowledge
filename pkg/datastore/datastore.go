@@ -1,6 +1,8 @@
 package datastore
 
 import (
+	"context"
+	"fmt"
 	"github.com/acorn-io/z"
 	"github.com/adrg/xdg"
 	"github.com/gptscript-ai/knowledge/pkg/index"
@@ -16,15 +18,34 @@ type Datastore struct {
 	Vectorstore vectorstore.VectorStore
 }
 
-func NewDatastore(dsn string, automigrate bool, vectorDBPath string, openAIConfig types.OpenAIConfig) (*Datastore, error) {
+func GetDatastorePaths(dsn, vectordbPath string) (string, string, error) {
 	if dsn == "" {
 		var err error
 		dsn, err = xdg.DataFile("gptscript/knowledge/knowledge.db")
 		if err != nil {
-			return nil, err
+			return "", "", err
 		}
 		dsn = "sqlite://" + dsn
 		slog.Debug("Using default DSN", "dsn", dsn)
+	}
+
+	if vectordbPath == "" {
+		var err error
+		vectordbPath, err = xdg.DataFile("gptscript/knowledge/vector.db")
+		if err != nil {
+			return "", "", err
+		}
+		slog.Debug("Using default VectorDBPath", "vectordbPath", vectordbPath)
+	}
+
+	return dsn, vectordbPath, nil
+}
+
+func NewDatastore(dsn string, automigrate bool, vectorDBPath string, openAIConfig types.OpenAIConfig) (*Datastore, error) {
+
+	dsn, vectorDBPath, err := GetDatastorePaths(dsn, vectorDBPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to determine datastore paths: %w", err)
 	}
 
 	idx, err := index.New(dsn, automigrate)
@@ -32,12 +53,8 @@ func NewDatastore(dsn string, automigrate bool, vectorDBPath string, openAIConfi
 		return nil, err
 	}
 
-	if vectorDBPath == "" {
-		vectorDBPath, err = xdg.DataFile("gptscript/knowledge/vector.db")
-		if err != nil {
-			return nil, err
-		}
-		slog.Debug("Using default VectorDBPath", "vectorDBPath", vectorDBPath)
+	if err := idx.AutoMigrate(); err != nil {
+		return nil, fmt.Errorf("failed to auto-migrate index: %w", err)
 	}
 
 	vsdb, err := cg.NewPersistentDB(vectorDBPath, false)
@@ -52,8 +69,23 @@ func NewDatastore(dsn string, automigrate bool, vectorDBPath string, openAIConfi
 		z.Pointer(true),
 	)
 
-	return &Datastore{
+	ds := &Datastore{
 		Index:       idx,
 		Vectorstore: chromem.New(vsdb, embeddingFunc),
-	}, nil
+	}
+
+	// Ensure default dataset exists
+	defaultDS, err := ds.GetDataset(context.Background(), "default")
+	if err != nil {
+		return nil, fmt.Errorf("failed to ensure default dataset: %w", err)
+	}
+
+	if defaultDS == nil {
+		err = ds.NewDataset(context.Background(), types.Dataset{ID: "default", EmbedDimension: nil})
+		if err != nil {
+			return nil, fmt.Errorf("failed to create default dataset: %w", err)
+		}
+	}
+
+	return ds, nil
 }

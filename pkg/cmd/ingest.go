@@ -9,13 +9,14 @@ import (
 
 type ClientIngest struct {
 	Client
+	Dataset          string `usage:"Target Dataset ID" default:"default" env:"KNOW_TARGET_DATASET"`
 	IgnoreExtensions string `usage:"Comma-separated list of file extensions to ignore" env:"KNOW_INGEST_IGNORE_EXTENSIONS"`
 }
 
 func (s *ClientIngest) Customize(cmd *cobra.Command) {
-	cmd.Use = "ingest <dataset-id> <path>"
+	cmd.Use = "ingest [--dataset <dataset-id>] <path>"
 	cmd.Short = "Ingest a file/directory into a dataset (non-recursive)"
-	cmd.Args = cobra.ExactArgs(2)
+	cmd.Args = cobra.ExactArgs(1)
 }
 
 func (s *ClientIngest) Run(cmd *cobra.Command, args []string) error {
@@ -24,8 +25,8 @@ func (s *ClientIngest) Run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	datasetID := args[0]
-	filePath := args[1]
+	datasetID := s.Dataset
+	filePath := args[0]
 
 	ingestOpts := &client.IngestPathsOpts{
 		IgnoreExtensions: strings.Split(s.IgnoreExtensions, ","),

@@ -19,7 +19,6 @@ func (s *Datastore) NewDataset(ctx context.Context, dataset types.Dataset) error
 	}
 
 	// Create dataset
-	slog.Info("Creating dataset", "id", dataset.ID)
 	tx := s.Index.WithContext(ctx).Create(&dataset)
 	if tx.Error != nil {
 		return tx.Error
@@ -30,6 +29,7 @@ func (s *Datastore) NewDataset(ctx context.Context, dataset types.Dataset) error
 	if err != nil {
 		return err
 	}
+	slog.Info("Created dataset", "id", dataset.ID)
 	return nil
 }
 

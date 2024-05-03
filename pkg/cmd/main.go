@@ -15,6 +15,7 @@ func New() *cobra.Command {
 		new(ClientIngest),
 		new(ClientDeleteDataset),
 		new(ClientRetrieve),
+		new(ClientResetDatastore),
 	)
 }
 
