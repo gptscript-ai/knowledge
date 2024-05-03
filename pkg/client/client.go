@@ -10,6 +10,7 @@ import (
 
 type IngestPathsOpts struct {
 	IgnoreExtensions []string
+	Concurrency      int
 }
 
 type Client interface {

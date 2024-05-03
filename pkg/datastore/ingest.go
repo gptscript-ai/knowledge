@@ -200,19 +200,19 @@ func GetDocuments(ctx context.Context, filename, filetype string, reader io.Read
 		// The PDF loader requires a size argument, so we can either read the whole file into memory
 		// or write it to a temporary file and pass load directly from that file.
 		// We choose the former for now.
-		data, err := io.ReadAll(reader)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read PDF data: %w", err)
+		data, nerr := io.ReadAll(reader)
+		if nerr != nil {
+			return nil, fmt.Errorf("failed to read PDF data: %w", nerr)
 		}
-		r, err := golcdocloaders.NewPDF(bytes.NewReader(data), int64(len(data)))
-		if err != nil {
-			slog.Error("Failed to create PDF loader", "error", err)
-			return nil, err
+		r, nerr := golcdocloaders.NewPDF(bytes.NewReader(data), int64(len(data)))
+		if nerr != nil {
+			slog.Error("Failed to create PDF loader", "error", nerr)
+			return nil, nerr
 		}
-		rdocs, err := r.Load(ctx)
-		if err != nil {
-			slog.Error("Failed to load PDF", "filename", filename, "error", err)
-			return nil, fmt.Errorf("failed to load PDF: %w", err)
+		rdocs, nerr := r.Load(ctx)
+		if nerr != nil {
+			slog.Error("Failed to load PDF", "filename", filename, "error", nerr)
+			return nil, fmt.Errorf("failed to load PDF: %w", nerr)
 		}
 
 		// TODO: consolidate splitters in this repo, so we don't have to convert back and forth
@@ -250,13 +250,13 @@ func GetDocuments(ctx context.Context, filename, filetype string, reader io.Read
 	case ".ipynb":
 		golcdocs, err = golcdocloaders.NewNotebook(reader).Load(ctx)
 	case ".docx", ".odt", ".rtf", "application/vnd.oasis.opendocument.text", "text/rtf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-		data, err := io.ReadAll(reader)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read %s data: %w", filetype, err)
+		data, nerr := io.ReadAll(reader)
+		if nerr != nil {
+			return nil, fmt.Errorf("failed to read %s data: %w", filetype, nerr)
 		}
-		text, err := cat.FromBytes(data)
-		if err != nil {
-			return nil, fmt.Errorf("failed to extract text from %s: %w", filetype, err)
+		text, nerr := cat.FromBytes(data)
+		if nerr != nil {
+			return nil, fmt.Errorf("failed to extract text from %s: %w", filetype, nerr)
 		}
 		splitter := lcgosplitter.NewTokenSplitter(lcgosplitter.WithModelName(defaultTokenModel))
 		lcgodocs, err = lcgodocloaders.NewText(strings.NewReader(text)).LoadAndSplit(ctx, splitter)

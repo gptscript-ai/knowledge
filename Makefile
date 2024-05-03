@@ -18,6 +18,8 @@ openapi:
 tools:
 	if ! command -v swag &> /dev/null; then go install github.com/swaggo/swag/cmd/swag@latest; fi
 
+lint:
+	golangci-lint run ./...
 
 test:
 	go test -v ./...

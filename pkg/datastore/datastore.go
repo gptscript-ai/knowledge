@@ -42,7 +42,6 @@ func GetDatastorePaths(dsn, vectordbPath string) (string, string, error) {
 }
 
 func NewDatastore(dsn string, automigrate bool, vectorDBPath string, openAIConfig types.OpenAIConfig) (*Datastore, error) {
-
 	dsn, vectorDBPath, err := GetDatastorePaths(dsn, vectorDBPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to determine datastore paths: %w", err)

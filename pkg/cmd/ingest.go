@@ -11,6 +11,7 @@ type ClientIngest struct {
 	Client
 	Dataset          string `usage:"Target Dataset ID" default:"default" env:"KNOW_TARGET_DATASET"`
 	IgnoreExtensions string `usage:"Comma-separated list of file extensions to ignore" env:"KNOW_INGEST_IGNORE_EXTENSIONS"`
+	Concurrency      int    `usage:"Number of concurrent ingestion processes" default:"10" env:"KNOW_INGEST_CONCURRENCY"`
 }
 
 func (s *ClientIngest) Customize(cmd *cobra.Command) {
@@ -30,6 +31,7 @@ func (s *ClientIngest) Run(cmd *cobra.Command, args []string) error {
 
 	ingestOpts := &client.IngestPathsOpts{
 		IgnoreExtensions: strings.Split(s.IgnoreExtensions, ","),
+		Concurrency:      s.Concurrency,
 	}
 
 	err = c.IngestPaths(cmd.Context(), datasetID, ingestOpts, filePath)

@@ -123,6 +123,12 @@ func (s *Server) IngestIntoDS(c *gin.Context) {
 		FileMetadata: ingest.FileMetadata,
 	})
 
+	if err != nil {
+		slog.Error("Failed to ingest content", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
 	c.JSON(http.StatusOK, types.IngestResponse{Documents: docIDs})
 }
 

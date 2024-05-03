@@ -80,7 +80,7 @@ func (c *StandaloneClient) IngestPaths(ctx context.Context, datasetID string, op
 		return err
 	}
 
-	return ingestPaths(opts, ingestFile, paths...)
+	return ingestPaths(ctx, opts, ingestFile, paths...)
 }
 
 func (c *StandaloneClient) DeleteDocuments(ctx context.Context, datasetID string, documentIDs ...string) error {

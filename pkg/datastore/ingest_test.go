@@ -27,5 +27,4 @@ func TestExtractPDF(t *testing.T) {
 		return nil
 	})
 	require.NoError(t, err, "filepath.WalkDir() error = %v", err)
-
 }
