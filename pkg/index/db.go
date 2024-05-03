@@ -28,7 +28,7 @@ func New(dsn string, autoMigrate bool) (*DB, error) {
 	if strings.HasPrefix(dsn, "sqlite://") {
 		gdb = sqlite.Open(strings.TrimPrefix(dsn, "sqlite://"))
 	} else {
-		return nil, fmt.Errorf("unsupported database dialect", dsn)
+		return nil, fmt.Errorf("unsupported database dialect %q", dsn)
 	}
 	db, err := gorm.Open(gdb, &gorm.Config{
 		SkipDefaultTransaction: true,

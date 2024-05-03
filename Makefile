@@ -19,6 +19,8 @@ tools:
 	if ! command -v swag &> /dev/null; then go install github.com/swaggo/swag/cmd/swag@latest; fi
 
 
+test:
+	go test -v ./...
 
 # cross-compilation for all targets
 TARGETS ?= darwin/amd64 darwin/arm64 linux/amd64 linux/386 linux/arm linux/arm64 windows/amd64
