@@ -14,9 +14,9 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       # Setup
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Setup Go environment
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
           go-version: "${{ env.GO_VERSION }}"
       # Tests
@@ -33,9 +33,9 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       # Setup
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Setup Go environment
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
           go-version: "${{ env.GO_VERSION }}"
       - name: Setup CI Tools
@@ -60,7 +60,7 @@ jobs:
         with:
           allowUpdates: true
           artifactErrorsFailBuild: true
-          artifacts: _dist/*
+          artifacts: dist/*
           discussionCategory: releases
           generateReleaseNotes: true
           prerelease: ${{ steps.semver.outputs.prerelease != '' }}

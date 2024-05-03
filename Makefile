@@ -21,28 +21,18 @@ tools:
 
 
 # cross-compilation for all targets
+TARGETS ?= darwin/amd64 darwin/arm64 linux/amd64 linux/386 linux/arm linux/arm64 windows/amd64
 build-cross: LDFLAGS += -extldflags "-static"
 build-cross:
-	CGO_ENABLED=0 gox -parallel=3 -output="_dist/$(BINARIES)-{{.OS}}-{{.Arch}}" -osarch='$(TARGETS)' $(GOFLAGS) $(if $(TAGS),-tags '$(TAGS)',) -ldflags '$(LDFLAGS)'
+	CGO_ENABLED=0 gox -parallel=3 -output="dist/$(BINARIES)-{{.OS}}-{{.Arch}}" -osarch='$(TARGETS)' $(GOFLAGS) $(if $(TAGS),-tags '$(TAGS)',) -ldflags '$(LDFLAGS)'
 gen-checksum:	build-cross
-	$(eval ARTIFACTS_TO_PUBLISH := $(shell ls _dist/*))
-	$$(sha256sum $(ARTIFACTS_TO_PUBLISH) > _dist/checksums.txt)
+	$(eval ARTIFACTS_TO_PUBLISH := $(shell ls dist/*))
+	$$(sha256sum $(ARTIFACTS_TO_PUBLISH) > dist/checksums.txt)
 
-.PHONY: install-tools
-install-tools:
-ifndef HAS_GOX
-	($(GO) install $(PKG_GOX))
-endif
-ifndef HAS_GOLANGCI
-	(curl -sfL $(PKG_GOLANGCI_LINT_SCRIPT) | sh -s -- -b $(GOENVPATH)/bin v${PKG_GOLANGCI_LINT_VERSION})
-endif
-ifdef HAS_GOLANGCI
-ifeq ($(HAS_GOLANGCI_VERSION),)
-ifdef INTERACTIVE
-	@echo "Warning: Your installed version of golangci-lint (interactive: ${INTERACTIVE}) differs from what we'd like to use. Switch to v${PKG_GOLANGCI_LINT_VERSION}? [Y/n]"
-	@read line; if [ $$line == "y" ]; then (curl -sfL $(PKG_GOLANGCI_LINT_SCRIPT) | sh -s -- -b $(GOENVPATH)/bin v${PKG_GOLANGCI_LINT_VERSION}); fi
-else
-	@echo "Warning: you're not using the same version of golangci-lint as us (v${PKG_GOLANGCI_LINT_VERSION})"
-endif
-endif
-endif
+ci-setup:
+	@echo "### Installing Go tools..."
+	@echo "### -> Installing golangci-lint..."
+	curl -sfL $(PKG_GOLANGCI_LINT_SCRIPT) | sh -s -- -b $(GOENVPATH)/bin v$(PKG_GOLANGCI_LINT_VERSION)
+
+	@echo "### -> Installing gox..."
+	./scripts/install-tools.sh gox
