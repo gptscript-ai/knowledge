@@ -7,6 +7,7 @@ replace github.com/ledongthuc/pdf => github.com/romanpickl/pdf v0.0.0-2024031409
 require (
 	github.com/acorn-io/cmd v0.0.0-20240404013709-34f690bde37b
 	github.com/acorn-io/z v0.0.0-20231104012607-4cab1b3ec5e5
+	github.com/adrg/xdg v0.4.0
 	github.com/gabriel-vasile/mimetype v1.4.3
 	github.com/gin-gonic/gin v1.9.1
 	github.com/glebarez/sqlite v1.11.0

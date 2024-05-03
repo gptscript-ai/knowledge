@@ -18,10 +18,11 @@ type Server struct {
 
 	types.OpenAIConfig
 	types.DatabaseConfig
+	types.VectorDBConfig
 }
 
 func (s *Server) Run(cmd *cobra.Command, _ []string) error {
-	ds, err := datastore.NewDatastore(s.DSN, s.AutoMigrate == "true", s.OpenAIConfig)
+	ds, err := datastore.NewDatastore(s.DSN, s.AutoMigrate == "true", s.VectorDBConfig.VectorDBPath, s.OpenAIConfig)
 	if err != nil {
 		return fmt.Errorf("failed to initialize datastore: %w", err)
 	}

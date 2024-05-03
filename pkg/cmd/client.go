@@ -10,11 +10,12 @@ type Client struct {
 	Server string `usage:"URL of the Knowledge API Server" default:"" env:"KNOW_SERVER_URL"`
 	types.OpenAIConfig
 	types.DatabaseConfig
+	types.VectorDBConfig
 }
 
 func (s *Client) getClient() (client.Client, error) {
 	if s.Server == "" || s.Server == "standalone" {
-		ds, err := datastore.NewDatastore(s.DSN, s.AutoMigrate == "true", s.OpenAIConfig)
+		ds, err := datastore.NewDatastore(s.DSN, s.AutoMigrate == "true", s.VectorDBConfig.VectorDBPath, s.OpenAIConfig)
 		if err != nil {
 			return nil, err
 		}
