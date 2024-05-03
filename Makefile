@@ -28,7 +28,7 @@ test:
 TARGETS ?= darwin/amd64 darwin/arm64 linux/amd64 linux/386 linux/arm linux/arm64 windows/amd64
 build-cross: LDFLAGS += -extldflags "-static"
 build-cross:
-	CGO_ENABLED=0 gox -parallel=3 -output="dist/$(BINARIES)-{{.OS}}-{{.Arch}}" -osarch='$(TARGETS)' $(GOFLAGS) $(if $(TAGS),-tags '$(TAGS)',) -ldflags '$(LDFLAGS)'
+	CGO_ENABLED=0 gox -parallel=3 -output="dist/knowledge-{{.OS}}-{{.Arch}}" -osarch='$(TARGETS)' $(GOFLAGS) $(if $(GO_TAGS),-tags '$(TAGS)',) -ldflags '$(LDFLAGS)'
 gen-checksum:	build-cross
 	$(eval ARTIFACTS_TO_PUBLISH := $(shell ls dist/*))
 	$$(sha256sum $(ARTIFACTS_TO_PUBLISH) > dist/checksums.txt)
