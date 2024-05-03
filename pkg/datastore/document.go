@@ -7,9 +7,6 @@ import (
 	"log/slog"
 )
 
-// ErrDBDocumentNotFound is returned when a document is not found in the database.
-var ErrDBDocumentNotFound = fmt.Errorf("document not found in database")
-
 func (s *Datastore) DeleteDocument(ctx context.Context, documentID, datasetID string) error {
 	// Find in Database
 	var document index.Document

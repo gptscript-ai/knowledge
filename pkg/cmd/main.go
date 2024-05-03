@@ -6,7 +6,16 @@ import (
 )
 
 func New() *cobra.Command {
-	return cmd.Command(&Knowledge{}, new(Server), new(ClientCreateDataset), new(ClientIngest), new(ClientDeleteDataset), new(ClientRetrieve))
+	return cmd.Command(
+		&Knowledge{},
+		new(Server),
+		new(ClientCreateDataset),
+		new(ClientGetDataset),
+		new(ClientListDatasets),
+		new(ClientIngest),
+		new(ClientDeleteDataset),
+		new(ClientRetrieve),
+	)
 }
 
 type Knowledge struct{}

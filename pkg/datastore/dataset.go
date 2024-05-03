@@ -3,6 +3,7 @@ package datastore
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/acorn-io/z"
 	"github.com/gptscript-ai/knowledge/pkg/index"
 	"github.com/gptscript-ai/knowledge/pkg/types"
@@ -50,13 +51,13 @@ func (s *Datastore) DeleteDataset(ctx context.Context, datasetID string) error {
 
 func (s *Datastore) GetDataset(ctx context.Context, datasetID string) (*index.Dataset, error) {
 	// Get dataset with files and associated documents preloaded
-	var dataset *index.Dataset
+	dataset := &index.Dataset{}
 	tx := s.Index.WithContext(ctx).Preload("Files.Documents").First(dataset, "id = ?", datasetID)
 	if tx.Error != nil {
 		if errors.Is(tx.Error, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
-		return nil, tx.Error
+		return nil, fmt.Errorf("failed to get dataset %q from DB: %w", datasetID, tx.Error)
 	}
 
 	return dataset, nil
