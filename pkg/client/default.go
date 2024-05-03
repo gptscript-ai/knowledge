@@ -163,8 +163,14 @@ func (c *DefaultClient) DeleteDocuments(_ context.Context, datasetID string, doc
 	return nil
 }
 
-func (c *DefaultClient) Retrieve(_ context.Context, datasetID string, query string) ([]vectorstore.Document, error) {
-	data, err := json.Marshal(types.Query{Prompt: query})
+func (c *DefaultClient) Retrieve(_ context.Context, datasetID string, query string, opts RetrieveOpts) ([]vectorstore.Document, error) {
+	q := types.Query{Prompt: query}
+
+	if opts.TopK != 0 {
+		q.TopK = &opts.TopK
+	}
+
+	data, err := json.Marshal(q)
 	if err != nil {
 		return nil, err
 	}

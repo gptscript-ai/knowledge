@@ -14,6 +14,10 @@ type IngestPathsOpts struct {
 	Recursive        bool
 }
 
+type RetrieveOpts struct {
+	TopK int
+}
+
 type Client interface {
 	CreateDataset(ctx context.Context, datasetID string) (types.Dataset, error)
 	DeleteDataset(ctx context.Context, datasetID string) error
@@ -22,5 +26,5 @@ type Client interface {
 	Ingest(ctx context.Context, datasetID string, data []byte, opts datastore.IngestOpts) ([]string, error)
 	IngestPaths(ctx context.Context, datasetID string, opts *IngestPathsOpts, paths ...string) (int, error) // returns number of files ingested
 	DeleteDocuments(ctx context.Context, datasetID string, documentIDs ...string) error
-	Retrieve(ctx context.Context, datasetID string, query string) ([]vectorstore.Document, error)
+	Retrieve(ctx context.Context, datasetID string, query string, opts RetrieveOpts) ([]vectorstore.Document, error)
 }

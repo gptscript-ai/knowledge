@@ -9,7 +9,7 @@ import (
 
 type ClientIngest struct {
 	Client
-	Dataset          string `usage:"Target Dataset ID" default:"default" env:"KNOW_TARGET_DATASET"`
+	Dataset          string `usage:"Target Dataset ID" short:"d" default:"default" env:"KNOW_TARGET_DATASET"`
 	IgnoreExtensions string `usage:"Comma-separated list of file extensions to ignore" env:"KNOW_INGEST_IGNORE_EXTENSIONS"`
 	Concurrency      int    `usage:"Number of concurrent ingestion processes" short:"c" default:"10" env:"KNOW_INGEST_CONCURRENCY"`
 	Recursive        bool   `usage:"Recursively ingest directories" short:"r" default:"false" env:"KNOW_INGEST_RECURSIVE"`

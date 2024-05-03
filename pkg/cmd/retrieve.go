@@ -3,13 +3,14 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gptscript-ai/knowledge/pkg/client"
 	"github.com/spf13/cobra"
 )
 
 type ClientRetrieve struct {
 	Client
-	Dataset string `usage:"Target Dataset ID" default:"default" env:"KNOW_TARGET_DATASET"`
-	TopK    int    `usage:"Number of sources to retrieve" default:"3"`
+	Dataset string `usage:"Target Dataset ID" short:"d" default:"default" env:"KNOW_TARGET_DATASET"`
+	TopK    int    `usage:"Number of sources to retrieve" short:"k" default:"5"`
 }
 
 func (s *ClientRetrieve) Customize(cmd *cobra.Command) {
@@ -27,7 +28,7 @@ func (s *ClientRetrieve) Run(cmd *cobra.Command, args []string) error {
 	datasetID := s.Dataset
 	query := args[0]
 
-	sources, err := c.Retrieve(cmd.Context(), datasetID, query)
+	sources, err := c.Retrieve(cmd.Context(), datasetID, query, client.RetrieveOpts{TopK: s.TopK})
 	if err != nil {
 		return err
 	}

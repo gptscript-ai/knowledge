@@ -212,7 +212,7 @@ func GetDocuments(ctx context.Context, filename, filetype string, reader io.Read
 		rdocs, nerr := r.Load(ctx)
 		if nerr != nil {
 			slog.Error("Failed to load PDF", "filename", filename, "error", nerr)
-			return nil, fmt.Errorf("failed to load PDF: %w", nerr)
+			return nil, fmt.Errorf("failed to load PDF %q: %w", filename, nerr)
 		}
 
 		// TODO: consolidate splitters in this repo, so we don't have to convert back and forth
@@ -247,6 +247,9 @@ func GetDocuments(ctx context.Context, filename, filetype string, reader io.Read
 				err = errors.Join(oerr, nerr)
 			}
 		}
+	case ".json", "application/json":
+		splitter := lcgosplitter.NewTokenSplitter(lcgosplitter.WithModelName(defaultTokenModel))
+		lcgodocs, err = lcgodocloaders.NewText(reader).LoadAndSplit(ctx, splitter)
 	case ".ipynb":
 		golcdocs, err = golcdocloaders.NewNotebook(reader).Load(ctx)
 	case ".docx", ".odt", ".rtf", "application/vnd.oasis.opendocument.text", "text/rtf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
@@ -263,7 +266,7 @@ func GetDocuments(ctx context.Context, filename, filetype string, reader io.Read
 	default:
 		// TODO(@iwilltry42): Fallback to plaintext reader? Example: Makefile, Dockerfile, Source Files, etc.
 		slog.Error("Unsupported file type", "filename", filename, "type", filetype)
-		return nil, fmt.Errorf("unsupported file type: %s", filetype)
+		return nil, fmt.Errorf("file %q has unsupported file type %q", filename, filetype)
 	}
 
 	if err != nil {
