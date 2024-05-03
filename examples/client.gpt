@@ -1,5 +1,3 @@
-# Set KNOW_SERVER_URL to use the client against a remote server
-
 tools: create_dataset, sys.find, ingest, retrieve, delete_dataset, get_dataset, list_datasets, uuidgen
 
 Create a new Knowledge Base Dataset with a random unique ID, if it doesn't exist yet.

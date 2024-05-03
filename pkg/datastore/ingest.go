@@ -35,6 +35,7 @@ var firstclassFileExtensions = map[string]struct{}{
 	".rtf":   {},
 	".csv":   {},
 	".ipynb": {},
+	".json":  {},
 }
 
 type IngestOpts struct {

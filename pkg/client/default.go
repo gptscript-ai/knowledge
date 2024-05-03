@@ -121,9 +121,6 @@ func (c *DefaultClient) IngestPaths(ctx context.Context, datasetID string, opts 
 		if err != nil {
 			return fmt.Errorf("failed to read file %s: %w", path, err)
 		}
-		// encode to []byte
-		b64 := make([]byte, base64.StdEncoding.EncodedLen(len(content)))
-		base64.StdEncoding.Encode(b64, content)
 
 		// Gather metadata
 		finfo, err := os.Stat(path)
@@ -146,7 +143,7 @@ func (c *DefaultClient) IngestPaths(ctx context.Context, datasetID string, opts 
 			},
 			IsDuplicateFuncName: "file_metadata",
 		}
-		_, err = c.Ingest(ctx, datasetID, b64, payload)
+		_, err = c.Ingest(ctx, datasetID, content, payload)
 		return err
 	}
 
