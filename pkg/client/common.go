@@ -5,9 +5,21 @@ import (
 	"fmt"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/sync/semaphore"
+	"log/slog"
 	"os"
 	"path/filepath"
 )
+
+func checkIgnored(path string, ignoreExtensions []string) bool {
+	ext := filepath.Ext(path)
+	slog.Debug("checking path", "path", path, "ext", ext, "ignore", ignoreExtensions)
+	for _, ie := range ignoreExtensions {
+		if ext == ie {
+			return true
+		}
+	}
+	return false
+}
 
 func ingestPaths(ctx context.Context, opts *IngestPathsOpts, ingestionFunc func(path string) error, paths ...string) (int, error) {
 
@@ -22,6 +34,11 @@ func ingestPaths(ctx context.Context, opts *IngestPathsOpts, ingestionFunc func(
 
 	for _, p := range paths {
 		path := p
+
+		if checkIgnored(path, opts.IgnoreExtensions) {
+			slog.Debug("Skipping ingestion of file", "path", path, "reason", "extension ignored")
+			continue
+		}
 
 		fileInfo, err := os.Stat(path)
 		if err != nil {
@@ -41,6 +58,10 @@ func ingestPaths(ctx context.Context, opts *IngestPathsOpts, ingestionFunc func(
 					if !opts.Recursive {
 						return filepath.SkipDir // Skip subdirectories if not recursive
 					}
+					return nil
+				}
+				if checkIgnored(subPath, opts.IgnoreExtensions) {
+					slog.Debug("Skipping ingestion of file", "path", subPath, "reason", "extension ignored")
 					return nil
 				}
 

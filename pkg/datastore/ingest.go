@@ -58,8 +58,6 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 		isDuplicate = opts.IsDuplicateFunc
 	}
 
-	slog.Info("IngestOpts", "opts", opts)
-
 	// Generate ID
 	fUUID, err := uuid.NewUUID()
 	if err != nil {
