@@ -43,7 +43,7 @@ jobs:
       - name: Setup CI Tools
         run: make ci-setup
       # Go Build
-      - name: Build k3d Binary
+      - name: Build Binary
         run: make gen-checksum build-cross
       # Create Git Release
       - name: Extract Tag from Ref

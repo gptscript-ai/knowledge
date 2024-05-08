@@ -10,7 +10,11 @@ import (
 type ClientRetrieve struct {
 	Client
 	Dataset string `usage:"Target Dataset ID" short:"d" default:"default" env:"KNOW_TARGET_DATASET"`
-	TopK    int    `usage:"Number of sources to retrieve" short:"k" default:"5"`
+	ClientRetrieveOpts
+}
+
+type ClientRetrieveOpts struct {
+	TopK int `usage:"Number of sources to retrieve" short:"k" default:"5"`
 }
 
 func (s *ClientRetrieve) Customize(cmd *cobra.Command) {

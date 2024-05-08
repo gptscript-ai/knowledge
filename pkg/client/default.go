@@ -186,6 +186,10 @@ func (c *DefaultClient) Retrieve(_ context.Context, datasetID string, query stri
 	return docs, nil
 }
 
+func (c *DefaultClient) AskDirectory(ctx context.Context, path string, query string, opts *IngestPathsOpts, ropts *RetrieveOpts) ([]vectorstore.Document, error) {
+	return AskDir(ctx, c, path, query, opts, ropts)
+}
+
 func (c *DefaultClient) request(method, path string, body io.Reader) ([]byte, error) {
 	url := c.ServerURL + path
 

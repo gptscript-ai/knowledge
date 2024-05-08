@@ -3,7 +3,15 @@ package cmd
 import (
 	"github.com/acorn-io/cmd"
 	"github.com/spf13/cobra"
+	"log/slog"
+	"os"
 )
+
+func init() {
+	if os.Getenv("DEBUG") != "" {
+		_ = slog.SetLogLoggerLevel(slog.LevelDebug)
+	}
+}
 
 func New() *cobra.Command {
 	return cmd.Command(
@@ -16,6 +24,7 @@ func New() *cobra.Command {
 		new(ClientDeleteDataset),
 		new(ClientRetrieve),
 		new(ClientResetDatastore),
+		new(ClientAskDir),
 	)
 }
 

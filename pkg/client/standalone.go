@@ -96,3 +96,7 @@ func (c *StandaloneClient) DeleteDocuments(ctx context.Context, datasetID string
 func (c *StandaloneClient) Retrieve(ctx context.Context, datasetID string, query string, opts RetrieveOpts) ([]vectorstore.Document, error) {
 	return c.Datastore.Retrieve(ctx, datasetID, types.Query{Prompt: query, TopK: z.Pointer(opts.TopK)})
 }
+
+func (c *StandaloneClient) AskDirectory(ctx context.Context, path string, query string, opts *IngestPathsOpts, ropts *RetrieveOpts) ([]vectorstore.Document, error) {
+	return AskDir(ctx, c, path, query, opts, ropts)
+}
