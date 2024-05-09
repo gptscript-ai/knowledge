@@ -1,3 +1,9 @@
+Description: Create a knowledge base from files in the ./knowledge directory and retrieve information from it.
+Args: query: The query to search for in the knowledge directory.
+
+#!${GPTSCRIPT_TOOL_DIR}/bin/gptscript-go-tool askdir "${query}"
+
+---
 name: retrieval
 description: A tool that queries the knowledge retrieval API to get similar documents from the Vector database. Response source texts with references that can be used for citations. It does not contain a generated answer, only source text.
 
