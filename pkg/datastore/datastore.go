@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/acorn-io/z"
 	"github.com/adrg/xdg"
+	"github.com/gptscript-ai/knowledge/pkg/config"
 	"github.com/gptscript-ai/knowledge/pkg/index"
-	"github.com/gptscript-ai/knowledge/pkg/types"
 	"github.com/gptscript-ai/knowledge/pkg/vectorstore"
 	"github.com/gptscript-ai/knowledge/pkg/vectorstore/chromem"
 	cg "github.com/philippgille/chromem-go"
@@ -41,7 +41,7 @@ func GetDatastorePaths(dsn, vectordbPath string) (string, string, error) {
 	return dsn, vectordbPath, nil
 }
 
-func NewDatastore(dsn string, automigrate bool, vectorDBPath string, openAIConfig types.OpenAIConfig) (*Datastore, error) {
+func NewDatastore(dsn string, automigrate bool, vectorDBPath string, openAIConfig config.OpenAIConfig) (*Datastore, error) {
 	dsn, vectorDBPath, err := GetDatastorePaths(dsn, vectorDBPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to determine datastore paths: %w", err)
@@ -80,7 +80,7 @@ func NewDatastore(dsn string, automigrate bool, vectorDBPath string, openAIConfi
 	}
 
 	if defaultDS == nil {
-		err = ds.NewDataset(context.Background(), types.Dataset{ID: "default", EmbedDimension: nil})
+		err = ds.NewDataset(context.Background(), index.Dataset{ID: "default"})
 		if err != nil {
 			return nil, fmt.Errorf("failed to create default dataset: %w", err)
 		}

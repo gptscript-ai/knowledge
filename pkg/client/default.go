@@ -143,6 +143,9 @@ func (c *DefaultClient) IngestPaths(ctx context.Context, datasetID string, opts 
 			},
 			IsDuplicateFuncName: "file_metadata",
 		}
+		if opts != nil {
+			payload.TextSplitterOpts = opts.TextSplitterOpts
+		}
 		_, err = c.Ingest(ctx, datasetID, content, payload)
 		return err
 	}

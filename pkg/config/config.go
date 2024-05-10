@@ -1,4 +1,4 @@
-package types
+package config
 
 type OpenAIConfig struct {
 	APIBase        string `usage:"OpenAI API base" default:"https://api.openai.com/v1" env:"OPENAI_BASE_URL"` // clicky-chats

@@ -12,6 +12,7 @@ type IngestPathsOpts struct {
 	IgnoreExtensions []string
 	Concurrency      int
 	Recursive        bool
+	TextSplitterOpts *datastore.TextSplitterOpts
 }
 
 type RetrieveOpts struct {

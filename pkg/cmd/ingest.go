@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/gptscript-ai/knowledge/pkg/client"
+	"github.com/gptscript-ai/knowledge/pkg/datastore"
 	"github.com/spf13/cobra"
 	"strings"
 )
@@ -11,6 +12,7 @@ type ClientIngest struct {
 	Client
 	Dataset string `usage:"Target Dataset ID" short:"d" default:"default" env:"KNOW_TARGET_DATASET"`
 	ClientIngestOpts
+	datastore.TextSplitterOpts
 }
 
 type ClientIngestOpts struct {
@@ -38,6 +40,7 @@ func (s *ClientIngest) Run(cmd *cobra.Command, args []string) error {
 		IgnoreExtensions: strings.Split(s.IgnoreExtensions, ","),
 		Concurrency:      s.Concurrency,
 		Recursive:        s.Recursive,
+		TextSplitterOpts: &s.TextSplitterOpts,
 	}
 
 	filesIngested, err := c.IngestPaths(cmd.Context(), datasetID, ingestOpts, filePath)

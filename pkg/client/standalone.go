@@ -23,15 +23,19 @@ func NewStandaloneClient(ds *datastore.Datastore) (*StandaloneClient, error) {
 }
 
 func (c *StandaloneClient) CreateDataset(ctx context.Context, datasetID string) (types.Dataset, error) {
-	ds := types.Dataset{
+	ds := index.Dataset{
 		ID:             datasetID,
-		EmbedDimension: nil,
+		EmbedDimension: 0,
+	}
+	r := types.Dataset{
+		ID:             ds.ID,
+		EmbedDimension: z.Pointer(ds.EmbedDimension),
 	}
 	err := c.Datastore.NewDataset(ctx, ds)
 	if err != nil {
-		return ds, err
+		return r, err
 	}
-	return ds, nil
+	return r, nil
 }
 
 func (c *StandaloneClient) DeleteDataset(ctx context.Context, datasetID string) error {
@@ -43,7 +47,18 @@ func (c *StandaloneClient) GetDataset(ctx context.Context, datasetID string) (*i
 }
 
 func (c *StandaloneClient) ListDatasets(ctx context.Context) ([]types.Dataset, error) {
-	return c.Datastore.ListDatasets(ctx)
+	ds, err := c.Datastore.ListDatasets(ctx)
+	if err != nil {
+		return nil, err
+	}
+	r := make([]types.Dataset, len(ds))
+	for i, d := range ds {
+		r[i] = types.Dataset{
+			ID:             d.ID,
+			EmbedDimension: z.Pointer(d.EmbedDimension),
+		}
+	}
+	return r, nil
 }
 
 func (c *StandaloneClient) Ingest(ctx context.Context, datasetID string, data []byte, opts datastore.IngestOpts) ([]string, error) {
@@ -67,7 +82,8 @@ func (c *StandaloneClient) IngestPaths(ctx context.Context, datasetID string, op
 		if err != nil {
 			return fmt.Errorf("failed to open file %s: %w", path, err)
 		}
-		_, err = c.Datastore.Ingest(ctx, datasetID, file, datastore.IngestOpts{
+
+		iopts := datastore.IngestOpts{
 			Filename: z.Pointer(filepath.Base(path)),
 			FileMetadata: &index.FileMetadata{
 				Name:         filepath.Base(path),
@@ -76,7 +92,13 @@ func (c *StandaloneClient) IngestPaths(ctx context.Context, datasetID string, op
 				ModifiedAt:   finfo.ModTime(),
 			},
 			IsDuplicateFunc: datastore.DedupeByFileMetadata,
-		})
+		}
+
+		if opts != nil {
+			iopts.TextSplitterOpts = opts.TextSplitterOpts
+		}
+
+		_, err = c.Datastore.Ingest(ctx, datasetID, file, iopts)
 		return err
 	}
 
@@ -94,7 +116,7 @@ func (c *StandaloneClient) DeleteDocuments(ctx context.Context, datasetID string
 }
 
 func (c *StandaloneClient) Retrieve(ctx context.Context, datasetID string, query string, opts RetrieveOpts) ([]vectorstore.Document, error) {
-	return c.Datastore.Retrieve(ctx, datasetID, types.Query{Prompt: query, TopK: z.Pointer(opts.TopK)})
+	return c.Datastore.Retrieve(ctx, datasetID, query, opts.TopK)
 }
 
 func (c *StandaloneClient) AskDirectory(ctx context.Context, path string, query string, opts *IngestPathsOpts, ropts *RetrieveOpts) ([]vectorstore.Document, error) {

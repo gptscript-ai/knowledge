@@ -2,9 +2,9 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/gptscript-ai/knowledge/pkg/config"
 	"github.com/gptscript-ai/knowledge/pkg/datastore"
 	"github.com/gptscript-ai/knowledge/pkg/server"
-	"github.com/gptscript-ai/knowledge/pkg/types"
 	"github.com/spf13/cobra"
 	"os/signal"
 	"syscall"
@@ -16,9 +16,9 @@ type Server struct {
 	ServerPort    string `usage:"Server port" default:"8000" env:"KNOW_SERVER_PORT"`
 	ServerAPIBase string `usage:"Server API base" default:"/v1" env:"KNOW_SERVER_API_BASE"`
 
-	types.OpenAIConfig
-	types.DatabaseConfig
-	types.VectorDBConfig
+	config.OpenAIConfig
+	config.DatabaseConfig
+	config.VectorDBConfig
 }
 
 func (s *Server) Run(cmd *cobra.Command, _ []string) error {

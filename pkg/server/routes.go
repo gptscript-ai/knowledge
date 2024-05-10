@@ -4,8 +4,10 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"github.com/acorn-io/z"
 	"github.com/gin-gonic/gin"
 	"github.com/gptscript-ai/knowledge/pkg/datastore"
+	"github.com/gptscript-ai/knowledge/pkg/index"
 	"github.com/gptscript-ai/knowledge/pkg/types"
 	"log/slog"
 	"net/http"
@@ -28,7 +30,7 @@ func (s *Server) CreateDS(c *gin.Context) {
 	}
 
 	// Create Dataset
-	if err := s.NewDataset(c, dataset); err != nil {
+	if err := s.NewDataset(c, index.Dataset{ID: dataset.ID, EmbedDimension: z.Dereference(dataset.EmbedDimension)}); err != nil {
 		slog.Error("Failed to create dataset", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -77,7 +79,7 @@ func (s *Server) RetrieveFromDS(c *gin.Context) {
 		return
 	}
 
-	docs, err := s.Retrieve(c, id, query)
+	docs, err := s.Retrieve(c, id, query.Prompt, z.Dereference(query.TopK))
 	if err != nil {
 		slog.Error("Failed to retrieve documents", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -119,8 +121,9 @@ func (s *Server) IngestIntoDS(c *gin.Context) {
 
 	// ingest content
 	docIDs, err := s.Ingest(c, id, data, datastore.IngestOpts{
-		Filename:     ingest.Filename,
-		FileMetadata: ingest.FileMetadata,
+		Filename:         ingest.Filename,
+		FileMetadata:     ingest.FileMetadata,
+		TextSplitterOpts: ingest.TextSplitterOpts,
 	})
 
 	if err != nil {
@@ -206,7 +209,15 @@ func (s *Server) ListDS(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, datasets)
+	datasetsResponse := make([]types.Dataset, len(datasets))
+	for i, dataset := range datasets {
+		datasetsResponse[i] = types.Dataset{
+			ID:             dataset.ID,
+			EmbedDimension: z.Pointer(dataset.EmbedDimension),
+		}
+	}
+
+	c.JSON(http.StatusOK, datasetsResponse)
 }
 
 // GetDS gets a dataset by ID.

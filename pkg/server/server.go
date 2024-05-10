@@ -3,9 +3,9 @@ package server
 import (
 	"context"
 	"github.com/gin-gonic/gin"
+	"github.com/gptscript-ai/knowledge/pkg/config"
 	"github.com/gptscript-ai/knowledge/pkg/datastore"
 	"github.com/gptscript-ai/knowledge/pkg/docs"
-	"github.com/gptscript-ai/knowledge/pkg/types"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"log/slog"
@@ -18,10 +18,10 @@ type Config struct {
 
 type Server struct {
 	*datastore.Datastore
-	openAIConfig types.OpenAIConfig
+	openAIConfig config.OpenAIConfig
 }
 
-func NewServer(d *datastore.Datastore, oaiconfig types.OpenAIConfig) *Server {
+func NewServer(d *datastore.Datastore, oaiconfig config.OpenAIConfig) *Server {
 	return &Server{Datastore: d, openAIConfig: oaiconfig}
 }
 

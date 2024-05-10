@@ -48,6 +48,7 @@ type IngestOpts struct {
 	FileMetadata        *index.FileMetadata
 	IsDuplicateFuncName string
 	IsDuplicateFunc     IsDuplicateFunc
+	TextSplitterOpts    *TextSplitterOpts
 }
 
 // Ingest loads a document from a reader and adds it to the dataset.
@@ -118,7 +119,7 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 		return nil, nil
 	}
 
-	docs, err := GetDocuments(ctx, *opts.Filename, filetype, reader)
+	docs, err := GetDocuments(ctx, *opts.Filename, filetype, reader, opts.TextSplitterOpts)
 	if err != nil {
 		slog.Error("Failed to load documents", "error", err)
 		return nil, fmt.Errorf("failed to load documents: %w", err)
@@ -187,7 +188,12 @@ func mimetypeFromReader(reader io.Reader) (string, io.Reader, error) {
 	return mtype.String(), newReader, err
 }
 
-func GetDocuments(ctx context.Context, filename, filetype string, reader io.Reader) ([]vs.Document, error) {
+func GetDocuments(ctx context.Context, filename, filetype string, reader io.Reader, textSplitterOpts *TextSplitterOpts) ([]vs.Document, error) {
+	if textSplitterOpts == nil {
+		textSplitterOpts = z.Pointer(NewTextSplitterOpts())
+	}
+	lcgoTextSplitter := NewLcgoTextSplitter(*textSplitterOpts)
+
 	/*
 	 * Load documents from the content
 	 * For now, we're using documentloaders from both langchaingo and golc
@@ -227,13 +233,13 @@ func GetDocuments(ctx context.Context, filename, filetype string, reader io.Read
 				Metadata:    rdoc.Metadata,
 			}
 		}
-		lcgodocs, err = lcgosplitter.SplitDocuments(defaultLcgoSplitter, lcgodocs)
+		lcgodocs, err = lcgosplitter.SplitDocuments(lcgoTextSplitter, lcgodocs)
 	case ".html", "text/html":
-		lcgodocs, err = lcgodocloaders.NewHTML(reader).LoadAndSplit(ctx, defaultLcgoSplitter)
+		lcgodocs, err = lcgodocloaders.NewHTML(reader).LoadAndSplit(ctx, lcgoTextSplitter)
 	case ".md", "text/markdown":
-		lcgodocs, err = lcgodocloaders.NewText(reader).LoadAndSplit(ctx, defaultLcgoSplitter)
+		lcgodocs, err = lcgodocloaders.NewText(reader).LoadAndSplit(ctx, lcgoTextSplitter)
 	case ".txt", "text/plain":
-		lcgodocs, err = lcgodocloaders.NewText(reader).LoadAndSplit(ctx, defaultLcgoSplitter)
+		lcgodocs, err = lcgodocloaders.NewText(reader).LoadAndSplit(ctx, lcgoTextSplitter)
 	case ".csv", "text/csv":
 		golcdocs, err = golcdocloaders.NewCSV(reader).Load(ctx)
 		if err != nil && errors.Is(err, csv.ErrBareQuote) {
@@ -248,7 +254,7 @@ func GetDocuments(ctx context.Context, filename, filetype string, reader io.Read
 			}
 		}
 	case ".json", "application/json":
-		lcgodocs, err = lcgodocloaders.NewText(reader).LoadAndSplit(ctx, defaultLcgoSplitter)
+		lcgodocs, err = lcgodocloaders.NewText(reader).LoadAndSplit(ctx, lcgoTextSplitter)
 	case ".ipynb":
 		golcdocs, err = golcdocloaders.NewNotebook(reader).Load(ctx)
 	case ".docx", ".odt", ".rtf", "application/vnd.oasis.opendocument.text", "text/rtf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
@@ -260,7 +266,7 @@ func GetDocuments(ctx context.Context, filename, filetype string, reader io.Read
 		if nerr != nil {
 			return nil, fmt.Errorf("failed to extract text from %s: %w", filetype, nerr)
 		}
-		lcgodocs, err = lcgodocloaders.NewText(strings.NewReader(text)).LoadAndSplit(ctx, defaultLcgoSplitter)
+		lcgodocs, err = lcgodocloaders.NewText(strings.NewReader(text)).LoadAndSplit(ctx, lcgoTextSplitter)
 	default:
 		// TODO(@iwilltry42): Fallback to plaintext reader? Example: Makefile, Dockerfile, Source Files, etc.
 		slog.Error("Unsupported file type", "filename", filename, "type", filetype)

@@ -2,15 +2,15 @@ package cmd
 
 import (
 	"github.com/gptscript-ai/knowledge/pkg/client"
+	"github.com/gptscript-ai/knowledge/pkg/config"
 	"github.com/gptscript-ai/knowledge/pkg/datastore"
-	"github.com/gptscript-ai/knowledge/pkg/types"
 )
 
 type Client struct {
 	Server string `usage:"URL of the Knowledge API Server" default:"" env:"KNOW_SERVER_URL"`
-	types.OpenAIConfig
-	types.DatabaseConfig
-	types.VectorDBConfig
+	config.OpenAIConfig
+	config.DatabaseConfig
+	config.VectorDBConfig
 }
 
 func (s *Client) getClient() (client.Client, error) {

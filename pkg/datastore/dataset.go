@@ -4,18 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/acorn-io/z"
 	"github.com/gptscript-ai/knowledge/pkg/index"
-	"github.com/gptscript-ai/knowledge/pkg/types"
 	"github.com/gptscript-ai/knowledge/pkg/types/defaults"
 	"gorm.io/gorm"
 	"log/slog"
 )
 
-func (s *Datastore) NewDataset(ctx context.Context, dataset types.Dataset) error {
+func (s *Datastore) NewDataset(ctx context.Context, dataset index.Dataset) error {
 	// Set defaults
-	if dataset.EmbedDimension == nil || *dataset.EmbedDimension <= 0 {
-		dataset.EmbedDimension = z.Pointer(defaults.EmbeddingDimension)
+	if dataset.EmbedDimension <= 0 {
+		dataset.EmbedDimension = defaults.EmbeddingDimension
 	}
 
 	// Create dataset
@@ -36,7 +34,7 @@ func (s *Datastore) NewDataset(ctx context.Context, dataset types.Dataset) error
 func (s *Datastore) DeleteDataset(ctx context.Context, datasetID string) error {
 	// Delete dataset
 	slog.Info("Deleting dataset", "id", datasetID)
-	tx := s.Index.WithContext(ctx).Delete(&types.Dataset{}, "id = ?", datasetID)
+	tx := s.Index.WithContext(ctx).Delete(&index.Dataset{}, "id = ?", datasetID)
 	if tx.Error != nil {
 		return tx.Error
 	}
@@ -63,13 +61,13 @@ func (s *Datastore) GetDataset(ctx context.Context, datasetID string) (*index.Da
 	return dataset, nil
 }
 
-func (s *Datastore) ListDatasets(ctx context.Context) ([]types.Dataset, error) {
-	tx := s.Index.WithContext(ctx).Find(&[]types.Dataset{})
+func (s *Datastore) ListDatasets(ctx context.Context) ([]index.Dataset, error) {
+	tx := s.Index.WithContext(ctx).Find(&[]index.Dataset{})
 	if tx.Error != nil {
 		return nil, tx.Error
 	}
 
-	var datasets []types.Dataset
+	var datasets []index.Dataset
 	if err := tx.Scan(&datasets).Error; err != nil {
 		return nil, err
 	}
