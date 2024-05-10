@@ -61,12 +61,29 @@ func NewDatastore(dsn string, automigrate bool, vectorDBPath string, openAIConfi
 		return nil, err
 	}
 
-	embeddingFunc := cg.NewEmbeddingFuncOpenAICompat(
-		openAIConfig.APIBase,
-		openAIConfig.APIKey,
-		openAIConfig.EmbeddingModel,
-		z.Pointer(true),
-	)
+	var embeddingFunc cg.EmbeddingFunc
+	if openAIConfig.APIType == "Azure" {
+		// TODO: clean this up to support inputting the full deployment URL
+		deploymentURL := fmt.Sprintf("https://%s.openai.azure.com/openai/deployments/%s", openAIConfig.APIBase, openAIConfig.EmbeddingModel)
+
+		slog.Debug("Using Azure OpenAI API", "deploymentURL", deploymentURL, "APIVersion", openAIConfig.APIVersion)
+
+		embeddingFunc = cg.NewEmbeddingFuncAzureOpenAI(
+			openAIConfig.APIKey,
+			deploymentURL,
+			openAIConfig.APIVersion,
+			"",
+		)
+	} else {
+		embeddingFunc = cg.NewEmbeddingFuncOpenAICompat(
+			openAIConfig.APIBase,
+			openAIConfig.APIKey,
+			openAIConfig.EmbeddingModel,
+			z.Pointer(true),
+			nil,
+			nil,
+		)
+	}
 
 	ds := &Datastore{
 		Index:       idx,

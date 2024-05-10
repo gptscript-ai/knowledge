@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -142,7 +143,7 @@ func NewPersistentDB(path string, compress bool) (*DB, error) {
 					Name     string
 					Metadata map[string]string
 				}{}
-				err := read(fPath, &pc, "")
+				err := readFromFile(fPath, &pc, "")
 				if err != nil {
 					return nil, fmt.Errorf("couldn't read collection metadata: %w", err)
 				}
@@ -151,7 +152,7 @@ func NewPersistentDB(path string, compress bool) (*DB, error) {
 			} else if strings.HasSuffix(collectionDirEntry.Name(), ext) {
 				// Read document
 				d := &Document{}
-				err := read(fPath, d, "")
+				err := readFromFile(fPath, d, "")
 				if err != nil {
 					return nil, fmt.Errorf("couldn't read document: %w", err)
 				}
@@ -185,7 +186,21 @@ func NewPersistentDB(path string, compress bool) (*DB, error) {
 //
 // - filePath: Mandatory, must not be empty
 // - encryptionKey: Optional, must be 32 bytes long if provided
+//
+// Deprecated: Use [DB.ImportFromFile] instead.
 func (db *DB) Import(filePath string, encryptionKey string) error {
+	return db.ImportFromFile(filePath, encryptionKey)
+}
+
+// ImportFromFile imports the DB from a file at the given path. The file must be
+// encoded as gob and can optionally be compressed with flate (as gzip) and encrypted
+// with AES-GCM.
+// This works for both the in-memory and persistent DBs.
+// Existing collections are overwritten.
+//
+// - filePath: Mandatory, must not be empty
+// - encryptionKey: Optional, must be 32 bytes long if provided
+func (db *DB) ImportFromFile(filePath string, encryptionKey string) error {
 	if filePath == "" {
 		return fmt.Errorf("file path is empty")
 	}
@@ -223,9 +238,64 @@ func (db *DB) Import(filePath string, encryptionKey string) error {
 	db.collectionsLock.Lock()
 	defer db.collectionsLock.Unlock()
 
-	err = read(filePath, &persistenceDB, encryptionKey)
+	err = readFromFile(filePath, &persistenceDB, encryptionKey)
 	if err != nil {
 		return fmt.Errorf("couldn't read file: %w", err)
+	}
+
+	for _, pc := range persistenceDB.Collections {
+		c := &Collection{
+			Name: pc.Name,
+
+			metadata:  pc.Metadata,
+			documents: pc.Documents,
+		}
+		if db.persistDirectory != "" {
+			c.persistDirectory = filepath.Join(db.persistDirectory, hash2hex(pc.Name))
+			c.compress = db.compress
+		}
+		db.collections[c.Name] = c
+	}
+
+	return nil
+}
+
+// ImportFromReader imports the DB from a reader. The stream must be encoded as
+// gob and can optionally be compressed with flate (as gzip) and encrypted with
+// AES-GCM.
+// This works for both the in-memory and persistent DBs.
+// Existing collections are overwritten.
+// If the writer has to be closed, it's the caller's responsibility.
+//
+// - reader: An implementation of [io.ReadSeeker]
+// - encryptionKey: Optional, must be 32 bytes long if provided
+func (db *DB) ImportFromReader(reader io.ReadSeeker, encryptionKey string) error {
+	if encryptionKey != "" {
+		// AES 256 requires a 32 byte key
+		if len(encryptionKey) != 32 {
+			return errors.New("encryption key must be 32 bytes long")
+		}
+	}
+
+	// Create persistence structs with exported fields so that they can be decoded
+	// from gob.
+	type persistenceCollection struct {
+		Name      string
+		Metadata  map[string]string
+		Documents map[string]*Document
+	}
+	persistenceDB := struct {
+		Collections map[string]*persistenceCollection
+	}{
+		Collections: make(map[string]*persistenceCollection, len(db.collections)),
+	}
+
+	db.collectionsLock.Lock()
+	defer db.collectionsLock.Unlock()
+
+	err := readFromReader(reader, &persistenceDB, encryptionKey)
+	if err != nil {
+		return fmt.Errorf("couldn't read stream: %w", err)
 	}
 
 	for _, pc := range persistenceDB.Collections {
@@ -254,7 +324,22 @@ func (db *DB) Import(filePath string, encryptionKey string) error {
 //   - compress: Optional. Compresses as gzip if true.
 //   - encryptionKey: Optional. Encrypts with AES-GCM if provided. Must be 32 bytes
 //     long if provided.
+//
+// Deprecated: Use [DB.ExportToFile] instead.
 func (db *DB) Export(filePath string, compress bool, encryptionKey string) error {
+	return db.ExportToFile(filePath, compress, encryptionKey)
+}
+
+// ExportToFile exports the DB to a file at the given path. The file is encoded as gob,
+// optionally compressed with flate (as gzip) and optionally encrypted with AES-GCM.
+// This works for both the in-memory and persistent DBs.
+// If the file exists, it's overwritten, otherwise created.
+//
+//   - filePath: If empty, it defaults to "./chromem-go.gob" (+ ".gz" + ".enc")
+//   - compress: Optional. Compresses as gzip if true.
+//   - encryptionKey: Optional. Encrypts with AES-GCM if provided. Must be 32 bytes
+//     long if provided.
+func (db *DB) ExportToFile(filePath string, compress bool, encryptionKey string) error {
 	if filePath == "" {
 		filePath = "./chromem-go.gob"
 		if compress {
@@ -295,7 +380,56 @@ func (db *DB) Export(filePath string, compress bool, encryptionKey string) error
 		}
 	}
 
-	err := persist(filePath, persistenceDB, compress, encryptionKey)
+	err := persistToFile(filePath, persistenceDB, compress, encryptionKey)
+	if err != nil {
+		return fmt.Errorf("couldn't export DB: %w", err)
+	}
+
+	return nil
+}
+
+// ExportToWriter exports the DB to a writer. The stream is encoded as gob,
+// optionally compressed with flate (as gzip) and optionally encrypted with AES-GCM.
+// This works for both the in-memory and persistent DBs.
+// If the writer has to be closed, it's the caller's responsibility.
+//
+//   - writer: An implementation of [io.Writer]
+//   - compress: Optional. Compresses as gzip if true.
+//   - encryptionKey: Optional. Encrypts with AES-GCM if provided. Must be 32 bytes
+//     long if provided.
+func (db *DB) ExportToWriter(writer io.Writer, compress bool, encryptionKey string) error {
+	if encryptionKey != "" {
+		// AES 256 requires a 32 byte key
+		if len(encryptionKey) != 32 {
+			return errors.New("encryption key must be 32 bytes long")
+		}
+	}
+
+	// Create persistence structs with exported fields so that they can be encoded
+	// as gob.
+	type persistenceCollection struct {
+		Name      string
+		Metadata  map[string]string
+		Documents map[string]*Document
+	}
+	persistenceDB := struct {
+		Collections map[string]*persistenceCollection
+	}{
+		Collections: make(map[string]*persistenceCollection, len(db.collections)),
+	}
+
+	db.collectionsLock.RLock()
+	defer db.collectionsLock.RUnlock()
+
+	for k, v := range db.collections {
+		persistenceDB.Collections[k] = &persistenceCollection{
+			Name:      v.Name,
+			Metadata:  v.metadata,
+			Documents: v.documents,
+		}
+	}
+
+	err := persistToWriter(writer, persistenceDB, compress, encryptionKey)
 	if err != nil {
 		return fmt.Errorf("couldn't export DB: %w", err)
 	}

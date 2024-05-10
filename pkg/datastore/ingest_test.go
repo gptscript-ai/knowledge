@@ -21,7 +21,7 @@ func TestExtractPDF(t *testing.T) {
 		t.Logf("Processing %s", path)
 		f, err := os.Open(path)
 		require.NoError(t, err, "os.Open() error = %v", err)
-		docs, err := GetDocuments(ctx, d.Name(), ".pdf", f)
+		docs, err := GetDocuments(ctx, d.Name(), ".pdf", f, nil)
 		require.NoError(t, err, "GetDocuments() error = %v", err)
 		require.NotEmpty(t, docs, "GetDocuments() returned no documents")
 		return nil
