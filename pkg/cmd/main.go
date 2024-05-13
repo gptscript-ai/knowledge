@@ -1,7 +1,9 @@
 package cmd
 
 import (
+	"fmt"
 	"github.com/acorn-io/cmd"
+	"github.com/gptscript-ai/knowledge/version"
 	"github.com/spf13/cobra"
 	"log/slog"
 	"os"
@@ -25,6 +27,7 @@ func New() *cobra.Command {
 		new(ClientRetrieve),
 		new(ClientResetDatastore),
 		new(ClientAskDir),
+		new(Version),
 	)
 }
 
@@ -32,4 +35,11 @@ type Knowledge struct{}
 
 func (c *Knowledge) Run(cmd *cobra.Command, _ []string) error {
 	return cmd.Help()
+}
+
+type Version struct{}
+
+func (c *Version) Run(cmd *cobra.Command, _ []string) error {
+	fmt.Println(version.Version)
+	return nil
 }

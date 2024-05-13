@@ -1,6 +1,18 @@
-GO_TAGS ?= netgo
+# get git tag
+ifneq ($(GIT_TAG_OVERRIDE),)
+$(info GIT_TAG set from env override!)
+GIT_TAG := $(GIT_TAG_OVERRIDE)
+endif
+
+GIT_TAG   ?= $(shell git describe --tags)
+ifeq ($(GIT_TAG),)
+GIT_TAG   := $(shell git describe --always)
+endif
+
+GO_TAGS := netgo
+LD_FLAGS := -s -w -X github.com/gptscript-ai/knowledge/version.Version=${GIT_TAG}
 build:
-	CGO_ENABLED=0 go build -o bin/knowledge -tags "${GO_TAGS}" -ldflags "-s -w" .
+	CGO_ENABLED=0 go build -o bin/knowledge -tags "${GO_TAGS}" -ldflags '$(LD_FLAGS)' .
 
 run: build
 	bin/knowledge server
@@ -26,9 +38,9 @@ test:
 
 # cross-compilation for all targets
 TARGETS ?= darwin/amd64 darwin/arm64 linux/amd64 linux/386 linux/arm linux/arm64 windows/amd64
-build-cross: LDFLAGS += -extldflags "-static"
+build-cross: LD_FLAGS += -extldflags "-static"
 build-cross:
-	CGO_ENABLED=0 gox -parallel=3 -output="dist/knowledge-{{.OS}}-{{.Arch}}" -osarch='$(TARGETS)' $(GOFLAGS) $(if $(GO_TAGS),-tags '$(TAGS)',) -ldflags '$(LDFLAGS)'
+	CGO_ENABLED=0 gox -parallel=3 -output="dist/knowledge-{{.OS}}-{{.Arch}}" -osarch='$(TARGETS)' $(GOFLAGS) $(if $(GO_TAGS),-tags '$(TAGS)',) -ldflags '$(LD_FLAGS)'
 gen-checksum:	build-cross
 	$(eval ARTIFACTS_TO_PUBLISH := $(shell ls dist/*))
 	$$(sha256sum $(ARTIFACTS_TO_PUBLISH) > dist/checksums.txt)
