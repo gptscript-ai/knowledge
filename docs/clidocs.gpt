@@ -1,0 +1,18 @@
+tools: knowledge-help, sys.read, sys.write
+
+Run the knowledge help command once without a subcommand and then for every subcommand to generate a CLI summary that you write to docs/cli.md.
+Include all possible flags and env vars that can be used for configuration on any command.
+For the format of the output file, consider the current state of the file.
+
+---
+name: knowledge-help
+description: Get the help text for the knowledge tool
+args: subcommand: The knowledge CLI subcommand - may be empty to get the list of subcommands
+
+#!knowledge ${subcommand} --help
+
+---
+name: knowledge-version
+description: Get the version of the knowledge tool
+
+#!knowledge version

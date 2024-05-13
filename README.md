@@ -14,6 +14,8 @@ make build
 
 The knowledge tool can run in two modes: server and client, where client can be standalone or referring to a remote server.
 
+You can find a full gptscript-generated documentation in the [CLI documentation](./docs/cli.md).
+
 
 ### Client - Standalone
 
