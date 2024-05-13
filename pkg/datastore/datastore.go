@@ -11,6 +11,7 @@ import (
 	"github.com/gptscript-ai/knowledge/pkg/vectorstore/chromem"
 	cg "github.com/philippgille/chromem-go"
 	"log/slog"
+	"net/url"
 )
 
 type Datastore struct {
@@ -64,13 +65,23 @@ func NewDatastore(dsn string, automigrate bool, vectorDBPath string, openAIConfi
 	var embeddingFunc cg.EmbeddingFunc
 	if openAIConfig.APIType == "Azure" {
 		// TODO: clean this up to support inputting the full deployment URL
-		deploymentURL := fmt.Sprintf("https://%s.openai.azure.com/openai/deployments/%s", openAIConfig.APIBase, openAIConfig.EmbeddingModel)
+		deployment := openAIConfig.AzureOpenAIConfig.Deployment
+		if deployment == "" {
+			deployment = openAIConfig.EmbeddingModel
+		}
 
-		slog.Debug("Using Azure OpenAI API", "deploymentURL", deploymentURL, "APIVersion", openAIConfig.APIVersion)
+		deploymentURL, err := url.Parse(openAIConfig.APIBase)
+		if err != nil || deploymentURL == nil {
+			return nil, fmt.Errorf("failed to parse OpenAI Base URL %q: %w", openAIConfig.APIBase, err)
+		}
+
+		deploymentURL = deploymentURL.JoinPath("openai", "deployments", deployment)
+
+		slog.Debug("Using Azure OpenAI API", "deploymentURL", deploymentURL.String(), "APIVersion", openAIConfig.APIVersion)
 
 		embeddingFunc = cg.NewEmbeddingFuncAzureOpenAI(
 			openAIConfig.APIKey,
-			deploymentURL,
+			deploymentURL.String(),
 			openAIConfig.APIVersion,
 			"",
 		)
