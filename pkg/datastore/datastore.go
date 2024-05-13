@@ -80,8 +80,6 @@ func NewDatastore(dsn string, automigrate bool, vectorDBPath string, openAIConfi
 			openAIConfig.APIKey,
 			openAIConfig.EmbeddingModel,
 			z.Pointer(true),
-			nil,
-			nil,
 		)
 	}
 
