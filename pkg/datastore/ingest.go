@@ -193,6 +193,7 @@ func GetDocuments(ctx context.Context, filename, filetype string, reader io.Read
 		textSplitterOpts = z.Pointer(NewTextSplitterOpts())
 	}
 	lcgoTextSplitter := NewLcgoTextSplitter(*textSplitterOpts)
+	lcgoMarkdownSplitter := NewLcgoMarkdownSplitter(*textSplitterOpts)
 
 	/*
 	 * Load documents from the content
@@ -237,7 +238,7 @@ func GetDocuments(ctx context.Context, filename, filetype string, reader io.Read
 	case ".html", "text/html":
 		lcgodocs, err = lcgodocloaders.NewHTML(reader).LoadAndSplit(ctx, lcgoTextSplitter)
 	case ".md", "text/markdown":
-		lcgodocs, err = lcgodocloaders.NewText(reader).LoadAndSplit(ctx, lcgoTextSplitter)
+		lcgodocs, err = lcgodocloaders.NewText(reader).LoadAndSplit(ctx, lcgoMarkdownSplitter)
 	case ".txt", "text/plain":
 		lcgodocs, err = lcgodocloaders.NewText(reader).LoadAndSplit(ctx, lcgoTextSplitter)
 	case ".csv", "text/csv":
@@ -268,7 +269,6 @@ func GetDocuments(ctx context.Context, filename, filetype string, reader io.Read
 		}
 		lcgodocs, err = lcgodocloaders.NewText(strings.NewReader(text)).LoadAndSplit(ctx, lcgoTextSplitter)
 	default:
-		// TODO(@iwilltry42): Fallback to plaintext reader? Example: Makefile, Dockerfile, Source Files, etc.
 		slog.Error("Unsupported file type", "filename", filename, "type", filetype)
 		return nil, fmt.Errorf("file %q has unsupported file type %q", filename, filetype)
 	}

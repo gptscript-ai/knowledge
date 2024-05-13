@@ -28,3 +28,12 @@ func NewLcgoTextSplitter(opts TextSplitterOpts) lcgosplitter.TokenSplitter {
 		lcgosplitter.WithEncodingName(opts.EncodingName),
 	)
 }
+
+func NewLcgoMarkdownSplitter(opts TextSplitterOpts) *lcgosplitter.MarkdownTextSplitter {
+	return lcgosplitter.NewMarkdownTextSplitter(
+		lcgosplitter.WithChunkSize(opts.ChunkSize),
+		lcgosplitter.WithChunkOverlap(opts.ChunkOverlap),
+		lcgosplitter.WithModelName(opts.ModelName),
+		lcgosplitter.WithEncodingName(opts.EncodingName),
+	)
+}
