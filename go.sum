@@ -148,8 +148,8 @@ github.com/hupe1980/golc v0.0.110 h1:buEL5AlstSCN13Xgr9gfuqj+YMvGt9u7lMx5KxPQeyc
 github.com/hupe1980/golc v0.0.110/go.mod h1:58lICAHRv8oqNdvMo311LB8zozbCBxS11OfkfKOJC04=
 github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
-github.com/iwilltry42/chromem-go v0.0.0-20240510135125-08a3978b70e4 h1:SwSXICEOrYcwKRp8Bp/eRkdsyxbSj0D2Oc4e1JVievg=
-github.com/iwilltry42/chromem-go v0.0.0-20240510135125-08a3978b70e4/go.mod h1:hTd+wGEm/fFPQl7ilfCwQXkgEUxceYh86iIdoKMolPo=
+github.com/iwilltry42/chromem-go v0.0.0-20240513080122-88f1efa639f5 h1:g3mhp9K4ujkjne0JDvtmP8i36uQlibwzbWKYzZbzcKU=
+github.com/iwilltry42/chromem-go v0.0.0-20240513080122-88f1efa639f5/go.mod h1:hTd+wGEm/fFPQl7ilfCwQXkgEUxceYh86iIdoKMolPo=
 github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 h1:BQSFePA1RWJOlocH6Fxy8MmwDt+yVQYULKfN0RoTN8A=
 github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99/go.mod h1:1lJo3i6rXxKeerYnT8Nvf0QmHCRC1n8sfWVwXF2Frvo=
 github.com/jinzhu/inflection v1.0.0 h1:K317FqzuhWc8YvSVlFMCCUb36O/S9MCKRDI7QkRKD/E=
