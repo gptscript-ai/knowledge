@@ -5,6 +5,7 @@ go 1.22.0
 replace (
 	github.com/ledongthuc/pdf => github.com/romanpickl/pdf v0.0.0-20240314090751-a2a84ec735c3 // fix for reading some PDFs: https://github.com/ledongthuc/pdf/pull/36
 	github.com/philippgille/chromem-go => github.com/iwilltry42/chromem-go v0.0.0-20240513080122-88f1efa639f5 // Azure OpenAI support
+	github.com/tmc/langchaingo => github.com/iwilltry42/langchaingo v0.0.0-20240516095223-8cf46ac74799 // Context-Aware Markdown Splitting
 )
 
 require (

@@ -35,5 +35,6 @@ func NewLcgoMarkdownSplitter(opts TextSplitterOpts) *lcgosplitter.MarkdownTextSp
 		lcgosplitter.WithChunkOverlap(opts.ChunkOverlap),
 		lcgosplitter.WithModelName(opts.ModelName),
 		lcgosplitter.WithEncodingName(opts.EncodingName),
+		lcgosplitter.WithHeadingHierarchy(true),
 	)
 }

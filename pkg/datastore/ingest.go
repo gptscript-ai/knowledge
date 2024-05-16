@@ -238,7 +238,24 @@ func GetDocuments(ctx context.Context, filename, filetype string, reader io.Read
 	case ".html", "text/html":
 		lcgodocs, err = lcgodocloaders.NewHTML(reader).LoadAndSplit(ctx, lcgoTextSplitter)
 	case ".md", "text/markdown":
-		lcgodocs, err = lcgodocloaders.NewText(reader).LoadAndSplit(ctx, lcgoMarkdownSplitter)
+		var lcgodocsUnfiltered []lcgoschema.Document
+		lcgodocsUnfiltered, err = lcgodocloaders.NewText(reader).LoadAndSplit(ctx, lcgoMarkdownSplitter)
+
+		// TODO: this may be moved into the MarkdownTextSplitter as well
+		for _, doc := range lcgodocsUnfiltered {
+			hasContent := false
+			for _, line := range strings.Split(doc.PageContent, "\n") {
+				if !strings.HasPrefix(line, "#") {
+					hasContent = true
+					break
+				}
+			}
+			if hasContent {
+				lcgodocs = append(lcgodocs, doc)
+			} else {
+				slog.Debug("Ignoring markdown document without content", "filename", filename, "content", doc.PageContent)
+			}
+		}
 	case ".txt", "text/plain":
 		lcgodocs, err = lcgodocloaders.NewText(reader).LoadAndSplit(ctx, lcgoTextSplitter)
 	case ".csv", "text/csv":

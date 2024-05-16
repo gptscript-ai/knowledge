@@ -454,9 +454,10 @@ github.com/swaggo/gin-swagger
 # github.com/swaggo/swag v1.16.3
 ## explicit; go 1.18
 github.com/swaggo/swag
-# github.com/tmc/langchaingo v0.1.8
+# github.com/tmc/langchaingo v0.1.8 => github.com/iwilltry42/langchaingo v0.0.0-20240516095223-8cf46ac74799
 ## explicit; go 1.22.0
 github.com/tmc/langchaingo/documentloaders
+github.com/tmc/langchaingo/llms
 github.com/tmc/langchaingo/schema
 github.com/tmc/langchaingo/textsplitter
 # github.com/twitchyliquid64/golang-asm v0.15.1
@@ -701,3 +702,4 @@ nhooyr.io/websocket/internal/xsync
 nhooyr.io/websocket/wsjson
 # github.com/ledongthuc/pdf => github.com/romanpickl/pdf v0.0.0-20240314090751-a2a84ec735c3
 # github.com/philippgille/chromem-go => github.com/iwilltry42/chromem-go v0.0.0-20240513080122-88f1efa639f5
+# github.com/tmc/langchaingo => github.com/iwilltry42/langchaingo v0.0.0-20240516095223-8cf46ac74799
