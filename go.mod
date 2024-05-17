@@ -17,6 +17,7 @@ require (
 	github.com/glebarez/sqlite v1.11.0
 	github.com/google/uuid v1.6.0
 	github.com/hupe1980/golc v0.0.110
+	github.com/ledongthuc/pdf v0.0.0-20240201131950-da5b75280b06
 	github.com/lu4p/cat v0.1.5
 	github.com/philippgille/chromem-go v0.6.0
 	github.com/spf13/cobra v1.8.0
@@ -80,7 +81,6 @@ require (
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
 	github.com/klauspost/compress v1.17.2 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.7 // indirect
-	github.com/ledongthuc/pdf v0.0.0-20240201131950-da5b75280b06 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect

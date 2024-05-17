@@ -1,6 +1,10 @@
 package datastore
 
-import lcgosplitter "github.com/tmc/langchaingo/textsplitter"
+import (
+	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
+	lcgosplitter "github.com/tmc/langchaingo/textsplitter"
+	"strings"
+)
 
 type TextSplitterOpts struct {
 	ChunkSize    int    `usage:"Textsplitter Chunk Size" default:"1024" env:"KNOW_TEXTSPLITTER_CHUNK_SIZE" name:"textsplitter-chunk-size"`
@@ -37,4 +41,21 @@ func NewLcgoMarkdownSplitter(opts TextSplitterOpts) *lcgosplitter.MarkdownTextSp
 		lcgosplitter.WithEncodingName(opts.EncodingName),
 		lcgosplitter.WithHeadingHierarchy(true),
 	)
+}
+
+// FilterMarkdownDocsNoContent filters out Markdown documents with no content or only headings
+//
+// TODO: this may be moved into the MarkdownTextSplitter as well
+func FilterMarkdownDocsNoContent(docs []vs.Document) []vs.Document {
+	var filteredDocs []vs.Document
+	for _, doc := range docs {
+		if doc.Content != "" {
+			for _, line := range strings.Split(doc.Content, "\n") {
+				if !strings.HasPrefix(line, "#") {
+					filteredDocs = append(filteredDocs, doc)
+				}
+			}
+		}
+	}
+	return filteredDocs
 }
