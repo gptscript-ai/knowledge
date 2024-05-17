@@ -349,8 +349,8 @@ github.com/klauspost/compress/flate
 # github.com/klauspost/cpuid/v2 v2.2.7
 ## explicit; go 1.15
 github.com/klauspost/cpuid/v2
-# github.com/ledongthuc/pdf v0.0.0-20240201131950-da5b75280b06 => github.com/romanpickl/pdf v0.0.0-20240314090751-a2a84ec735c3
-## explicit
+# github.com/ledongthuc/pdf v0.0.0-20240201131950-da5b75280b06 => github.com/iwilltry42/pdf v0.0.0-20240517145113-99fbaebc5dd3
+## explicit; go 1.22.0
 github.com/ledongthuc/pdf
 # github.com/leodido/go-urn v1.4.0
 ## explicit; go 1.18
@@ -700,6 +700,6 @@ nhooyr.io/websocket/internal/errd
 nhooyr.io/websocket/internal/wsjs
 nhooyr.io/websocket/internal/xsync
 nhooyr.io/websocket/wsjson
-# github.com/ledongthuc/pdf => github.com/romanpickl/pdf v0.0.0-20240314090751-a2a84ec735c3
+# github.com/ledongthuc/pdf => github.com/iwilltry42/pdf v0.0.0-20240517145113-99fbaebc5dd3
 # github.com/philippgille/chromem-go => github.com/iwilltry42/chromem-go v0.0.0-20240513080122-88f1efa639f5
 # github.com/tmc/langchaingo => github.com/iwilltry42/langchaingo v0.0.0-20240516095223-8cf46ac74799

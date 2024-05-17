@@ -7,6 +7,7 @@ package pdf
 import (
 	"fmt"
 	"io"
+	"slices"
 )
 
 // A Stack represents a stack of values.
@@ -37,6 +38,42 @@ func newDict() Value {
 	return Value{nil, objptr{}, make(dict)}
 }
 
+type InterpreterConfig struct {
+	IgnoreDefOfNonNameVals []string
+}
+
+type Interpreter struct {
+	Config InterpreterConfig
+}
+
+func defaultInterpreterConfig() InterpreterConfig {
+	return InterpreterConfig{
+		IgnoreDefOfNonNameVals: []string{},
+	}
+}
+
+func NewInterpreter(opts ...InterpreterOption) *Interpreter {
+	config := defaultInterpreterConfig()
+	for _, opt := range opts {
+		opt(&config)
+	}
+	return &Interpreter{Config: config}
+}
+
+type InterpreterOption func(*InterpreterConfig)
+
+func WithIgnoreDefOfNonNameVals(vals []string) InterpreterOption {
+	return func(c *InterpreterConfig) {
+		c.IgnoreDefOfNonNameVals = vals
+	}
+}
+
+func WithInterpreterConfig(interpreterConfig InterpreterConfig) InterpreterOption {
+	return func(c *InterpreterConfig) {
+		*c = interpreterConfig
+	}
+}
+
 // Interpret interprets the content in a stream as a basic PostScript program,
 // pushing values onto a stack and then calling the do function to execute
 // operators. The do function may push or pop values from the stack as needed
@@ -53,7 +90,7 @@ func newDict() Value {
 // In the case of a simple stream read only once, otherwise get the length of the stream to handle it properly
 //
 // There is no support for executable blocks, among other limitations.
-func Interpret(strm Value, do func(stk *Stack, op string)) {
+func (ip *Interpreter) Interpret(strm Value, do func(stk *Stack, op string)) {
 	var stk Stack
 	var dicts []dict
 	s := strm
@@ -122,9 +159,10 @@ func Interpret(strm Value, do func(stk *Stack, op string)) {
 					}
 					val := stk.Pop()
 					key, ok := stk.Pop().data.(name)
-					if !ok {
+					if !ok && (!slices.Contains(ip.Config.IgnoreDefOfNonNameVals, val.Name())) {
 						panic("def of non-name")
 					}
+
 					dicts[len(dicts)-1][key] = val.data
 					continue
 				case "pop":

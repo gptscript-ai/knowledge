@@ -14,6 +14,7 @@ import (
 	"github.com/gptscript-ai/knowledge/pkg/index"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 	golcdocloaders "github.com/hupe1980/golc/documentloader"
+	"github.com/ledongthuc/pdf"
 	"github.com/lu4p/cat"
 	lcgodocloaders "github.com/tmc/langchaingo/documentloaders"
 	"io"
@@ -213,12 +214,12 @@ func GetDocuments(ctx context.Context, filename, filetype string, reader io.Read
 		if nerr != nil {
 			return nil, fmt.Errorf("failed to read PDF data: %w", nerr)
 		}
-		r, nerr := golcdocloaders.NewPDF(bytes.NewReader(data), int64(len(data)))
+		r, nerr := documentloader.NewPDF(bytes.NewReader(data), int64(len(data)), documentloader.WithInterpreterOpts(pdf.WithIgnoreDefOfNonNameVals([]string{"CMapName"})))
 		if nerr != nil {
 			slog.Error("Failed to create PDF loader", "error", nerr)
 			return nil, nerr
 		}
-		docs, err = documentloader.FromGolc(r).LoadAndSplit(ctx, lcgoTextSplitter)
+		docs, err = r.LoadAndSplit(ctx, lcgoTextSplitter)
 	case ".html", "text/html":
 		docs, err = documentloader.FromLangchain(lcgodocloaders.NewHTML(reader)).LoadAndSplit(ctx, lcgoTextSplitter)
 	case ".md", "text/markdown":

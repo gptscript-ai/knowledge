@@ -1,8 +1,6 @@
 # PDF Reader
 
-[![Built with WeBuild](https://raw.githubusercontent.com/webuild-community/badge/master/svg/WeBuild.svg)](https://webuild.community)
-
-A simple Go library which enables reading PDF files. Forked from https://github.com/rsc/pdf
+A simple Go library which enables reading PDF files. Forked from github.com/ledongthuc/pdf > https://github.com/rsc/pdf
 
 Features
   - Get plain text content (without format)
@@ -10,7 +8,7 @@ Features
 
 ## Install:
 
-`go get -u github.com/ledongthuc/pdf`
+`go get -u github.com/iwilltry42/pdf`
 
 
 ## Read plain text
@@ -22,7 +20,7 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/ledongthuc/pdf"
+	"github.com/iwilltry42/pdf"
 )
 
 func main() {
@@ -43,7 +41,7 @@ func readPdf(path string) (string, error) {
 		return "", err
 	}
 	var buf bytes.Buffer
-    b, err := r.GetPlainText()
+    b, err := r.GetPlainText(pdf.NewInterpreter())
     if err != nil {
         return "", err
     }
@@ -70,7 +68,7 @@ func readPdf2(path string) (string, error) {
 			continue
 		}
 		var lastTextStyle pdf.Text
-		texts := p.Content().Text
+		texts := p.Content(pdf.NewInterpreter()).Text
 		for _, text := range texts {
 			if isSameSentence(text, lastTextStyle) {
 				lastTextStyle.S = lastTextStyle.S + text.S
@@ -94,7 +92,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ledongthuc/pdf"
+	"github.com/iwilltry42/pdf"
 )
 
 func main() {
@@ -122,7 +120,7 @@ func readPdf(path string) (string, error) {
 			continue
 		}
 
-		rows, _ := p.GetTextByRow()
+		rows, _ := p.GetTextByRow(pdf.NewInterpreter())
 		for _, row := range rows {
 		    println(">>>> row: ", row.Position)
 		    for _, word := range row.Content {

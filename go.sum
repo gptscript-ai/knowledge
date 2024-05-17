@@ -152,6 +152,8 @@ github.com/iwilltry42/chromem-go v0.0.0-20240513080122-88f1efa639f5 h1:g3mhp9K4u
 github.com/iwilltry42/chromem-go v0.0.0-20240513080122-88f1efa639f5/go.mod h1:hTd+wGEm/fFPQl7ilfCwQXkgEUxceYh86iIdoKMolPo=
 github.com/iwilltry42/langchaingo v0.0.0-20240516095223-8cf46ac74799 h1:b5x7HwpU5UzA/qlde8bFWHYfdpRxglHiZKy9KRbll8o=
 github.com/iwilltry42/langchaingo v0.0.0-20240516095223-8cf46ac74799/go.mod h1:QZupRrRBW3fhNUlvll1U4YUHatKZd5h7C0UiHBEWJYc=
+github.com/iwilltry42/pdf v0.0.0-20240517145113-99fbaebc5dd3 h1:rCVwFT7Q+HxpijWfSzKTYX4pCDMS7oy/I/WzU30VXyI=
+github.com/iwilltry42/pdf v0.0.0-20240517145113-99fbaebc5dd3/go.mod h1:p6S8B6MtbSh4sEUXw5DpOsyJVTP3N48e8Ea3mpdhZj4=
 github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 h1:BQSFePA1RWJOlocH6Fxy8MmwDt+yVQYULKfN0RoTN8A=
 github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99/go.mod h1:1lJo3i6rXxKeerYnT8Nvf0QmHCRC1n8sfWVwXF2Frvo=
 github.com/jinzhu/inflection v1.0.0 h1:K317FqzuhWc8YvSVlFMCCUb36O/S9MCKRDI7QkRKD/E=
@@ -227,8 +229,6 @@ github.com/rivo/uniseg v0.4.7 h1:WUdvkW8uEhrYfLC4ZzdpI2ztxP1I582+49Oc5Mq64VQ=
 github.com/rivo/uniseg v0.4.7/go.mod h1:FN3SvrM+Zdj16jyLfmOkMNblXMcoc8DfTHruCPUcx88=
 github.com/rogpeppe/go-internal v1.12.0 h1:exVL4IDcn6na9z1rAb56Vxr+CgyK3nn3O+epU5NdKM8=
 github.com/rogpeppe/go-internal v1.12.0/go.mod h1:E+RYuTGaKKdloAfM02xzb0FW3Paa99yedzYV+kq4uf4=
-github.com/romanpickl/pdf v0.0.0-20240314090751-a2a84ec735c3 h1:i7FVbLhIqGtrCdhkBjrR54ejHQQI51+ipFNALAps+Xc=
-github.com/romanpickl/pdf v0.0.0-20240314090751-a2a84ec735c3/go.mod h1:fa15CcPmJBO+VLS+vrvn5bAlmz7GxLS9NXzvF4nAT4w=
 github.com/russross/blackfriday/v2 v2.1.0 h1:JIOH55/0cWyOuilr9/qlrm0BSXldqnqwMsf35Ld67mk=
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
 github.com/sashabaranov/go-openai v1.20.4 h1:095xQ/fAtRa0+Rj21sezVJABgKfGPNbyx/sAN/hJUmg=

@@ -21,7 +21,6 @@ func (a *golcAdapter) Load(ctx context.Context) ([]vs.Document, error) {
 func (a *golcAdapter) LoadAndSplit(ctx context.Context, splitter types.TextSplitter) ([]vs.Document, error) {
 	golcdocs, err := a.DocumentLoader.LoadAndSplit(ctx, textsplitter.AsGolc(splitter))
 	return types.FromGolcDocs(golcdocs), err
-
 }
 
 func FromGolc(loader golcschema.DocumentLoader) types.DocumentLoader {
