@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/textsplitter"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/transformers"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
 	"github.com/gptscript-ai/knowledge/pkg/flows"
 	"github.com/gptscript-ai/knowledge/pkg/index"
@@ -128,12 +129,8 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 	}
 
 	// Mandatory Transformation: Add filename to metadata
-	ingestionFlow.Transformations = append(ingestionFlow.Transformations, func(ctx context.Context, docs []vs.Document) ([]vs.Document, error) {
-		for _, doc := range docs {
-			doc.Metadata["filename"] = *opts.Filename
-		}
-		return docs, nil
-	})
+	em := &transformers.ExtraMetadata{Metadata: map[string]any{"filename": *opts.Filename}}
+	ingestionFlow.Transformations = append(ingestionFlow.Transformations, em)
 
 	docs, err := GetDocuments(ctx, reader, ingestionFlow)
 	if err != nil {
@@ -288,8 +285,8 @@ func DefaultTextSplitter(filetype string, textSplitterOpts *TextSplitterOpts) ty
 	}
 }
 
-func DefaultDocumentTransformers(filetype string) []types.DocumentTransformerFunc {
-	return []types.DocumentTransformerFunc{}
+func DefaultDocumentTransformers(filetype string) []types.DocumentTransformer {
+	return []types.DocumentTransformer{}
 }
 
 func GetDocuments(ctx context.Context, reader io.Reader, ingestionFlow flows.IngestionFlow) ([]vs.Document, error) {

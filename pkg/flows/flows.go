@@ -9,13 +9,13 @@ import (
 type IngestionFlow struct {
 	Load            dstypes.DocumentLoaderFunc
 	Split           dstypes.TextSplitterFunc
-	Transformations []dstypes.DocumentTransformerFunc
+	Transformations []dstypes.DocumentTransformer
 }
 
 func (f *IngestionFlow) Transform(ctx context.Context, docs []vs.Document) ([]vs.Document, error) {
 	var err error
 	for _, t := range f.Transformations {
-		docs, err = t(ctx, docs)
+		docs, err = t.Transform(ctx, docs)
 		if err != nil {
 			return nil, err
 		}
