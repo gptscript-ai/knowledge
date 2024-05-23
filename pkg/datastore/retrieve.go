@@ -2,7 +2,7 @@ package datastore
 
 import (
 	"context"
-	"github.com/gptscript-ai/knowledge/pkg/types/defaults"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/defaults"
 	"github.com/gptscript-ai/knowledge/pkg/vectorstore"
 	"log/slog"
 )

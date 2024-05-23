@@ -9,7 +9,7 @@ import (
 	"github.com/acorn-io/z"
 	"github.com/gptscript-ai/knowledge/pkg/datastore"
 	"github.com/gptscript-ai/knowledge/pkg/index"
-	"github.com/gptscript-ai/knowledge/pkg/types"
+	"github.com/gptscript-ai/knowledge/pkg/server/types"
 	"github.com/gptscript-ai/knowledge/pkg/vectorstore"
 	"io"
 	"net/http"
