@@ -10,8 +10,10 @@ type ExtraMetadata struct {
 }
 
 func (e *ExtraMetadata) Transform(_ context.Context, docs []vs.Document) ([]vs.Document, error) {
-	for i := range docs {
-		docs[i].Metadata = e.Metadata
+	for _, doc := range docs {
+		for k, v := range e.Metadata {
+			doc.Metadata[k] = v
+		}
 	}
 	return docs, nil
 }
