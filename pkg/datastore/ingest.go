@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/textsplitter"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
 	"github.com/gptscript-ai/knowledge/pkg/index"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 	golcdocloaders "github.com/hupe1980/golc/documentloader"
@@ -188,12 +189,91 @@ func mimetypeFromReader(reader io.Reader) (string, io.Reader, error) {
 	return mtype.String(), newReader, err
 }
 
-func GetDocuments(ctx context.Context, filename, filetype string, reader io.Reader, textSplitterOpts *TextSplitterOpts) ([]vs.Document, error) {
+func DefaultDocLoaderFunc(filetype string) func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
+	switch filetype {
+	case ".pdf", "application/pdf":
+		return func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
+			data, nerr := io.ReadAll(reader)
+			if nerr != nil {
+				return nil, fmt.Errorf("failed to read PDF data: %w", nerr)
+			}
+			r, nerr := documentloader.NewPDF(bytes.NewReader(data), int64(len(data)), documentloader.WithInterpreterOpts(pdf.WithIgnoreDefOfNonNameVals([]string{"CMapName"})))
+			if nerr != nil {
+				slog.Error("Failed to create PDF loader", "error", nerr)
+				return nil, nerr
+			}
+			return r.Load(ctx)
+		}
+	case ".html", "text/html":
+		return func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
+			return documentloader.FromLangchain(lcgodocloaders.NewHTML(reader)).Load(ctx)
+		}
+	case ".md", "text/markdown":
+		return func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
+			return documentloader.FromLangchain(lcgodocloaders.NewText(reader)).Load(ctx)
+		}
+	case ".txt", "text/plain":
+		return func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
+			return documentloader.FromLangchain(lcgodocloaders.NewText(reader)).Load(ctx)
+		}
+	case ".csv", "text/csv":
+		return func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
+			docs, err := documentloader.FromGolc(golcdocloaders.NewCSV(reader)).Load(ctx)
+			if err != nil && errors.Is(err, csv.ErrBareQuote) {
+				oerr := err
+				err = nil
+				var nerr error
+				docs, nerr = documentloader.FromGolc(golcdocloaders.NewCSV(reader, func(o *golcdocloaders.CSVOptions) {
+					o.LazyQuotes = true
+				})).Load(ctx)
+				if nerr != nil {
+					err = errors.Join(oerr, nerr)
+				}
+			}
+			return docs, err
+		}
+	case ".json", "application/json":
+		return func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
+			return documentloader.FromLangchain(lcgodocloaders.NewText(reader)).Load(ctx)
+		}
+	case ".ipynb":
+		return func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
+			return documentloader.FromGolc(golcdocloaders.NewNotebook(reader)).Load(ctx)
+		}
+	case ".docx", ".odt", ".rtf", "application/vnd.oasis.opendocument.text", "text/rtf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+		return func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
+			data, nerr := io.ReadAll(reader)
+			if nerr != nil {
+				return nil, fmt.Errorf("failed to read %s data: %w", filetype, nerr)
+			}
+			text, nerr := cat.FromBytes(data)
+			if nerr != nil {
+				return nil, fmt.Errorf("failed to extract text from %s: %w", filetype, nerr)
+			}
+			return documentloader.FromLangchain(lcgodocloaders.NewText(strings.NewReader(text))).Load(ctx)
+		}
+	default:
+		slog.Error("Unsupported file type", "type", filetype)
+		return nil
+	}
+}
+
+func DefaultTextSplitter(filetype string, textSplitterOpts *TextSplitterOpts) types.TextSplitter {
 	if textSplitterOpts == nil {
 		textSplitterOpts = z.Pointer(NewTextSplitterOpts())
 	}
-	lcgoTextSplitter := textsplitter.FromLangchain(NewLcgoTextSplitter(*textSplitterOpts))
-	lcgoMarkdownSplitter := textsplitter.FromLangchain(NewLcgoMarkdownSplitter(*textSplitterOpts))
+	genericTextSplitter := textsplitter.FromLangchain(NewLcgoTextSplitter(*textSplitterOpts))
+	markdownTextSplitter := textsplitter.FromLangchain(NewLcgoMarkdownSplitter(*textSplitterOpts))
+
+	switch filetype {
+	case ".md", "text/markdown":
+		return markdownTextSplitter
+	default:
+		return genericTextSplitter
+	}
+}
+
+func GetDocuments(ctx context.Context, filename, filetype string, reader io.Reader, textSplitterOpts *TextSplitterOpts) ([]vs.Document, error) {
 
 	/*
 	 * Load documents from the content
@@ -201,67 +281,27 @@ func GetDocuments(ctx context.Context, filename, filetype string, reader io.Read
 	 * and translate them to our document schema.
 	 */
 
-	var docs []vs.Document
-
-	var err error
-
-	switch filetype {
-	case ".pdf", "application/pdf":
-		// The PDF loader requires a size argument, so we can either read the whole file into memory
-		// or write it to a temporary file and pass load directly from that file.
-		// We choose the former for now.
-		data, nerr := io.ReadAll(reader)
-		if nerr != nil {
-			return nil, fmt.Errorf("failed to read PDF data: %w", nerr)
-		}
-		r, nerr := documentloader.NewPDF(bytes.NewReader(data), int64(len(data)), documentloader.WithInterpreterOpts(pdf.WithIgnoreDefOfNonNameVals([]string{"CMapName"})))
-		if nerr != nil {
-			slog.Error("Failed to create PDF loader", "error", nerr)
-			return nil, nerr
-		}
-		docs, err = r.LoadAndSplit(ctx, lcgoTextSplitter)
-	case ".html", "text/html":
-		docs, err = documentloader.FromLangchain(lcgodocloaders.NewHTML(reader)).LoadAndSplit(ctx, lcgoTextSplitter)
-	case ".md", "text/markdown":
-		docs, err = documentloader.FromLangchain(lcgodocloaders.NewText(reader)).LoadAndSplit(ctx, lcgoMarkdownSplitter)
-		docs = FilterMarkdownDocsNoContent(docs)
-	case ".txt", "text/plain":
-		docs, err = documentloader.FromLangchain(lcgodocloaders.NewText(reader)).LoadAndSplit(ctx, lcgoTextSplitter)
-	case ".csv", "text/csv":
-		docs, err = documentloader.FromGolc(golcdocloaders.NewCSV(reader)).Load(ctx)
-		if err != nil && errors.Is(err, csv.ErrBareQuote) {
-			oerr := err
-			err = nil
-			var nerr error
-			docs, nerr = documentloader.FromGolc(golcdocloaders.NewCSV(reader, func(o *golcdocloaders.CSVOptions) {
-				o.LazyQuotes = true
-			})).Load(ctx)
-			if nerr != nil {
-				err = errors.Join(oerr, nerr)
-			}
-		}
-	case ".json", "application/json":
-		docs, err = documentloader.FromLangchain(lcgodocloaders.NewText(reader)).LoadAndSplit(ctx, lcgoTextSplitter)
-	case ".ipynb":
-		docs, err = documentloader.FromGolc(golcdocloaders.NewNotebook(reader)).Load(ctx)
-	case ".docx", ".odt", ".rtf", "application/vnd.oasis.opendocument.text", "text/rtf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-		data, nerr := io.ReadAll(reader)
-		if nerr != nil {
-			return nil, fmt.Errorf("failed to read %s data: %w", filetype, nerr)
-		}
-		text, nerr := cat.FromBytes(data)
-		if nerr != nil {
-			return nil, fmt.Errorf("failed to extract text from %s: %w", filetype, nerr)
-		}
-		docs, err = documentloader.FromLangchain(lcgodocloaders.NewText(strings.NewReader(text))).LoadAndSplit(ctx, lcgoTextSplitter)
-	default:
-		slog.Error("Unsupported file type", "filename", filename, "type", filetype)
-		return nil, fmt.Errorf("file %q has unsupported file type %q", filename, filetype)
+	loader := DefaultDocLoaderFunc(filetype)
+	if loader == nil {
+		return nil, fmt.Errorf("unsupported file type: %s", filetype)
 	}
-
+	docs, err := loader(ctx, reader)
 	if err != nil {
 		slog.Error("Failed to load document", "error", err)
 		return nil, fmt.Errorf("failed to load document: %w", err)
+	}
+
+	/*
+	 * Split documents if necessary
+	 */
+	textSplitter := DefaultTextSplitter(filetype, textSplitterOpts)
+	if textSplitter == nil {
+		return nil, fmt.Errorf("unsupported file type: %s", filetype)
+	}
+	docs, err = textSplitter.SplitDocuments(docs)
+	if err != nil {
+		slog.Error("Failed to split documents", "error", err)
+		return nil, fmt.Errorf("failed to split documents: %w", err)
 	}
 
 	// Add filename to metadata

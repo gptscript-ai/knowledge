@@ -1,19 +1,16 @@
 package flows
 
-type FlowType string
-
-const (
-	FLowTypeIngest   FlowType = "ingest"
-	FlowTypeRetrieve FlowType = "retrieve"
+import (
+	dstypes "github.com/gptscript-ai/knowledge/pkg/datastore/types"
+	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 )
 
-type FlowStep struct {
-	StepType string
-	StepName string
-	NextStep *FlowStep
+type IngestionFlow struct {
+	DocumentLoader       *dstypes.DocumentLoader
+	TextSplitter         *dstypes.TextSplitter
+	DocumentTransformers []func([]vs.Document) ([]vs.Document, error)
 }
 
-type Flow struct {
-	Type  FlowType
-	Steps *FlowStep
+type RetrievalFlow struct {
+	// TODO:
 }
