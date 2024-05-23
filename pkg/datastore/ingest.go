@@ -12,6 +12,7 @@ import (
 	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/textsplitter"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
+	"github.com/gptscript-ai/knowledge/pkg/flows"
 	"github.com/gptscript-ai/knowledge/pkg/index"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 	golcdocloaders "github.com/hupe1980/golc/documentloader"
@@ -120,7 +121,21 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 		return nil, nil
 	}
 
-	docs, err := GetDocuments(ctx, *opts.Filename, filetype, reader, opts.TextSplitterOpts)
+	ingestionFlow := flows.IngestionFlow{
+		Load:            DefaultDocLoaderFunc(filetype),
+		Split:           DefaultTextSplitter(filetype, opts.TextSplitterOpts).SplitDocuments,
+		Transformations: DefaultDocumentTransformers(filetype),
+	}
+
+	// Mandatory Transformation: Add filename to metadata
+	ingestionFlow.Transformations = append(ingestionFlow.Transformations, func(ctx context.Context, docs []vs.Document) ([]vs.Document, error) {
+		for _, doc := range docs {
+			doc.Metadata["filename"] = *opts.Filename
+		}
+		return docs, nil
+	})
+
+	docs, err := GetDocuments(ctx, reader, ingestionFlow)
 	if err != nil {
 		slog.Error("Failed to load documents", "error", err)
 		return nil, fmt.Errorf("failed to load documents: %w", err)
@@ -273,7 +288,14 @@ func DefaultTextSplitter(filetype string, textSplitterOpts *TextSplitterOpts) ty
 	}
 }
 
-func GetDocuments(ctx context.Context, filename, filetype string, reader io.Reader, textSplitterOpts *TextSplitterOpts) ([]vs.Document, error) {
+func DefaultDocumentTransformers(filetype string) []types.DocumentTransformerFunc {
+	return []types.DocumentTransformerFunc{}
+}
+
+func GetDocuments(ctx context.Context, reader io.Reader, ingestionFlow flows.IngestionFlow) ([]vs.Document, error) {
+
+	var err error
+	var docs []vs.Document
 
 	/*
 	 * Load documents from the content
@@ -281,32 +303,29 @@ func GetDocuments(ctx context.Context, filename, filetype string, reader io.Read
 	 * and translate them to our document schema.
 	 */
 
-	loader := DefaultDocLoaderFunc(filetype)
-	if loader == nil {
-		return nil, fmt.Errorf("unsupported file type: %s", filetype)
-	}
-	docs, err := loader(ctx, reader)
+	docs, err = ingestionFlow.Load(ctx, reader)
 	if err != nil {
-		slog.Error("Failed to load document", "error", err)
-		return nil, fmt.Errorf("failed to load document: %w", err)
+		slog.Error("Failed to load documents", "error", err)
+		return nil, fmt.Errorf("failed to load documents: %w", err)
 	}
 
 	/*
-	 * Split documents if necessary
+	 * Split documents - Chunking
 	 */
-	textSplitter := DefaultTextSplitter(filetype, textSplitterOpts)
-	if textSplitter == nil {
-		return nil, fmt.Errorf("unsupported file type: %s", filetype)
-	}
-	docs, err = textSplitter.SplitDocuments(docs)
+	docs, err = ingestionFlow.Split(docs)
 	if err != nil {
 		slog.Error("Failed to split documents", "error", err)
 		return nil, fmt.Errorf("failed to split documents: %w", err)
+
 	}
 
-	// Add filename to metadata
-	for _, doc := range docs {
-		doc.Metadata["filename"] = filename
+	/*
+	 * Transform documents
+	 */
+	docs, err = ingestionFlow.Transform(ctx, docs)
+	if err != nil {
+		slog.Error("Failed to transform documents", "error", err)
+		return nil, fmt.Errorf("failed to transform documents: %w", err)
 	}
 
 	return docs, nil
