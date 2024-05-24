@@ -843,6 +843,10 @@ nhooyr.io/websocket/internal/errd
 nhooyr.io/websocket/internal/wsjs
 nhooyr.io/websocket/internal/xsync
 nhooyr.io/websocket/wsjson
+# sigs.k8s.io/yaml v1.4.0
+## explicit; go 1.12
+sigs.k8s.io/yaml
+sigs.k8s.io/yaml/goyaml.v2
 # github.com/ledongthuc/pdf => github.com/iwilltry42/pdf v0.0.0-20240517145113-99fbaebc5dd3
 # github.com/philippgille/chromem-go => github.com/iwilltry42/chromem-go v0.0.0-20240513080122-88f1efa639f5
 # github.com/tmc/langchaingo => github.com/iwilltry42/langchaingo v0.0.0-20240516095223-8cf46ac74799

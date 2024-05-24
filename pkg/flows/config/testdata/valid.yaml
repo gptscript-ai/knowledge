@@ -1,0 +1,15 @@
+flows:
+  flow1:
+    ingestion:
+      - filetypes: [".txt", ".md"]
+        documentLoader: "textLoader"
+        textSplitter: "simpleSplitter"
+        transformers: ["transformer1", "transformer2"]
+    retrieval: {}
+  flow2:
+    ingestion:
+      - filetypes: [".json"]
+        documentLoader: "jsonLoader"
+        textSplitter: "jsonSplitter"
+        transformers: ["transformer3"]
+    retrieval: {}

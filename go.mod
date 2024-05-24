@@ -27,7 +27,9 @@ require (
 	github.com/swaggo/swag v1.16.3
 	github.com/tmc/langchaingo v0.1.8
 	golang.org/x/sync v0.7.0
+	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/gorm v1.25.9
+	sigs.k8s.io/yaml v1.4.0
 )
 
 require (
@@ -136,7 +138,6 @@ require (
 	google.golang.org/grpc v1.63.2 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 	modernc.org/libc v1.22.5 // indirect
 	modernc.org/mathutil v1.5.0 // indirect
 	modernc.org/memory v1.5.0 // indirect
