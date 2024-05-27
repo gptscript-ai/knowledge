@@ -290,7 +290,6 @@ func DefaultDocumentTransformers(filetype string) []types.DocumentTransformer {
 }
 
 func GetDocuments(ctx context.Context, reader io.Reader, ingestionFlow flows.IngestionFlow) ([]vs.Document, error) {
-
 	var err error
 	var docs []vs.Document
 
@@ -313,7 +312,6 @@ func GetDocuments(ctx context.Context, reader io.Reader, ingestionFlow flows.Ing
 	if err != nil {
 		slog.Error("Failed to split documents", "error", err)
 		return nil, fmt.Errorf("failed to split documents: %w", err)
-
 	}
 
 	/*

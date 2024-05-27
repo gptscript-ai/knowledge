@@ -29,7 +29,6 @@ func (k *KeywordExtractor) extractKeywords(ctx context.Context, doc vs.Document)
 	}
 	keywords := strings.Split(result.Generations[0].Message.Content(), ",")
 	return keywords, nil
-
 }
 
 var tpl = `Extract %d keywords from the following document and return them as a comma-separated list:

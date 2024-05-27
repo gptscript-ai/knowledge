@@ -36,6 +36,13 @@ type PDFOptions struct {
 	InterpreterOpts []pdf.InterpreterOption
 }
 
+// WithConfig sets the PDF loader configuration.
+func WithConfig(config PDFOptions) func(o *PDFOptions) {
+	return func(o *PDFOptions) {
+		*o = config
+	}
+}
+
 // WithInterpreterOpts sets the interpreter options for the PDF loader.
 func WithInterpreterOpts(opts ...pdf.InterpreterOption) func(o *PDFOptions) {
 	return func(o *PDFOptions) {

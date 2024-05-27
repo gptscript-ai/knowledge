@@ -1,0 +1,121 @@
+package documentloader
+
+import (
+	"bytes"
+	"context"
+	"encoding/csv"
+	"errors"
+	"fmt"
+	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
+	golcdocloaders "github.com/hupe1980/golc/documentloader"
+	"github.com/lu4p/cat"
+	lcgodocloaders "github.com/tmc/langchaingo/documentloaders"
+	"io"
+	"log/slog"
+	"strings"
+)
+
+func GetDocumentLoaderConfig(name string) (any, error) {
+	switch name {
+	case "plaintext":
+		return nil, nil
+	case "markdown":
+		return nil, nil
+	case "html":
+		return nil, nil
+	case "pdf":
+		return PDFOptions{}, nil
+	case "csv":
+		return golcdocloaders.CSVOptions{}, nil
+	case "notebook":
+		return golcdocloaders.NotebookOptions{}, nil
+	default:
+		return nil, fmt.Errorf("unknown document loader %q", name)
+	}
+}
+
+type LoaderFunc func(ctx context.Context, reader io.Reader) ([]vs.Document, error)
+
+func GetDocumentLoaderFunc(name string, config any) (LoaderFunc, error) {
+	switch name {
+	case "plaintext", "markdown":
+		if config != nil {
+			return nil, fmt.Errorf("plaintext/markdown document loader does not accept configuration")
+		}
+		return func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
+			return FromLangchain(lcgodocloaders.NewText(reader)).Load(ctx)
+		}, nil
+	case "html":
+		if config != nil {
+			return nil, fmt.Errorf("html document loader does not accept configuration")
+		}
+		return func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
+			return FromLangchain(lcgodocloaders.NewHTML(reader)).Load(ctx)
+		}, nil
+	case "pdf":
+		pdfConfig, ok := config.(PDFOptions)
+		if !ok {
+			return nil, fmt.Errorf("invalid PDF document loader configuration")
+		}
+		return func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
+			data, err := io.ReadAll(reader)
+			if err != nil {
+				return nil, fmt.Errorf("failed to read PDF data: %w", err)
+			}
+			r, err := NewPDF(bytes.NewReader(data), int64(len(data)), WithConfig(pdfConfig))
+			if err != nil {
+				slog.Error("Failed to create PDF loader", "error", err)
+				return nil, err
+			}
+			return r.Load(ctx)
+		}, nil
+	case "csv":
+		csvConfig, ok := config.(golcdocloaders.CSVOptions)
+		if !ok {
+			return nil, fmt.Errorf("invalid CSV document loader configuration")
+		}
+		return func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
+			docs, err := FromGolc(golcdocloaders.NewCSV(reader, func(o *golcdocloaders.CSVOptions) {
+				*o = csvConfig
+			})).Load(ctx)
+			if err != nil && errors.Is(err, csv.ErrBareQuote) {
+				oerr := err
+				err = nil
+				var nerr error
+				docs, nerr = FromGolc(golcdocloaders.NewCSV(reader, func(o *golcdocloaders.CSVOptions) {
+					*o = csvConfig
+					o.LazyQuotes = true
+				})).Load(ctx)
+				if nerr != nil {
+					err = errors.Join(oerr, nerr)
+				}
+			}
+			return docs, err
+		}, nil
+	case "notebook":
+		nbConfig, ok := config.(golcdocloaders.NotebookOptions)
+		if !ok {
+			return nil, fmt.Errorf("invalid notebook document loader configuration")
+		}
+		return func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
+			return FromGolc(golcdocloaders.NewNotebook(reader, func(o *golcdocloaders.NotebookOptions) {
+				*o = nbConfig
+			})).Load(ctx)
+		}, nil
+	case "document": // doc, docx, odt, rtf
+		return func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
+			data, err := io.ReadAll(reader)
+			if err != nil {
+				return nil, fmt.Errorf("failed to read data: %w", err)
+			}
+			text, err := cat.FromBytes(data)
+			if err != nil {
+				return nil, fmt.Errorf("failed to extract text from document: %w", err)
+			}
+			return FromLangchain(lcgodocloaders.NewText(strings.NewReader(text))).Load(ctx)
+		}, nil
+
+	default:
+		return nil, fmt.Errorf("unknown document loader %q", name)
+	}
+}
