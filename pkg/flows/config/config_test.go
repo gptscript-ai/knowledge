@@ -35,3 +35,8 @@ func TestLoadConfigFromNonexistentFile(t *testing.T) {
 	assert.Error(t, err)
 	assert.Nil(t, cfg)
 }
+
+func TestLoadConfigInvalidDoubleDefault(t *testing.T) {
+	_, err := FromFile("testdata/invalid_doubledefault.yaml")
+	assert.Error(t, err)
+}

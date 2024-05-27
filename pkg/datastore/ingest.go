@@ -7,9 +7,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/acorn-io/z"
-	"github.com/gabriel-vasile/mimetype"
 	"github.com/google/uuid"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/filetypes"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/textsplitter"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/transformers"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
@@ -22,24 +22,8 @@ import (
 	lcgodocloaders "github.com/tmc/langchaingo/documentloaders"
 	"io"
 	"log/slog"
-	"path"
 	"strings"
 )
-
-const ()
-
-var firstclassFileExtensions = map[string]struct{}{
-	".pdf":   {},
-	".html":  {},
-	".md":    {},
-	".txt":   {},
-	".docx":  {},
-	".odt":   {},
-	".rtf":   {},
-	".csv":   {},
-	".ipynb": {},
-	".json":  {},
-}
 
 type IngestOpts struct {
 	Filename            *string
@@ -47,6 +31,7 @@ type IngestOpts struct {
 	IsDuplicateFuncName string
 	IsDuplicateFunc     IsDuplicateFunc
 	TextSplitterOpts    *textsplitter.TextSplitterOpts
+	IngestionFlow       *flows.IngestionFlow
 }
 
 // Ingest loads a document from a reader and adds it to the dataset.
@@ -73,27 +58,11 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 	/*
 	 * Detect filetype
 	 */
-	reader := bytes.NewReader(content)
-	var filetype string
-	if opts.Filename != nil {
-		filetype = path.Ext(*opts.Filename)
-		if _, ok := firstclassFileExtensions[filetype]; !ok {
-			filetype = ""
-		}
-	}
-	if filetype == "" {
-		filetype, _, err = mimetypeFromReader(bytes.NewReader(content))
-		if err != nil {
-			slog.Error("Failed to detect filetype", "error", err)
-			return nil, fmt.Errorf("failed to detect filetype: %w", err)
-		}
-	}
-	if filetype == "" {
-		slog.Error("Failed to detect filetype", "filename", *opts.Filename)
-		return nil, fmt.Errorf("failed to detect filetype")
-	}
 
-	filetype = strings.Split(filetype, ";")[0] // remove charset (mimetype), e.g. from "text/plain; charset=utf-8"
+	filetype, err := filetypes.GetFiletype(*opts.Filename, content)
+	if err != nil {
+		return nil, err
+	}
 
 	/*
 	 * Set filename if not provided
@@ -127,7 +96,7 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 	em := &transformers.ExtraMetadata{Metadata: map[string]any{"filename": *opts.Filename}}
 	ingestionFlow.Transformations = append(ingestionFlow.Transformations, em)
 
-	docs, err := GetDocuments(ctx, reader, ingestionFlow)
+	docs, err := GetDocuments(ctx, bytes.NewReader(content), ingestionFlow)
 	if err != nil {
 		slog.Error("Failed to load documents", "error", err)
 		return nil, fmt.Errorf("failed to load documents: %w", err)
@@ -180,20 +149,6 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 	slog.Info("Ingested document", "filename", *opts.Filename, "count", len(docIDs), "absolute_path", dbFile.FileMetadata.AbsolutePath)
 
 	return docIDs, nil
-}
-
-// mimetypeFromReader returns the MIME type of input and a new reader which still has the whole input
-func mimetypeFromReader(reader io.Reader) (string, io.Reader, error) {
-	header := bytes.NewBuffer(nil)
-	mtype, err := mimetype.DetectReader(io.TeeReader(reader, header))
-	if err != nil {
-		return "", nil, err
-	}
-
-	// Get back complete input reader
-	newReader := io.MultiReader(header, reader)
-
-	return mtype.String(), newReader, err
 }
 
 func DefaultDocLoaderFunc(filetype string) func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {

@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/textsplitter"
 	"github.com/gptscript-ai/knowledge/pkg/flows"
@@ -14,14 +15,10 @@ type FlowConfig struct {
 	Flows map[string]FlowConfigEntry `json:"flows" yaml:"flows" mapstructure:"flows"`
 }
 
-type DocumentLoaderConfig struct {
-	Name    string         `json:"name" yaml:"name" mapstructure:"name"`
-	Options map[string]any `json:"options,omitempty" yaml:"options" mapstructure:"options"`
-}
-
-type TextSplitterConfig struct {
-	Name    string         `json:"name" yaml:"name" mapstructure:"name"`
-	Options map[string]any `json:"options,omitempty" yaml:"options" mapstructure:"options"`
+type FlowConfigEntry struct {
+	Default   bool                  `json:"default,omitempty" yaml:"default" mapstructure:"default"`
+	Ingestion []IngestionFlowConfig `json:"ingestion,omitempty" yaml:"ingestion" mapstructure:"ingestion"`
+	Retrieval *RetrievalFlowConfig  `json:"retrieval,omitempty" yaml:"retrieval" mapstructure:"retrieval"`
 }
 
 type IngestionFlowConfig struct {
@@ -33,9 +30,14 @@ type IngestionFlowConfig struct {
 
 type RetrievalFlowConfig struct{}
 
-type FlowConfigEntry struct {
-	Ingestion []IngestionFlowConfig `json:"ingestion,omitempty" yaml:"ingestion" mapstructure:"ingestion"`
-	Retrieval RetrievalFlowConfig   `json:"retrieval,omitempty" yaml:"retrieval" mapstructure:"retrieval"`
+type DocumentLoaderConfig struct {
+	Name    string         `json:"name" yaml:"name" mapstructure:"name"`
+	Options map[string]any `json:"options,omitempty" yaml:"options" mapstructure:"options"`
+}
+
+type TextSplitterConfig struct {
+	Name    string         `json:"name" yaml:"name" mapstructure:"name"`
+	Options map[string]any `json:"options,omitempty" yaml:"options" mapstructure:"options"`
 }
 
 // FromFile reads a configuration file and returns a FlowConfig.
@@ -59,9 +61,45 @@ func FromFile(filename string) (*FlowConfig, error) {
 		return nil, err
 	}
 
-	return &config, nil
+	return &config, config.Validate()
 }
 
+func (f *FlowConfig) Validate() error {
+	defaultCount := 0
+	for name, flow := range f.Flows {
+		if flow.Default {
+			defaultCount++
+		}
+
+		if len(flow.Ingestion) == 0 && flow.Retrieval == nil {
+			return fmt.Errorf("flow %q has neither ingestion nor retrieval specified", name)
+		}
+
+	}
+	if defaultCount > 1 {
+		return fmt.Errorf("only one flow can be default, found %d", defaultCount)
+	}
+	return nil
+}
+
+func (f *FlowConfig) GetDefaultFlowConfigEntry() (*FlowConfigEntry, error) {
+	for _, flow := range f.Flows {
+		if flow.Default {
+			return &flow, nil
+		}
+	}
+	return nil, fmt.Errorf("default flow not found")
+}
+
+func (f *FlowConfig) GetFlow(name string) (*FlowConfigEntry, error) {
+	flow, ok := f.Flows[name]
+	if !ok {
+		return nil, fmt.Errorf("flow %q not found", name)
+	}
+	return &flow, nil
+}
+
+// AsIngestionFlow converts an IngestionFlowConfig to an actual flows.IngestionFlow.
 func (i *IngestionFlowConfig) AsIngestionFlow() (*flows.IngestionFlow, error) {
 	flow := &flows.IngestionFlow{}
 	if i.DocumentLoader.Name != "" {
@@ -109,6 +147,8 @@ func (i *IngestionFlowConfig) AsIngestionFlow() (*flows.IngestionFlow, error) {
 		}
 		flow.Split = splitterFunc
 	}
+
+	// TODO: Transformers
 
 	return flow, nil
 }
