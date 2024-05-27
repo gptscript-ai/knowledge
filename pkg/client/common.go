@@ -95,7 +95,7 @@ func ingestPaths(ctx context.Context, opts *IngestPathsOpts, ingestionFunc func(
 	return ingestedFilesCount, g.Wait()
 }
 
-func hashPath(path string) string {
+func HashPath(path string) string {
 	hasher := sha1.New()
 	hasher.Write([]byte(path))
 	hashBytes := hasher.Sum(nil)
@@ -119,7 +119,7 @@ func AskDir(ctx context.Context, c Client, path string, query string, opts *Inge
 		return nil, fmt.Errorf("path %q is not a directory", abspath)
 	}
 
-	datasetID := hashPath(abspath)
+	datasetID := HashPath(abspath)
 	slog.Debug("Directory Dataset ID hashed", "path", abspath, "id", datasetID)
 
 	// check if dataset exists
