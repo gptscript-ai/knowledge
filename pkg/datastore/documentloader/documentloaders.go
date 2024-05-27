@@ -9,6 +9,7 @@ import (
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 	golcdocloaders "github.com/hupe1980/golc/documentloader"
 	"github.com/lu4p/cat"
+	"github.com/mitchellh/mapstructure"
 	lcgodocloaders "github.com/tmc/langchaingo/documentloaders"
 	"io"
 	"log/slog"
@@ -53,9 +54,13 @@ func GetDocumentLoaderFunc(name string, config any) (LoaderFunc, error) {
 			return FromLangchain(lcgodocloaders.NewHTML(reader)).Load(ctx)
 		}, nil
 	case "pdf":
-		pdfConfig, ok := config.(PDFOptions)
-		if !ok {
-			return nil, fmt.Errorf("invalid PDF document loader configuration")
+		var pdfConfig PDFOptions
+		if config != nil {
+			slog.Debug("PDF custom config", "config", config)
+			if err := mapstructure.Decode(config, &pdfConfig); err != nil {
+				return nil, fmt.Errorf("failed to decode PDF document loader configuration: %w", err)
+			}
+			slog.Debug("PDF custom config (decoded)", "pdfConfig", pdfConfig)
 		}
 		return func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
 			data, err := io.ReadAll(reader)
@@ -70,9 +75,11 @@ func GetDocumentLoaderFunc(name string, config any) (LoaderFunc, error) {
 			return r.Load(ctx)
 		}, nil
 	case "csv":
-		csvConfig, ok := config.(golcdocloaders.CSVOptions)
-		if !ok {
-			return nil, fmt.Errorf("invalid CSV document loader configuration")
+		var csvConfig golcdocloaders.CSVOptions
+		if config != nil {
+			if err := mapstructure.Decode(config, &csvConfig); err != nil {
+				return nil, fmt.Errorf("failed to decode CSV document loader configuration: %w", err)
+			}
 		}
 		return func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
 			docs, err := FromGolc(golcdocloaders.NewCSV(reader, func(o *golcdocloaders.CSVOptions) {
@@ -93,9 +100,11 @@ func GetDocumentLoaderFunc(name string, config any) (LoaderFunc, error) {
 			return docs, err
 		}, nil
 	case "notebook":
-		nbConfig, ok := config.(golcdocloaders.NotebookOptions)
-		if !ok {
-			return nil, fmt.Errorf("invalid notebook document loader configuration")
+		var nbConfig golcdocloaders.NotebookOptions
+		if config != nil {
+			if err := mapstructure.Decode(config, &nbConfig); err != nil {
+				return nil, fmt.Errorf("failed to decode Notebook document loader configuration: %w", err)
+			}
 		}
 		return func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
 			return FromGolc(golcdocloaders.NewNotebook(reader, func(o *golcdocloaders.NotebookOptions) {
@@ -103,6 +112,9 @@ func GetDocumentLoaderFunc(name string, config any) (LoaderFunc, error) {
 			})).Load(ctx)
 		}, nil
 	case "document": // doc, docx, odt, rtf
+		if config != nil {
+			return nil, fmt.Errorf("'document' document loader does not accept configuration")
+		}
 		return func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
 			data, err := io.ReadAll(reader)
 			if err != nil {
@@ -114,7 +126,6 @@ func GetDocumentLoaderFunc(name string, config any) (LoaderFunc, error) {
 			}
 			return FromLangchain(lcgodocloaders.NewText(strings.NewReader(text))).Load(ctx)
 		}, nil
-
 	default:
 		return nil, fmt.Errorf("unknown document loader %q", name)
 	}

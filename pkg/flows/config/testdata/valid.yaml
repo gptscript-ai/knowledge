@@ -18,5 +18,7 @@ flows:
           name: "jsonLoader"
         textSplitter:
           name: "jsonSplitter"
+          options:
+            chunkSize: 4096
         transformers: ["transformer3"]
     retrieval: {}

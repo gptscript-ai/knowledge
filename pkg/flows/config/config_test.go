@@ -22,6 +22,8 @@ func TestLoadConfigFromValidYAMLFile(t *testing.T) {
 	assert.NoError(t, err)
 	require.NotNil(t, cfg)
 	assert.NotEmpty(t, cfg.Flows)
+	assert.Equal(t, 2, len(cfg.Flows))
+	assert.Equal(t, 4096.0, cfg.Flows["flow2"].Ingestion[0].TextSplitter.Options["chunkSize"])
 }
 
 func TestLoadConfigFromInvalidFile(t *testing.T) {

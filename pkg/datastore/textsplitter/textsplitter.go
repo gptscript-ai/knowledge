@@ -1,19 +1,22 @@
 package textsplitter
 
 import (
+	"dario.cat/mergo"
 	"fmt"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/defaults"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
+	"github.com/mitchellh/mapstructure"
 	lcgosplitter "github.com/tmc/langchaingo/textsplitter"
+	"log/slog"
 )
 
 type SplitterFunc func([]vs.Document) ([]vs.Document, error)
 
 type TextSplitterOpts struct {
-	ChunkSize    int    `usage:"Textsplitter Chunk Size" default:"1024" env:"KNOW_TEXTSPLITTER_CHUNK_SIZE" name:"textsplitter-chunk-size"`
-	ChunkOverlap int    `usage:"Textsplitter Chunk Overlap" default:"256" env:"KNOW_TEXTSPLITTER_CHUNK_OVERLAP" name:"textsplitter-chunk-overlap"`
-	ModelName    string `usage:"Textsplitter Model Name" default:"gpt-4" env:"KNOW_TEXTSPLITTER_MODEL_NAME" name:"textsplitter-model-name"`
-	EncodingName string `usage:"Textsplitter Encoding Name" default:"cl100k_base" env:"KNOW_TEXTSPLITTER_ENCODING_NAME" name:"textsplitter-encoding-name"`
+	ChunkSize    int    `json:"chunkSize" mapstructure:"chunkSize" usage:"Textsplitter Chunk Size" default:"1024" env:"KNOW_TEXTSPLITTER_CHUNK_SIZE" name:"textsplitter-chunk-size"`
+	ChunkOverlap int    `json:"chunkOverlap" mapstructure:"chunkOverlap" usage:"Textsplitter Chunk Overlap" default:"256" env:"KNOW_TEXTSPLITTER_CHUNK_OVERLAP" name:"textsplitter-chunk-overlap"`
+	ModelName    string `json:"modelName" mapstructure:"modelName" usage:"Textsplitter Model Name" default:"gpt-4" env:"KNOW_TEXTSPLITTER_MODEL_NAME" name:"textsplitter-model-name"`
+	EncodingName string `json:"encodingName" mapstructure:"encodingName" usage:"Textsplitter Encoding Name" default:"cl100k_base" env:"KNOW_TEXTSPLITTER_ENCODING_NAME" name:"textsplitter-encoding-name"`
 }
 
 // NewTextSplitterOpts returns the default options for a text splitter.
@@ -59,23 +62,35 @@ func GetTextSplitterConfig(name string) (any, error) {
 func GetTextSplitterFunc(name string, config any) (SplitterFunc, error) {
 	switch name {
 	case "text":
-		if config == nil {
-			config = NewTextSplitterOpts()
+		cfg := NewTextSplitterOpts()
+		if config != nil {
+			var customCfg TextSplitterOpts
+			if err := mapstructure.Decode(config, &customCfg); err != nil {
+				return nil, fmt.Errorf("failed to decode text splitter configuration: %w", err)
+			}
+			slog.Debug("GetTextSplitterFunc Text (before merge)", "config", customCfg)
+			if err := mergo.Merge(&customCfg, cfg); err != nil {
+				return nil, fmt.Errorf("failed to merge text splitter configuration: %w", err)
+			}
+			cfg = customCfg
 		}
-		config, ok := config.(TextSplitterOpts)
-		if !ok {
-			return nil, fmt.Errorf("invalid text splitter configuration")
-		}
-		return FromLangchain(NewLcgoTextSplitter(config)).SplitDocuments, nil
+		slog.Debug("TextSplitterFunc", "config", cfg)
+		return FromLangchain(NewLcgoTextSplitter(cfg)).SplitDocuments, nil
 	case "markdown":
-		if config == nil {
-			config = NewTextSplitterOpts()
+		cfg := NewTextSplitterOpts()
+		if config != nil {
+			var customCfg TextSplitterOpts
+			if err := mapstructure.Decode(config, &customCfg); err != nil {
+				return nil, fmt.Errorf("failed to decode text splitter configuration: %w", err)
+			}
+			slog.Debug("GetTextSplitterFunc Markdown (before merge)", "config", customCfg)
+			if err := mergo.Merge(&customCfg, cfg); err != nil {
+				return nil, fmt.Errorf("failed to merge text splitter configuration: %w", err)
+			}
+			cfg = customCfg
 		}
-		config, ok := config.(TextSplitterOpts)
-		if !ok {
-			return nil, fmt.Errorf("invalid markdown text splitter configuration")
-		}
-		return FromLangchain(NewLcgoMarkdownSplitter(config)).SplitDocuments, nil
+		slog.Debug("MarkdownSplitterFunc", "config", cfg)
+		return FromLangchain(NewLcgoMarkdownSplitter(cfg)).SplitDocuments, nil
 	default:
 		return nil, fmt.Errorf("unknown text splitter %q", name)
 	}
