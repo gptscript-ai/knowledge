@@ -47,6 +47,8 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 		isDuplicate = opts.IsDuplicateFunc
 	}
 
+	filename := z.Dereference(opts.Filename)
+
 	// Generate ID
 	fUUID, err := uuid.NewUUID()
 	if err != nil {
@@ -59,7 +61,7 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 	 * Detect filetype
 	 */
 
-	filetype, err := filetypes.GetFiletype(*opts.Filename, content)
+	filetype, err := filetypes.GetFiletype(filename, content)
 	if err != nil {
 		return nil, err
 	}
@@ -67,11 +69,12 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 	/*
 	 * Set filename if not provided
 	 */
-	if opts.Filename == nil {
-		opts.Filename = z.Pointer("<unnamed_document>")
+	if filename == "" {
+		filename = "<unnamed_document>"
+		*opts.Filename = filename
 	}
 
-	slog.Debug("Loading data", "type", filetype, "filename", *opts.Filename)
+	slog.Debug("Loading data", "type", filetype, "filename", filename, "size", len(content))
 
 	/*
 	 * Exit early if the document is a duplicate
@@ -82,7 +85,7 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 		return nil, fmt.Errorf("failed to check for duplicates: %w", err)
 	}
 	if isDupe {
-		slog.Info("Ignoring duplicate document", "filename", *opts.Filename, "absolute_path", opts.FileMetadata.AbsolutePath)
+		slog.Info("Ignoring duplicate document", "filename", filename, "absolute_path", opts.FileMetadata.AbsolutePath)
 		return nil, nil
 	}
 
@@ -93,7 +96,7 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 	}
 
 	// Mandatory Transformation: Add filename to metadata
-	em := &transformers.ExtraMetadata{Metadata: map[string]any{"filename": *opts.Filename}}
+	em := &transformers.ExtraMetadata{Metadata: map[string]any{"filename": filename}}
 	ingestionFlow.Transformations = append(ingestionFlow.Transformations, em)
 
 	docs, err := GetDocuments(ctx, bytes.NewReader(content), ingestionFlow)
@@ -130,7 +133,7 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 		Dataset:   datasetID,
 		Documents: dbDocs,
 		FileMetadata: index.FileMetadata{
-			Name: *opts.Filename,
+			Name: filename,
 		},
 	}
 
@@ -146,7 +149,7 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 		return nil, fmt.Errorf("failed to create file: %w", tx.Error)
 	}
 
-	slog.Info("Ingested document", "filename", *opts.Filename, "count", len(docIDs), "absolute_path", dbFile.FileMetadata.AbsolutePath)
+	slog.Info("Ingested document", "filename", filename, "count", len(docIDs), "absolute_path", dbFile.FileMetadata.AbsolutePath)
 
 	return docIDs, nil
 }
