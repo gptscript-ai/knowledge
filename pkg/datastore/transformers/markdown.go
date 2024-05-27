@@ -1,14 +1,17 @@
-package datastore
+package transformers
 
 import (
+	"context"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 	"strings"
 )
 
 // FilterMarkdownDocsNoContent filters out Markdown documents with no content or only headings
 //
-// TODO: this may be moved into the MarkdownTextSplitter as well
-func FilterMarkdownDocsNoContent(docs []vs.Document) []vs.Document {
+// TODO: this may be moved into the MarkdownTextSplitter
+type FilterMarkdownDocsNoContent struct{}
+
+func (f *FilterMarkdownDocsNoContent) Transform(_ context.Context, docs []vs.Document) ([]vs.Document, error) {
 	var filteredDocs []vs.Document
 	for _, doc := range docs {
 		if doc.Content != "" {
@@ -19,5 +22,5 @@ func FilterMarkdownDocsNoContent(docs []vs.Document) []vs.Document {
 			}
 		}
 	}
-	return filteredDocs
+	return filteredDocs, nil
 }
