@@ -12,7 +12,8 @@ import (
 )
 
 type FlowConfig struct {
-	Flows map[string]FlowConfigEntry `json:"flows" yaml:"flows" mapstructure:"flows"`
+	Flows    map[string]FlowConfigEntry `json:"flows" yaml:"flows" mapstructure:"flows"`
+	Datasets map[string]string          `json:"datasets,omitempty" yaml:"datasets" mapstructure:"datasets"`
 }
 
 type FlowConfigEntry struct {
@@ -101,7 +102,9 @@ func (f *FlowConfig) GetFlow(name string) (*FlowConfigEntry, error) {
 
 // AsIngestionFlow converts an IngestionFlowConfig to an actual flows.IngestionFlow.
 func (i *IngestionFlowConfig) AsIngestionFlow() (*flows.IngestionFlow, error) {
-	flow := &flows.IngestionFlow{}
+	flow := &flows.IngestionFlow{
+		Filetypes: i.Filetypes,
+	}
 	if i.DocumentLoader.Name != "" {
 		name := strings.ToLower(strings.Trim(i.DocumentLoader.Name, " "))
 		cfg, err := documentloader.GetDocumentLoaderConfig(name)
@@ -151,4 +154,12 @@ func (i *IngestionFlowConfig) AsIngestionFlow() (*flows.IngestionFlow, error) {
 	// TODO: Transformers
 
 	return flow, nil
+}
+
+func (f *FlowConfig) ForDataset(name string) (*FlowConfigEntry, error) {
+	flowref, ok := f.Datasets[name]
+	if ok {
+		return f.GetFlow(flowref)
+	}
+	return f.GetDefaultFlowConfigEntry()
 }

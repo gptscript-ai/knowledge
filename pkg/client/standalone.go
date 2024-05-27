@@ -96,6 +96,7 @@ func (c *StandaloneClient) IngestPaths(ctx context.Context, datasetID string, op
 
 		if opts != nil {
 			iopts.TextSplitterOpts = opts.TextSplitterOpts
+			iopts.IngestionFlows = opts.IngestionFlows
 		}
 
 		_, err = c.Datastore.Ingest(ctx, datasetID, file, iopts)

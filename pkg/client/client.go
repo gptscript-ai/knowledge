@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/gptscript-ai/knowledge/pkg/datastore"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/textsplitter"
+	"github.com/gptscript-ai/knowledge/pkg/flows"
 	"github.com/gptscript-ai/knowledge/pkg/index"
 	"github.com/gptscript-ai/knowledge/pkg/server/types"
 	"github.com/gptscript-ai/knowledge/pkg/vectorstore"
@@ -14,6 +15,7 @@ type IngestPathsOpts struct {
 	Concurrency      int
 	Recursive        bool
 	TextSplitterOpts *textsplitter.TextSplitterOpts
+	IngestionFlows   []flows.IngestionFlow
 }
 
 type RetrieveOpts struct {
