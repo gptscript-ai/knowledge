@@ -6,6 +6,7 @@ import (
 	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/textsplitter"
 	"github.com/gptscript-ai/knowledge/pkg/flows"
+	"log/slog"
 	"os"
 	"sigs.k8s.io/yaml"
 	"strings"
@@ -159,7 +160,9 @@ func (i *IngestionFlowConfig) AsIngestionFlow() (*flows.IngestionFlow, error) {
 func (f *FlowConfig) ForDataset(name string) (*FlowConfigEntry, error) {
 	flowref, ok := f.Datasets[name]
 	if ok {
+		slog.Debug("Flow assigned to dataset", "dataset", name, "flow", flowref)
 		return f.GetFlow(flowref)
 	}
+	slog.Debug("No flow found for dataset - using default", "dataset", name)
 	return f.GetDefaultFlowConfigEntry()
 }

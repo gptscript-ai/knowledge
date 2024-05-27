@@ -48,6 +48,7 @@ func (s *ClientIngest) Run(cmd *cobra.Command, args []string) error {
 	}
 
 	if s.FlowsFile != "" {
+		slog.Debug("Loading ingestion flows from config", "flows_file", s.FlowsFile, "dataset", datasetID)
 		flowCfg, err := flowconfig.FromFile(s.FlowsFile)
 		if err != nil {
 			return err

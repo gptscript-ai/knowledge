@@ -46,7 +46,6 @@ func (s *ClientAskDir) Run(cmd *cobra.Command, args []string) error {
 	}
 
 	if s.FlowsFile != "" {
-
 		abspath, err := filepath.Abs(path)
 		if err != nil {
 			return fmt.Errorf("failed to get absolute path from %q: %w", path, err)
@@ -54,6 +53,7 @@ func (s *ClientAskDir) Run(cmd *cobra.Command, args []string) error {
 
 		datasetID := client.HashPath(abspath)
 
+		slog.Debug("Loading ingestion flows from config", "flows_file", s.FlowsFile, "dataset", datasetID)
 		flowCfg, err := flowconfig.FromFile(s.FlowsFile)
 		if err != nil {
 			return err
