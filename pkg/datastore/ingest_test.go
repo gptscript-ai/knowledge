@@ -28,11 +28,7 @@ func TestExtractPDF(t *testing.T) {
 
 		filetype := ".pdf"
 
-		ingestionFlow := flows.IngestionFlow{
-			Load:            DefaultDocLoaderFunc(filetype),
-			Split:           DefaultTextSplitter(filetype, &textSplitterOpts).SplitDocuments,
-			Transformations: DefaultDocumentTransformers(filetype),
-		}
+		ingestionFlow := flows.NewDefaultIngestionFlow(filetype, &textSplitterOpts)
 
 		// Mandatory Transformation: Add filename to metadata
 		em := &transformers.ExtraMetadata{Metadata: map[string]any{"filename": d.Name()}}
