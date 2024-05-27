@@ -67,19 +67,30 @@ func FromFile(filename string) (*FlowConfig, error) {
 }
 
 func (f *FlowConfig) Validate() error {
-	defaultCount := 0
+	hasDefault := false
 	for name, flow := range f.Flows {
+
+		// Only one default flow is allowed
 		if flow.Default {
-			defaultCount++
+			if hasDefault {
+				return fmt.Errorf("multiple flows are marked as default")
+			}
+			hasDefault = true
 		}
 
+		// Each flow must have either ingestion or retrieval
 		if len(flow.Ingestion) == 0 && flow.Retrieval == nil {
 			return fmt.Errorf("flow %q has neither ingestion nor retrieval specified", name)
 		}
 
-	}
-	if defaultCount > 1 {
-		return fmt.Errorf("only one flow can be default, found %d", defaultCount)
+		for idx, ingestion := range flow.Ingestion {
+
+			// Each ingestion flow must have some filetypes specified
+			if len(ingestion.Filetypes) == 0 {
+				return fmt.Errorf("flow %q.ingestion.[%d] has no filetypes specified", name, idx)
+			}
+		}
+
 	}
 	return nil
 }
