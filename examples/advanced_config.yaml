@@ -1,0 +1,40 @@
+flows:
+  foo:
+    default: false
+    ingestion:
+      - filetypes: [".txt", ".md"]
+        documentloader:
+          name: plaintext
+        textsplitter:
+          name: markdown
+      - filetypes: [".pdf"]
+        documentloader:
+          name: pdf
+          options:
+            maxPages: 5
+            interpreterConfig:
+              ignoreDefOfNonNameVals:
+                - "CMapName"
+  bar:
+    default: false
+    ingestion:
+      - filetypes: [ ".txt", ".md" ]
+        documentloader:
+          name: plaintext
+        textsplitter:
+          name: text
+  baz:
+    default: false
+    ingestion:
+      - filetypes: [ ".txt", ".md" ]
+        documentloader:
+          name: plaintext
+        textsplitter:
+          name: text
+          options:
+            chunkSize: 4096
+
+datasets:
+  foo: foo
+  bar: bar
+  baz: baz
