@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/gptscript-ai/knowledge/pkg/client"
-	"github.com/gptscript-ai/knowledge/pkg/datastore"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/textsplitter"
 	"github.com/spf13/cobra"
 	"strings"
 )
@@ -12,7 +12,7 @@ type ClientIngest struct {
 	Client
 	Dataset string `usage:"Target Dataset ID" short:"d" default:"default" env:"KNOW_TARGET_DATASET"`
 	ClientIngestOpts
-	datastore.TextSplitterOpts
+	textsplitter.TextSplitterOpts
 }
 
 type ClientIngestOpts struct {

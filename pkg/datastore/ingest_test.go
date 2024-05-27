@@ -2,6 +2,7 @@ package datastore
 
 import (
 	"context"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/textsplitter"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/transformers"
 	"github.com/gptscript-ai/knowledge/pkg/flows"
 	"github.com/stretchr/testify/require"
@@ -13,7 +14,7 @@ import (
 
 func TestExtractPDF(t *testing.T) {
 	ctx := context.Background()
-	textSplitterOpts := NewTextSplitterOpts()
+	textSplitterOpts := textsplitter.NewTextSplitterOpts()
 	err := filepath.WalkDir("testdata/pdf", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			t.Fatalf("filepath.WalkDir() error = %v", err)

@@ -2,13 +2,14 @@ package config
 
 import (
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"testing"
 )
 
 func TestLoadConfigFromValidJSONFile(t *testing.T) {
 	cfg, err := FromFile("testdata/valid.json")
 	assert.NoError(t, err)
-	assert.NotNil(t, cfg)
+	require.NotNil(t, cfg)
 	assert.NotEmpty(t, cfg.Flows)
 	assert.Equal(t, 2, len(cfg.Flows))
 	assert.Equal(t, 1, len(cfg.Flows["flow1"].Ingestion))
@@ -19,7 +20,7 @@ func TestLoadConfigFromValidJSONFile(t *testing.T) {
 func TestLoadConfigFromValidYAMLFile(t *testing.T) {
 	cfg, err := FromFile("testdata/valid.yaml")
 	assert.NoError(t, err)
-	assert.NotNil(t, cfg)
+	require.NotNil(t, cfg)
 	assert.NotEmpty(t, cfg.Flows)
 }
 

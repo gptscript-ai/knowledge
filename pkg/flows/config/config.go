@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/json"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/textsplitter"
 	"github.com/gptscript-ai/knowledge/pkg/flows"
 	"os"
 	"sigs.k8s.io/yaml"
@@ -79,6 +80,34 @@ func (i *IngestionFlowConfig) AsIngestionFlow() (*flows.IngestionFlow, error) {
 				return nil, err
 			}
 		}
+		loaderFunc, err := documentloader.GetDocumentLoaderFunc(name, cfg)
+		if err != nil {
+			return nil, err
+		}
+		flow.Load = loaderFunc
+	}
+
+	if i.TextSplitter.Name != "" {
+		name := strings.ToLower(strings.Trim(i.TextSplitter.Name, " "))
+		cfg, err := textsplitter.GetTextSplitterConfig(name)
+		if err != nil {
+			return nil, err
+		}
+		if len(i.TextSplitter.Options) > 0 {
+			jsondata, err := json.Marshal(i.TextSplitter.Options)
+			if err != nil {
+				return nil, err
+			}
+			err = json.Unmarshal(jsondata, &cfg)
+			if err != nil {
+				return nil, err
+			}
+		}
+		splitterFunc, err := textsplitter.GetTextSplitterFunc(name, cfg)
+		if err != nil {
+			return nil, err
+		}
+		flow.Split = splitterFunc
 	}
 
 	return flow, nil

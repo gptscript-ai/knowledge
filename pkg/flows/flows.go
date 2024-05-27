@@ -2,13 +2,15 @@ package flows
 
 import (
 	"context"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/textsplitter"
 	dstypes "github.com/gptscript-ai/knowledge/pkg/datastore/types"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 )
 
 type IngestionFlow struct {
-	Load            dstypes.DocumentLoaderFunc
-	Split           dstypes.TextSplitterFunc
+	Load            documentloader.LoaderFunc
+	Split           textsplitter.SplitterFunc
 	Transformations []dstypes.DocumentTransformer
 }
 

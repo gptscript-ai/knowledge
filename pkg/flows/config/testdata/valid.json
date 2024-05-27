@@ -4,8 +4,12 @@
       "ingestion": [
         {
           "filetypes": [".txt", ".md"],
-          "documentLoader": "textLoader",
-          "textSplitter": "simpleSplitter",
+          "documentLoader": {
+            "name": "textLoader"
+          },
+          "textSplitter": {
+            "name": "simpleSplitter"
+          },
           "transformers": ["transformer1", "transformer2"]
         }
       ],
@@ -15,8 +19,12 @@
       "ingestion": [
         {
           "filetypes": [".json"],
-          "documentLoader": "jsonLoader",
-          "textSplitter": "jsonSplitter",
+          "documentLoader": {
+            "name": "jsonLoader"
+          },
+          "textSplitter": {
+            "name": "jsonSplitter"
+          },
           "transformers": ["transformer3"]
         }
       ],

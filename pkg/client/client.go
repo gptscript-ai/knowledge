@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"github.com/gptscript-ai/knowledge/pkg/datastore"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/textsplitter"
 	"github.com/gptscript-ai/knowledge/pkg/index"
 	"github.com/gptscript-ai/knowledge/pkg/server/types"
 	"github.com/gptscript-ai/knowledge/pkg/vectorstore"
@@ -12,7 +13,7 @@ type IngestPathsOpts struct {
 	IgnoreExtensions []string
 	Concurrency      int
 	Recursive        bool
-	TextSplitterOpts *datastore.TextSplitterOpts
+	TextSplitterOpts *textsplitter.TextSplitterOpts
 }
 
 type RetrieveOpts struct {

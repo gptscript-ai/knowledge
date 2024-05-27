@@ -26,12 +26,7 @@ import (
 	"strings"
 )
 
-const (
-	defaultTokenModel    = "gpt-4"
-	defaultChunkSize     = 1024
-	defaultChunkOverlap  = 256
-	defaultTokenEncoding = "cl100k_base"
-)
+const ()
 
 var firstclassFileExtensions = map[string]struct{}{
 	".pdf":   {},
@@ -51,7 +46,7 @@ type IngestOpts struct {
 	FileMetadata        *index.FileMetadata
 	IsDuplicateFuncName string
 	IsDuplicateFunc     IsDuplicateFunc
-	TextSplitterOpts    *TextSplitterOpts
+	TextSplitterOpts    *textsplitter.TextSplitterOpts
 }
 
 // Ingest loads a document from a reader and adds it to the dataset.
@@ -270,12 +265,12 @@ func DefaultDocLoaderFunc(filetype string) func(ctx context.Context, reader io.R
 	}
 }
 
-func DefaultTextSplitter(filetype string, textSplitterOpts *TextSplitterOpts) types.TextSplitter {
+func DefaultTextSplitter(filetype string, textSplitterOpts *textsplitter.TextSplitterOpts) types.TextSplitter {
 	if textSplitterOpts == nil {
-		textSplitterOpts = z.Pointer(NewTextSplitterOpts())
+		textSplitterOpts = z.Pointer(textsplitter.NewTextSplitterOpts())
 	}
-	genericTextSplitter := textsplitter.FromLangchain(NewLcgoTextSplitter(*textSplitterOpts))
-	markdownTextSplitter := textsplitter.FromLangchain(NewLcgoMarkdownSplitter(*textSplitterOpts))
+	genericTextSplitter := textsplitter.FromLangchain(textsplitter.NewLcgoTextSplitter(*textSplitterOpts))
+	markdownTextSplitter := textsplitter.FromLangchain(textsplitter.NewLcgoMarkdownSplitter(*textSplitterOpts))
 
 	switch filetype {
 	case ".md", "text/markdown":

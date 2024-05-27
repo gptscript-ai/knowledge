@@ -2,14 +2,20 @@ flows:
   flow1:
     ingestion:
       - filetypes: [".txt", ".md"]
-        documentLoader: "textLoader"
-        textSplitter: "simpleSplitter"
-        transformers: ["transformer1", "transformer2"]
+        documentLoader:
+          name: "textLoader"
+        textSplitter:
+          name: "simpleSplitter"
+        transformers:
+          - "transformer1"
+          - "transformer2"
     retrieval: {}
   flow2:
     ingestion:
       - filetypes: [".json"]
-        documentLoader: "jsonLoader"
-        textSplitter: "jsonSplitter"
+        documentLoader:
+          name: "jsonLoader"
+        textSplitter:
+          name: "jsonSplitter"
         transformers: ["transformer3"]
     retrieval: {}
