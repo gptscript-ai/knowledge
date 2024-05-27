@@ -7,6 +7,12 @@ flows:
           name: plaintext
         textsplitter:
           name: markdown
+        transformers:
+          - name: filter_markdown_docs_no_content
+          - name: extra_metadata
+            options:
+              metadata:
+                "foo": "bar"
       - filetypes: [".pdf"]
         documentloader:
           name: pdf

@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/textsplitter"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/transformers"
 	"github.com/gptscript-ai/knowledge/pkg/flows"
+	"github.com/mitchellh/mapstructure"
 	"log/slog"
 	"os"
 	"sigs.k8s.io/yaml"
@@ -27,7 +29,7 @@ type IngestionFlowConfig struct {
 	Filetypes      []string             `json:"filetypes" yaml:"filetypes" mapstructure:"filetypes"`
 	DocumentLoader DocumentLoaderConfig `json:"documentLoader,omitempty" yaml:"documentLoader" mapstructure:"documentLoader"`
 	TextSplitter   TextSplitterConfig   `json:"textSplitter,omitempty" yaml:"textSplitter" mapstructure:"textSplitter"`
-	Transformers   []string             `json:"transformers,omitempty" yaml:"transformers" mapstructure:"transformers"`
+	Transformers   []TransformerConfig  `json:"transformers,omitempty" yaml:"transformers" mapstructure:"transformers"`
 }
 
 type RetrievalFlowConfig struct{}
@@ -38,6 +40,11 @@ type DocumentLoaderConfig struct {
 }
 
 type TextSplitterConfig struct {
+	Name    string         `json:"name" yaml:"name" mapstructure:"name"`
+	Options map[string]any `json:"options,omitempty" yaml:"options" mapstructure:"options"`
+}
+
+type TransformerConfig struct {
 	Name    string         `json:"name" yaml:"name" mapstructure:"name"`
 	Options map[string]any `json:"options,omitempty" yaml:"options" mapstructure:"options"`
 }
@@ -163,7 +170,21 @@ func (i *IngestionFlowConfig) AsIngestionFlow() (*flows.IngestionFlow, error) {
 		flow.Split = splitterFunc
 	}
 
-	// TODO: Transformers
+	if len(i.Transformers) > 0 {
+		for _, tf := range i.Transformers {
+			transformer, err := transformers.GetTransformer(tf.Name)
+			if err != nil {
+				return nil, err
+			}
+			if len(tf.Options) > 0 {
+				if err := mapstructure.Decode(tf.Options, &transformer); err != nil {
+					return nil, fmt.Errorf("failed to decode transformer configuration: %w", err)
+				}
+				slog.Debug("Transformer custom configuration", "name", tf.Name, "config", transformer)
+			}
+			flow.Transformations = append(flow.Transformations, transformer)
+		}
+	}
 
 	return flow, nil
 }

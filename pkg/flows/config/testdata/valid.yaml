@@ -8,8 +8,8 @@ flows:
         textSplitter:
           name: "simpleSplitter"
         transformers:
-          - "transformer1"
-          - "transformer2"
+          - name: "transformer1"
+          - name: "transformer2"
     retrieval: {}
   flow2:
     ingestion:
@@ -20,5 +20,5 @@ flows:
           name: "jsonSplitter"
           options:
             chunkSize: 4096
-        transformers: ["transformer3"]
+        transformers: [ {name: "transformer3" }]
     retrieval: {}

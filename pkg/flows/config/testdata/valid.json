@@ -10,7 +10,11 @@
           "textSplitter": {
             "name": "simpleSplitter"
           },
-          "transformers": ["transformer1", "transformer2"]
+          "transformers": [
+            {"name": "transformer1"},
+            {
+              "name": "transformer2"
+            }]
         }
       ],
       "retrieval": {}
@@ -25,7 +29,10 @@
           "textSplitter": {
             "name": "jsonSplitter"
           },
-          "transformers": ["transformer3"]
+          "transformers": [
+            {
+              "name": "transformer3"
+            }]
         }
       ],
       "retrieval": {}
