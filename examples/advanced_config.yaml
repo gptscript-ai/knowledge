@@ -21,6 +21,16 @@ flows:
             interpreterConfig:
               ignoreDefOfNonNameVals:
                 - "CMapName"
+    retrieval:
+      retriever:
+        name: basic
+        options:
+          topK: 15
+      postprocessors:
+        - name: extra_metadata
+          options:
+            metadata:
+              "spam": "eggs"
   bar:
     default: false
     ingestion:

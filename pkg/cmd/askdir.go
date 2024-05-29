@@ -18,7 +18,7 @@ type ClientAskDir struct {
 	Path string `usage:"Path to the directory to query" short:"p" default:"./knowledge"`
 	ClientIngestOpts
 	ClientRetrieveOpts
-	FlowsFile string `usage:"Path to a YAML/JSON file containing ingestion/retrieval flows" env:"KNOW_FLOWS_FILE"`
+	ClientFlowsConfig
 }
 
 func (s *ClientAskDir) Customize(cmd *cobra.Command) {
@@ -59,9 +59,17 @@ func (s *ClientAskDir) Run(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
-		flow, err := flowCfg.ForDataset(datasetID) // get flow for the dataset
-		if err != nil {
-			return err
+		var flow *flowconfig.FlowConfigEntry
+		if s.Flow != "" {
+			flow, err = flowCfg.GetFlow(s.Flow)
+			if err != nil {
+				return err
+			}
+		} else {
+			flow, err = flowCfg.ForDataset(datasetID) // get flow for the dataset
+			if err != nil {
+				return err
+			}
 		}
 
 		for _, ingestionFlowConfig := range flow.Ingestion {

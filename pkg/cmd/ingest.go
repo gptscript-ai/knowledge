@@ -16,7 +16,7 @@ type ClientIngest struct {
 	Dataset string `usage:"Target Dataset ID" short:"d" default:"default" env:"KNOW_TARGET_DATASET"`
 	ClientIngestOpts
 	textsplitter.TextSplitterOpts
-	FlowsFile string `usage:"Path to a YAML/JSON file containing ingestion flows" env:"KNOW_FLOWS_FILE"`
+	ClientFlowsConfig
 }
 
 type ClientIngestOpts struct {
@@ -53,9 +53,18 @@ func (s *ClientIngest) Run(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
-		flow, err := flowCfg.ForDataset(datasetID) // get flow for the dataset
-		if err != nil {
-			return err
+
+		var flow *flowconfig.FlowConfigEntry
+		if s.Flow != "" {
+			flow, err = flowCfg.GetFlow(s.Flow)
+			if err != nil {
+				return err
+			}
+		} else {
+			flow, err = flowCfg.ForDataset(datasetID) // get flow for the dataset
+			if err != nil {
+				return err
+			}
 		}
 
 		for _, ingestionFlowConfig := range flow.Ingestion {
