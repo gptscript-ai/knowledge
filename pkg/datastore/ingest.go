@@ -11,8 +11,6 @@ import (
 	"github.com/gptscript-ai/knowledge/pkg/datastore/transformers"
 	"github.com/gptscript-ai/knowledge/pkg/flows"
 	"github.com/gptscript-ai/knowledge/pkg/index"
-	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
-	"io"
 	"log/slog"
 )
 
@@ -96,7 +94,7 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 	em := &transformers.ExtraMetadata{Metadata: map[string]any{"filename": filename}}
 	ingestionFlow.Transformations = append(ingestionFlow.Transformations, em)
 
-	docs, err := GetDocuments(ctx, bytes.NewReader(content), ingestionFlow)
+	docs, err := ingestionFlow.Run(ctx, bytes.NewReader(content))
 	if err != nil {
 		slog.Error("Failed to load documents", "error", err)
 		return nil, fmt.Errorf("failed to load documents: %w", err)
@@ -149,41 +147,4 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 	slog.Info("Ingested document", "filename", filename, "count", len(docIDs), "absolute_path", dbFile.FileMetadata.AbsolutePath)
 
 	return docIDs, nil
-}
-
-func GetDocuments(ctx context.Context, reader io.Reader, ingestionFlow flows.IngestionFlow) ([]vs.Document, error) {
-	var err error
-	var docs []vs.Document
-
-	/*
-	 * Load documents from the content
-	 * For now, we're using documentloaders from both langchaingo and golc
-	 * and translate them to our document schema.
-	 */
-
-	docs, err = ingestionFlow.Load(ctx, reader)
-	if err != nil {
-		slog.Error("Failed to load documents", "error", err)
-		return nil, fmt.Errorf("failed to load documents: %w", err)
-	}
-
-	/*
-	 * Split documents - Chunking
-	 */
-	docs, err = ingestionFlow.Split(docs)
-	if err != nil {
-		slog.Error("Failed to split documents", "error", err)
-		return nil, fmt.Errorf("failed to split documents: %w", err)
-	}
-
-	/*
-	 * Transform documents
-	 */
-	docs, err = ingestionFlow.Transform(ctx, docs)
-	if err != nil {
-		slog.Error("Failed to transform documents", "error", err)
-		return nil, fmt.Errorf("failed to transform documents: %w", err)
-	}
-
-	return docs, nil
 }

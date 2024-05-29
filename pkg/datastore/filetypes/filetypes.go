@@ -23,7 +23,6 @@ var FirstclassFileExtensions = map[string]struct{}{
 
 // GetFiletype returns the filetype of a file based on its filename or content.
 func GetFiletype(filename string, content []byte) (string, error) {
-
 	// 1. By file extension, if available and first-class supported
 	ext := path.Ext(filename)
 	if _, ok := FirstclassFileExtensions[ext]; ok {

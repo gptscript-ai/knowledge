@@ -5,6 +5,7 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
+	"github.com/gptscript-ai/knowledge/pkg/datastore"
 	"github.com/gptscript-ai/knowledge/pkg/vectorstore"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/sync/semaphore"
@@ -102,7 +103,7 @@ func HashPath(path string) string {
 	return hex.EncodeToString(hashBytes)
 }
 
-func AskDir(ctx context.Context, c Client, path string, query string, opts *IngestPathsOpts, ropts *RetrieveOpts) ([]vectorstore.Document, error) {
+func AskDir(ctx context.Context, c Client, path string, query string, opts *IngestPathsOpts, ropts *datastore.RetrieveOpts) ([]vectorstore.Document, error) {
 	abspath, err := filepath.Abs(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get absolute path from %q: %w", path, err)

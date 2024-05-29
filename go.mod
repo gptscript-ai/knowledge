@@ -9,6 +9,7 @@ replace (
 )
 
 require (
+	dario.cat/mergo v1.0.0
 	github.com/acorn-io/cmd v0.0.0-20240404013709-34f690bde37b
 	github.com/acorn-io/z v0.0.0-20231104012607-4cab1b3ec5e5
 	github.com/adrg/xdg v0.4.0
@@ -19,6 +20,7 @@ require (
 	github.com/hupe1980/golc v0.0.110
 	github.com/ledongthuc/pdf v0.0.0-20240201131950-da5b75280b06
 	github.com/lu4p/cat v0.1.5
+	github.com/mitchellh/mapstructure v1.5.0
 	github.com/philippgille/chromem-go v0.6.0
 	github.com/spf13/cobra v1.8.0
 	github.com/stretchr/testify v1.9.0
@@ -27,14 +29,12 @@ require (
 	github.com/swaggo/swag v1.16.3
 	github.com/tmc/langchaingo v0.1.8
 	golang.org/x/sync v0.7.0
-	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/gorm v1.25.9
 	sigs.k8s.io/yaml v1.4.0
 )
 
 require (
 	cloud.google.com/go/ai v0.4.0 // indirect
-	dario.cat/mergo v1.0.0 // indirect
 	github.com/AssemblyAI/assemblyai-go-sdk v1.3.0 // indirect
 	github.com/EndFirstCorp/peekingReader v0.0.0-20171012052444-257fb6f1a1a6 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
@@ -97,7 +97,6 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.26 // indirect
-	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
@@ -138,6 +137,7 @@ require (
 	google.golang.org/grpc v1.63.2 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 	modernc.org/libc v1.22.5 // indirect
 	modernc.org/mathutil v1.5.0 // indirect
 	modernc.org/memory v1.5.0 // indirect

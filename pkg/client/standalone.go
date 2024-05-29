@@ -116,10 +116,10 @@ func (c *StandaloneClient) DeleteDocuments(ctx context.Context, datasetID string
 	return nil
 }
 
-func (c *StandaloneClient) Retrieve(ctx context.Context, datasetID string, query string, opts RetrieveOpts) ([]vectorstore.Document, error) {
-	return c.Datastore.Retrieve(ctx, datasetID, query, opts.TopK)
+func (c *StandaloneClient) Retrieve(ctx context.Context, datasetID string, query string, opts datastore.RetrieveOpts) ([]vectorstore.Document, error) {
+	return c.Datastore.Retrieve(ctx, datasetID, query, opts)
 }
 
-func (c *StandaloneClient) AskDirectory(ctx context.Context, path string, query string, opts *IngestPathsOpts, ropts *RetrieveOpts) ([]vectorstore.Document, error) {
+func (c *StandaloneClient) AskDirectory(ctx context.Context, path string, query string, opts *IngestPathsOpts, ropts *datastore.RetrieveOpts) ([]vectorstore.Document, error) {
 	return AskDir(ctx, c, path, query, opts, ropts)
 }

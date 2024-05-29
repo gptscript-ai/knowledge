@@ -8,6 +8,7 @@ import (
 var TransformerMap = map[string]types.DocumentTransformer{
 	"extra_metadata":                  &ExtraMetadata{},
 	"filter_markdown_docs_no_content": &FilterMarkdownDocsNoContent{},
+	"keywords":                        &KeywordExtractor{},
 }
 
 func GetTransformer(name string) (types.DocumentTransformer, error) {

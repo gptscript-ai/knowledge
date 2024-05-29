@@ -2,14 +2,13 @@ package transformers
 
 import (
 	"context"
-	"fmt"
+	"github.com/gptscript-ai/knowledge/pkg/llm"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
-	"github.com/hupe1980/golc/schema"
 	"log/slog"
 	"strings"
 )
 
-func NewKeyWordExtractor(numKeywords int, llm schema.ChatModel) *KeywordExtractor {
+func NewKeyWordExtractor(numKeywords int, llm llm.LLM) *KeywordExtractor {
 	return &KeywordExtractor{
 		NumKeywords: numKeywords,
 		LLM:         llm,
@@ -18,21 +17,21 @@ func NewKeyWordExtractor(numKeywords int, llm schema.ChatModel) *KeywordExtracto
 
 type KeywordExtractor struct {
 	NumKeywords int
-	LLM         schema.ChatModel
+	LLM         llm.LLM
 }
 
 func (k *KeywordExtractor) extractKeywords(ctx context.Context, doc vs.Document) ([]string, error) {
 	// Implement keyword extraction here
-	result, err := k.LLM.Generate(ctx, []schema.ChatMessage{schema.NewHumanChatMessage(fmt.Sprintf(tpl, k.NumKeywords, doc.Content))})
+	result, err := k.LLM.Prompt(ctx, tpl, map[string]any{"numKeywords": k.NumKeywords, "content": strings.TrimSpace(doc.Content)})
 	if err != nil {
 		return nil, err
 	}
-	keywords := strings.Split(result.Generations[0].Message.Content(), ",")
+	keywords := strings.Split(result, ",")
 	return keywords, nil
 }
 
-var tpl = `Extract %d keywords from the following document and return them as a comma-separated list:
-%s
+var tpl = `Extract {.numKeywords} keywords from the following document and return them as a comma-separated list:
+{.content}
 `
 
 func (k *KeywordExtractor) Transform(ctx context.Context, docs []vs.Document) ([]vs.Document, error) {

@@ -67,7 +67,6 @@ func (s *ClientIngest) Run(cmd *cobra.Command, args []string) error {
 		}
 
 		slog.Debug("Loaded ingestion flows from config", "flows_file", s.FlowsFile, "dataset", datasetID, "flows", len(ingestOpts.IngestionFlows))
-
 	}
 
 	filesIngested, err := c.IngestPaths(cmd.Context(), datasetID, ingestOpts, filePath)

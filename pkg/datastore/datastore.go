@@ -7,17 +7,16 @@ import (
 	"github.com/adrg/xdg"
 	"github.com/gptscript-ai/knowledge/pkg/config"
 	"github.com/gptscript-ai/knowledge/pkg/index"
-	llm2 "github.com/gptscript-ai/knowledge/pkg/llm"
+	"github.com/gptscript-ai/knowledge/pkg/llm"
 	"github.com/gptscript-ai/knowledge/pkg/vectorstore"
 	"github.com/gptscript-ai/knowledge/pkg/vectorstore/chromem"
-	"github.com/hupe1980/golc/schema"
 	cg "github.com/philippgille/chromem-go"
 	"log/slog"
 	"net/url"
 )
 
 type Datastore struct {
-	LLM         schema.ChatModel
+	LLM         llm.LLM
 	Index       *index.DB
 	Vectorstore vectorstore.VectorStore
 }
@@ -97,13 +96,13 @@ func NewDatastore(dsn string, automigrate bool, vectorDBPath string, openAIConfi
 		)
 	}
 
-	llm, err := llm2.NewOpenAI(openAIConfig)
+	model, err := llm.NewOpenAI(openAIConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create LLM: %w", err)
 	}
 
 	ds := &Datastore{
-		LLM:         llm,
+		LLM:         *model,
 		Index:       idx,
 		Vectorstore: chromem.New(vsdb, embeddingFunc),
 	}

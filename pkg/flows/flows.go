@@ -2,11 +2,17 @@ package flows
 
 import (
 	"context"
+	"fmt"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/defaults"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/querymodifiers"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/retrievers"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/textsplitter"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/transformers"
 	dstypes "github.com/gptscript-ai/knowledge/pkg/datastore/types"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
+	"io"
+	"log/slog"
 	"slices"
 )
 
@@ -52,6 +58,71 @@ func (f *IngestionFlow) FillDefaults(filetype string, textsplitterOpts *textspli
 	}
 }
 
+func (f *IngestionFlow) Run(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
+	var err error
+	var docs []vs.Document
+
+	/*
+	 * Load documents from the content
+	 * For now, we're using documentloaders from both langchaingo and golc
+	 * and translate them to our document schema.
+	 */
+
+	docs, err = f.Load(ctx, reader)
+	if err != nil {
+		slog.Error("Failed to load documents", "error", err)
+		return nil, fmt.Errorf("failed to load documents: %w", err)
+	}
+
+	/*
+	 * Split documents - Chunking
+	 */
+	docs, err = f.Split(docs)
+	if err != nil {
+		slog.Error("Failed to split documents", "error", err)
+		return nil, fmt.Errorf("failed to split documents: %w", err)
+	}
+
+	/*
+	 * Transform documents
+	 */
+	docs, err = f.Transform(ctx, docs)
+	if err != nil {
+		slog.Error("Failed to transform documents", "error", err)
+		return nil, fmt.Errorf("failed to transform documents: %w", err)
+	}
+
+	return docs, nil
+}
+
 type RetrievalFlow struct {
-	// TODO:
+	QueryModifiers []querymodifiers.QueryModifier
+	Retriever      retrievers.Retriever
+	// TODO: Postprocessors
+}
+
+func (f *RetrievalFlow) FillDefaults() {
+	if f.Retriever == nil {
+		slog.Debug("No retriever specified, using basic retriever")
+		f.Retriever = &retrievers.BasicRetriever{TopK: defaults.TopK}
+	}
+}
+
+func (f *RetrievalFlow) Run(ctx context.Context, store vs.VectorStore, query string, datasetID string) ([]vs.Document, error) {
+	var err error
+	for _, m := range f.QueryModifiers {
+		query, err = m.ModifyQuery(query)
+		if err != nil {
+			return nil, err
+		}
+	}
+	docs, err := f.Retriever.Retrieve(ctx, store, query, datasetID)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: add postprocessors
+
+	slog.Debug("Retrieved documents", "num_documents", len(docs), "query", query, "dataset", datasetID)
+	return docs, nil
 }

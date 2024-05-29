@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/acorn-io/z"
 	"github.com/gptscript-ai/knowledge/pkg/client"
+	"github.com/gptscript-ai/knowledge/pkg/datastore"
 	flowconfig "github.com/gptscript-ai/knowledge/pkg/flows/config"
 	"github.com/spf13/cobra"
 	"log/slog"
@@ -41,7 +42,7 @@ func (s *ClientAskDir) Run(cmd *cobra.Command, args []string) error {
 		Recursive:        s.Recursive,
 	}
 
-	retrieveOpts := &client.RetrieveOpts{
+	retrieveOpts := &datastore.RetrieveOpts{
 		TopK: s.TopK,
 	}
 
@@ -70,11 +71,18 @@ func (s *ClientAskDir) Run(cmd *cobra.Command, args []string) error {
 			}
 			ingestOpts.IngestionFlows = append(ingestOpts.IngestionFlows, z.Dereference(ingestionFlow))
 		}
-
-		// TODO: add retrieval flows here
-
 		slog.Debug("Loaded ingestion flows from config", "flows_file", s.FlowsFile, "dataset", datasetID, "flows", len(ingestOpts.IngestionFlows))
 
+		if flow.Retrieval == nil {
+			slog.Info("No retrieval config in assigned flow", "flows_file", s.FlowsFile, "dataset", datasetID)
+		} else {
+			rf, err := flow.Retrieval.AsRetrievalFlow()
+			if err != nil {
+				return err
+			}
+			retrieveOpts.RetrievalFlow = rf
+			slog.Debug("Loaded retrieval flow from config", "flows_file", s.FlowsFile, "dataset", datasetID)
+		}
 	}
 
 	sources, err := c.AskDirectory(cmd.Context(), path, query, ingestOpts, retrieveOpts)

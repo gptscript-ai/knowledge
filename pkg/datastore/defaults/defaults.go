@@ -2,7 +2,7 @@ package defaults
 
 const (
 	EmbeddingDimension int = 1536
-	TopK               int = 5
+	TopK               int = 10
 
 	TextSplitterTokenModel    = "gpt-4"
 	TextSplitterChunkSize     = 1024

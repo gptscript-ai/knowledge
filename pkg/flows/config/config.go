@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/querymodifiers"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/retrievers"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/textsplitter"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/transformers"
 	"github.com/gptscript-ai/knowledge/pkg/flows"
@@ -13,6 +15,11 @@ import (
 	"sigs.k8s.io/yaml"
 	"strings"
 )
+
+type GenericBaseConfig struct {
+	Name    string         `json:"name" yaml:"name" mapstructure:"name"`
+	Options map[string]any `json:"options,omitempty" yaml:"options" mapstructure:"options"`
+}
 
 type FlowConfig struct {
 	Flows    map[string]FlowConfigEntry `json:"flows" yaml:"flows" mapstructure:"flows"`
@@ -32,21 +39,35 @@ type IngestionFlowConfig struct {
 	Transformers   []TransformerConfig  `json:"transformers,omitempty" yaml:"transformers" mapstructure:"transformers"`
 }
 
-type RetrievalFlowConfig struct{}
+type RetrievalFlowConfig struct {
+	// QueryModifiers allows to modify the input query before it is passed to the retriever. (Query-Rewriting)
+	QueryModifiers []QueryModifierConfig `json:"queryModifiers,omitempty" yaml:"queryModifiers" mapstructure:"queryModifiers"`
+
+	// Retriever is the configuration for the retriever to be used. E.g. instead of using a naive retriever, you can use a recursive or refining retriever.
+	Retriever *RetrieverConfig `json:"retriever,omitempty" yaml:"retriever" mapstructure:"retriever"`
+
+	// Postprocessors are used to process the retrieved documents before they are returned. This may include stripping metadata or re-ranking.
+	Postprocessors []TransformerConfig `json:"postprocessors,omitempty" yaml:"postprocessors" mapstructure:"postprocessors"`
+}
+
+type QueryModifierConfig struct {
+	GenericBaseConfig
+}
+
+type RetrieverConfig struct {
+	GenericBaseConfig
+}
 
 type DocumentLoaderConfig struct {
-	Name    string         `json:"name" yaml:"name" mapstructure:"name"`
-	Options map[string]any `json:"options,omitempty" yaml:"options" mapstructure:"options"`
+	GenericBaseConfig
 }
 
 type TextSplitterConfig struct {
-	Name    string         `json:"name" yaml:"name" mapstructure:"name"`
-	Options map[string]any `json:"options,omitempty" yaml:"options" mapstructure:"options"`
+	GenericBaseConfig
 }
 
 type TransformerConfig struct {
-	Name    string         `json:"name" yaml:"name" mapstructure:"name"`
-	Options map[string]any `json:"options,omitempty" yaml:"options" mapstructure:"options"`
+	GenericBaseConfig
 }
 
 // FromFile reads a configuration file and returns a FlowConfig.
@@ -76,7 +97,6 @@ func FromFile(filename string) (*FlowConfig, error) {
 func (f *FlowConfig) Validate() error {
 	hasDefault := false
 	for name, flow := range f.Flows {
-
 		// Only one default flow is allowed
 		if flow.Default {
 			if hasDefault {
@@ -91,13 +111,11 @@ func (f *FlowConfig) Validate() error {
 		}
 
 		for idx, ingestion := range flow.Ingestion {
-
 			// Each ingestion flow must have some filetypes specified
 			if len(ingestion.Filetypes) == 0 {
 				return fmt.Errorf("flow %q.ingestion.[%d] has no filetypes specified", name, idx)
 			}
 		}
-
 	}
 	return nil
 }
@@ -197,4 +215,40 @@ func (f *FlowConfig) ForDataset(name string) (*FlowConfigEntry, error) {
 	}
 	slog.Debug("No flow found for dataset - using default", "dataset", name)
 	return f.GetDefaultFlowConfigEntry()
+}
+
+func (r *RetrievalFlowConfig) AsRetrievalFlow() (*flows.RetrievalFlow, error) {
+	flow := &flows.RetrievalFlow{}
+
+	if len(r.QueryModifiers) > 0 {
+		for _, qm := range r.QueryModifiers {
+			modifier, err := querymodifiers.GetQueryModifier(qm.Name)
+			if err != nil {
+				return nil, err
+			}
+			if len(qm.Options) > 0 {
+				if err := mapstructure.Decode(qm.Options, &modifier); err != nil {
+					return nil, fmt.Errorf("failed to decode query modifier configuration: %w", err)
+				}
+				slog.Debug("Query Modifier custom configuration", "name", qm.Name, "config", modifier)
+			}
+			flow.QueryModifiers = append(flow.QueryModifiers, modifier)
+		}
+	}
+
+	if r.Retriever != nil {
+		ret, err := retrievers.GetRetriever(r.Retriever.Name)
+		if err != nil {
+			return nil, err
+		}
+		if len(r.Retriever.Options) > 0 {
+			if err := mapstructure.Decode(r.Retriever.Options, &ret); err != nil {
+				return nil, fmt.Errorf("failed to decode retriever configuration: %w", err)
+			}
+			slog.Debug("Retriever custom configuration", "name", r.Retriever.Name, "config", ret)
+		}
+		flow.Retriever = ret
+	}
+
+	return flow, nil
 }

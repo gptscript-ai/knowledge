@@ -34,7 +34,7 @@ func TestExtractPDF(t *testing.T) {
 		em := &transformers.ExtraMetadata{Metadata: map[string]any{"filename": d.Name()}}
 		ingestionFlow.Transformations = append(ingestionFlow.Transformations, em)
 
-		docs, err := GetDocuments(ctx, f, ingestionFlow)
+		docs, err := ingestionFlow.Run(ctx, f)
 		require.NoError(t, err, "GetDocuments() error = %v", err)
 		require.NotEmpty(t, docs, "GetDocuments() returned no documents")
 		return nil
