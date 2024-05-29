@@ -3,52 +3,24 @@ package datastore
 import (
 	"bytes"
 	"context"
-	"encoding/csv"
-	"errors"
 	"fmt"
 	"github.com/acorn-io/z"
-	"github.com/gabriel-vasile/mimetype"
 	"github.com/google/uuid"
-	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/filetypes"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/textsplitter"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/transformers"
+	"github.com/gptscript-ai/knowledge/pkg/flows"
 	"github.com/gptscript-ai/knowledge/pkg/index"
-	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
-	golcdocloaders "github.com/hupe1980/golc/documentloader"
-	"github.com/ledongthuc/pdf"
-	"github.com/lu4p/cat"
-	lcgodocloaders "github.com/tmc/langchaingo/documentloaders"
-	"io"
 	"log/slog"
-	"path"
-	"strings"
 )
-
-const (
-	defaultTokenModel    = "gpt-4"
-	defaultChunkSize     = 1024
-	defaultChunkOverlap  = 256
-	defaultTokenEncoding = "cl100k_base"
-)
-
-var firstclassFileExtensions = map[string]struct{}{
-	".pdf":   {},
-	".html":  {},
-	".md":    {},
-	".txt":   {},
-	".docx":  {},
-	".odt":   {},
-	".rtf":   {},
-	".csv":   {},
-	".ipynb": {},
-	".json":  {},
-}
 
 type IngestOpts struct {
 	Filename            *string
 	FileMetadata        *index.FileMetadata
 	IsDuplicateFuncName string
 	IsDuplicateFunc     IsDuplicateFunc
-	TextSplitterOpts    *TextSplitterOpts
+	TextSplitterOpts    *textsplitter.TextSplitterOpts
+	IngestionFlows      []flows.IngestionFlow
 }
 
 // Ingest loads a document from a reader and adds it to the dataset.
@@ -64,6 +36,8 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 		isDuplicate = opts.IsDuplicateFunc
 	}
 
+	filename := z.Dereference(opts.Filename)
+
 	// Generate ID
 	fUUID, err := uuid.NewUUID()
 	if err != nil {
@@ -75,36 +49,21 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 	/*
 	 * Detect filetype
 	 */
-	reader := bytes.NewReader(content)
-	var filetype string
-	if opts.Filename != nil {
-		filetype = path.Ext(*opts.Filename)
-		if _, ok := firstclassFileExtensions[filetype]; !ok {
-			filetype = ""
-		}
-	}
-	if filetype == "" {
-		filetype, _, err = mimetypeFromReader(bytes.NewReader(content))
-		if err != nil {
-			slog.Error("Failed to detect filetype", "error", err)
-			return nil, fmt.Errorf("failed to detect filetype: %w", err)
-		}
-	}
-	if filetype == "" {
-		slog.Error("Failed to detect filetype", "filename", *opts.Filename)
-		return nil, fmt.Errorf("failed to detect filetype")
-	}
 
-	filetype = strings.Split(filetype, ";")[0] // remove charset (mimetype), e.g. from "text/plain; charset=utf-8"
+	filetype, err := filetypes.GetFiletype(filename, content)
+	if err != nil {
+		return nil, err
+	}
 
 	/*
 	 * Set filename if not provided
 	 */
-	if opts.Filename == nil {
-		opts.Filename = z.Pointer("<unnamed_document>")
+	if filename == "" {
+		filename = "<unnamed_document>"
+		*opts.Filename = filename
 	}
 
-	slog.Debug("Loading data", "type", filetype, "filename", *opts.Filename)
+	slog.Debug("Loading data", "type", filetype, "filename", filename, "size", len(content))
 
 	/*
 	 * Exit early if the document is a duplicate
@@ -115,11 +74,27 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 		return nil, fmt.Errorf("failed to check for duplicates: %w", err)
 	}
 	if isDupe {
-		slog.Info("Ignoring duplicate document", "filename", *opts.Filename, "absolute_path", opts.FileMetadata.AbsolutePath)
+		slog.Info("Ignoring duplicate document", "filename", filename, "absolute_path", opts.FileMetadata.AbsolutePath)
 		return nil, nil
 	}
 
-	docs, err := GetDocuments(ctx, *opts.Filename, filetype, reader, opts.TextSplitterOpts)
+	/*
+	 * Load the ingestion flow - custom or default config or mixture of both
+	 */
+	ingestionFlow := flows.IngestionFlow{}
+	for _, flow := range opts.IngestionFlows {
+		if flow.SupportsFiletype(filetype) {
+			ingestionFlow = flow
+			break
+		}
+	}
+	ingestionFlow.FillDefaults(filetype, opts.TextSplitterOpts)
+
+	// Mandatory Transformation: Add filename to metadata
+	em := &transformers.ExtraMetadata{Metadata: map[string]any{"filename": filename}}
+	ingestionFlow.Transformations = append(ingestionFlow.Transformations, em)
+
+	docs, err := ingestionFlow.Run(ctx, bytes.NewReader(content))
 	if err != nil {
 		slog.Error("Failed to load documents", "error", err)
 		return nil, fmt.Errorf("failed to load documents: %w", err)
@@ -153,7 +128,7 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 		Dataset:   datasetID,
 		Documents: dbDocs,
 		FileMetadata: index.FileMetadata{
-			Name: *opts.Filename,
+			Name: filename,
 		},
 	}
 
@@ -169,105 +144,7 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 		return nil, fmt.Errorf("failed to create file: %w", tx.Error)
 	}
 
-	slog.Info("Ingested document", "filename", *opts.Filename, "count", len(docIDs), "absolute_path", dbFile.FileMetadata.AbsolutePath)
+	slog.Info("Ingested document", "filename", filename, "count", len(docIDs), "absolute_path", dbFile.FileMetadata.AbsolutePath)
 
 	return docIDs, nil
-}
-
-// mimetypeFromReader returns the MIME type of input and a new reader which still has the whole input
-func mimetypeFromReader(reader io.Reader) (string, io.Reader, error) {
-	header := bytes.NewBuffer(nil)
-	mtype, err := mimetype.DetectReader(io.TeeReader(reader, header))
-	if err != nil {
-		return "", nil, err
-	}
-
-	// Get back complete input reader
-	newReader := io.MultiReader(header, reader)
-
-	return mtype.String(), newReader, err
-}
-
-func GetDocuments(ctx context.Context, filename, filetype string, reader io.Reader, textSplitterOpts *TextSplitterOpts) ([]vs.Document, error) {
-	if textSplitterOpts == nil {
-		textSplitterOpts = z.Pointer(NewTextSplitterOpts())
-	}
-	lcgoTextSplitter := textsplitter.FromLangchain(NewLcgoTextSplitter(*textSplitterOpts))
-	lcgoMarkdownSplitter := textsplitter.FromLangchain(NewLcgoMarkdownSplitter(*textSplitterOpts))
-
-	/*
-	 * Load documents from the content
-	 * For now, we're using documentloaders from both langchaingo and golc
-	 * and translate them to our document schema.
-	 */
-
-	var docs []vs.Document
-
-	var err error
-
-	switch filetype {
-	case ".pdf", "application/pdf":
-		// The PDF loader requires a size argument, so we can either read the whole file into memory
-		// or write it to a temporary file and pass load directly from that file.
-		// We choose the former for now.
-		data, nerr := io.ReadAll(reader)
-		if nerr != nil {
-			return nil, fmt.Errorf("failed to read PDF data: %w", nerr)
-		}
-		r, nerr := documentloader.NewPDF(bytes.NewReader(data), int64(len(data)), documentloader.WithInterpreterOpts(pdf.WithIgnoreDefOfNonNameVals([]string{"CMapName"})))
-		if nerr != nil {
-			slog.Error("Failed to create PDF loader", "error", nerr)
-			return nil, nerr
-		}
-		docs, err = r.LoadAndSplit(ctx, lcgoTextSplitter)
-	case ".html", "text/html":
-		docs, err = documentloader.FromLangchain(lcgodocloaders.NewHTML(reader)).LoadAndSplit(ctx, lcgoTextSplitter)
-	case ".md", "text/markdown":
-		docs, err = documentloader.FromLangchain(lcgodocloaders.NewText(reader)).LoadAndSplit(ctx, lcgoMarkdownSplitter)
-		docs = FilterMarkdownDocsNoContent(docs)
-	case ".txt", "text/plain":
-		docs, err = documentloader.FromLangchain(lcgodocloaders.NewText(reader)).LoadAndSplit(ctx, lcgoTextSplitter)
-	case ".csv", "text/csv":
-		docs, err = documentloader.FromGolc(golcdocloaders.NewCSV(reader)).Load(ctx)
-		if err != nil && errors.Is(err, csv.ErrBareQuote) {
-			oerr := err
-			err = nil
-			var nerr error
-			docs, nerr = documentloader.FromGolc(golcdocloaders.NewCSV(reader, func(o *golcdocloaders.CSVOptions) {
-				o.LazyQuotes = true
-			})).Load(ctx)
-			if nerr != nil {
-				err = errors.Join(oerr, nerr)
-			}
-		}
-	case ".json", "application/json":
-		docs, err = documentloader.FromLangchain(lcgodocloaders.NewText(reader)).LoadAndSplit(ctx, lcgoTextSplitter)
-	case ".ipynb":
-		docs, err = documentloader.FromGolc(golcdocloaders.NewNotebook(reader)).Load(ctx)
-	case ".docx", ".odt", ".rtf", "application/vnd.oasis.opendocument.text", "text/rtf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-		data, nerr := io.ReadAll(reader)
-		if nerr != nil {
-			return nil, fmt.Errorf("failed to read %s data: %w", filetype, nerr)
-		}
-		text, nerr := cat.FromBytes(data)
-		if nerr != nil {
-			return nil, fmt.Errorf("failed to extract text from %s: %w", filetype, nerr)
-		}
-		docs, err = documentloader.FromLangchain(lcgodocloaders.NewText(strings.NewReader(text))).LoadAndSplit(ctx, lcgoTextSplitter)
-	default:
-		slog.Error("Unsupported file type", "filename", filename, "type", filetype)
-		return nil, fmt.Errorf("file %q has unsupported file type %q", filename, filetype)
-	}
-
-	if err != nil {
-		slog.Error("Failed to load document", "error", err)
-		return nil, fmt.Errorf("failed to load document: %w", err)
-	}
-
-	// Add filename to metadata
-	for _, doc := range docs {
-		doc.Metadata["filename"] = filename
-	}
-
-	return docs, nil
 }

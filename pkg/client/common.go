@@ -5,6 +5,7 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
+	"github.com/gptscript-ai/knowledge/pkg/datastore"
 	"github.com/gptscript-ai/knowledge/pkg/vectorstore"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/sync/semaphore"
@@ -95,14 +96,14 @@ func ingestPaths(ctx context.Context, opts *IngestPathsOpts, ingestionFunc func(
 	return ingestedFilesCount, g.Wait()
 }
 
-func hashPath(path string) string {
+func HashPath(path string) string {
 	hasher := sha1.New()
 	hasher.Write([]byte(path))
 	hashBytes := hasher.Sum(nil)
 	return hex.EncodeToString(hashBytes)
 }
 
-func AskDir(ctx context.Context, c Client, path string, query string, opts *IngestPathsOpts, ropts *RetrieveOpts) ([]vectorstore.Document, error) {
+func AskDir(ctx context.Context, c Client, path string, query string, opts *IngestPathsOpts, ropts *datastore.RetrieveOpts) ([]vectorstore.Document, error) {
 	abspath, err := filepath.Abs(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get absolute path from %q: %w", path, err)
@@ -119,7 +120,7 @@ func AskDir(ctx context.Context, c Client, path string, query string, opts *Inge
 		return nil, fmt.Errorf("path %q is not a directory", abspath)
 	}
 
-	datasetID := hashPath(abspath)
+	datasetID := HashPath(abspath)
 	slog.Debug("Directory Dataset ID hashed", "path", abspath, "id", datasetID)
 
 	// check if dataset exists

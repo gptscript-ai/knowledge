@@ -1,7 +1,7 @@
 package types
 
 import (
-	"github.com/gptscript-ai/knowledge/pkg/datastore"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/textsplitter"
 	"github.com/gptscript-ai/knowledge/pkg/index"
 )
 
@@ -20,10 +20,10 @@ type Query struct {
 
 // Ingest represents incoming content that should be ingested
 type Ingest struct {
-	Filename         *string                     `json:"filename" `
-	Content          string                      `json:"content" binding:"required,base64"`
-	FileMetadata     *index.FileMetadata         `json:"metadata"`
-	TextSplitterOpts *datastore.TextSplitterOpts `json:"text_splitter_opts"`
+	Filename         *string                        `json:"filename" `
+	Content          string                         `json:"content" binding:"required,base64"`
+	FileMetadata     *index.FileMetadata            `json:"metadata"`
+	TextSplitterOpts *textsplitter.TextSplitterOpts `json:"text_splitter_opts"`
 }
 
 type IngestResponse struct {

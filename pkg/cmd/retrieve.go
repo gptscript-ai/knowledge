@@ -3,14 +3,17 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gptscript-ai/knowledge/pkg/client"
+	"github.com/gptscript-ai/knowledge/pkg/datastore"
+	flowconfig "github.com/gptscript-ai/knowledge/pkg/flows/config"
 	"github.com/spf13/cobra"
+	"log/slog"
 )
 
 type ClientRetrieve struct {
 	Client
 	Dataset string `usage:"Target Dataset ID" short:"d" default:"default" env:"KNOW_TARGET_DATASET"`
 	ClientRetrieveOpts
+	ClientFlowsConfig
 }
 
 type ClientRetrieveOpts struct {
@@ -32,7 +35,42 @@ func (s *ClientRetrieve) Run(cmd *cobra.Command, args []string) error {
 	datasetID := s.Dataset
 	query := args[0]
 
-	sources, err := c.Retrieve(cmd.Context(), datasetID, query, client.RetrieveOpts{TopK: s.TopK})
+	retrieveOpts := datastore.RetrieveOpts{
+		TopK: s.TopK,
+	}
+
+	if s.FlowsFile != "" {
+		slog.Debug("Loading retrieval flows from config", "flows_file", s.FlowsFile, "dataset", datasetID)
+		flowCfg, err := flowconfig.FromFile(s.FlowsFile)
+		if err != nil {
+			return err
+		}
+		var flow *flowconfig.FlowConfigEntry
+		if s.Flow != "" {
+			flow, err = flowCfg.GetFlow(s.Flow)
+			if err != nil {
+				return err
+			}
+		} else {
+			flow, err = flowCfg.ForDataset(datasetID) // get flow for the dataset
+			if err != nil {
+				return err
+			}
+		}
+
+		if flow.Retrieval == nil {
+			slog.Info("No retrieval config in assigned flow", "flows_file", s.FlowsFile, "dataset", datasetID)
+		} else {
+			rf, err := flow.Retrieval.AsRetrievalFlow()
+			if err != nil {
+				return err
+			}
+			retrieveOpts.RetrievalFlow = rf
+			slog.Debug("Loaded retrieval flow from config", "flows_file", s.FlowsFile, "dataset", datasetID)
+		}
+	}
+
+	sources, err := c.Retrieve(cmd.Context(), datasetID, query, retrieveOpts)
 	if err != nil {
 		return err
 	}

@@ -79,7 +79,8 @@ func (s *Server) RetrieveFromDS(c *gin.Context) {
 		return
 	}
 
-	docs, err := s.Retrieve(c, id, query.Prompt, z.Dereference(query.TopK))
+	// TODO: support retrieval flows
+	docs, err := s.Retrieve(c, id, query.Prompt, datastore.RetrieveOpts{TopK: z.Dereference(query.TopK)})
 	if err != nil {
 		slog.Error("Failed to retrieve documents", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -120,6 +121,7 @@ func (s *Server) IngestIntoDS(c *gin.Context) {
 	}
 
 	// ingest content
+	// TODO: support ingestion flows
 	docIDs, err := s.Ingest(c, id, data, datastore.IngestOpts{
 		Filename:         ingest.Filename,
 		FileMetadata:     ingest.FileMetadata,

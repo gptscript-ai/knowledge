@@ -13,6 +13,11 @@ type Client struct {
 	config.VectorDBConfig
 }
 
+type ClientFlowsConfig struct {
+	FlowsFile string `usage:"Path to a YAML/JSON file containing ingestion/retrieval flows" env:"KNOW_FLOWS_FILE"`
+	Flow      string `usage:"Flow name" env:"KNOW_FLOW"`
+}
+
 func (s *Client) getClient() (client.Client, error) {
 	if s.Server == "" || s.Server == "standalone" {
 		ds, err := datastore.NewDatastore(s.DSN, s.AutoMigrate == "true", s.VectorDBConfig.VectorDBPath, s.OpenAIConfig)

@@ -2,9 +2,12 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/acorn-io/z"
 	"github.com/gptscript-ai/knowledge/pkg/client"
-	"github.com/gptscript-ai/knowledge/pkg/datastore"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/textsplitter"
+	flowconfig "github.com/gptscript-ai/knowledge/pkg/flows/config"
 	"github.com/spf13/cobra"
+	"log/slog"
 	"strings"
 )
 
@@ -12,7 +15,8 @@ type ClientIngest struct {
 	Client
 	Dataset string `usage:"Target Dataset ID" short:"d" default:"default" env:"KNOW_TARGET_DATASET"`
 	ClientIngestOpts
-	datastore.TextSplitterOpts
+	textsplitter.TextSplitterOpts
+	ClientFlowsConfig
 }
 
 type ClientIngestOpts struct {
@@ -41,6 +45,37 @@ func (s *ClientIngest) Run(cmd *cobra.Command, args []string) error {
 		Concurrency:      s.Concurrency,
 		Recursive:        s.Recursive,
 		TextSplitterOpts: &s.TextSplitterOpts,
+	}
+
+	if s.FlowsFile != "" {
+		slog.Debug("Loading ingestion flows from config", "flows_file", s.FlowsFile, "dataset", datasetID)
+		flowCfg, err := flowconfig.FromFile(s.FlowsFile)
+		if err != nil {
+			return err
+		}
+
+		var flow *flowconfig.FlowConfigEntry
+		if s.Flow != "" {
+			flow, err = flowCfg.GetFlow(s.Flow)
+			if err != nil {
+				return err
+			}
+		} else {
+			flow, err = flowCfg.ForDataset(datasetID) // get flow for the dataset
+			if err != nil {
+				return err
+			}
+		}
+
+		for _, ingestionFlowConfig := range flow.Ingestion {
+			ingestionFlow, err := ingestionFlowConfig.AsIngestionFlow()
+			if err != nil {
+				return err
+			}
+			ingestOpts.IngestionFlows = append(ingestOpts.IngestionFlows, z.Dereference(ingestionFlow))
+		}
+
+		slog.Debug("Loaded ingestion flows from config", "flows_file", s.FlowsFile, "dataset", datasetID, "flows", len(ingestOpts.IngestionFlows))
 	}
 
 	filesIngested, err := c.IngestPaths(cmd.Context(), datasetID, ingestOpts, filePath)

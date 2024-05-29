@@ -9,6 +9,7 @@ replace (
 )
 
 require (
+	dario.cat/mergo v1.0.0
 	github.com/acorn-io/cmd v0.0.0-20240404013709-34f690bde37b
 	github.com/acorn-io/z v0.0.0-20231104012607-4cab1b3ec5e5
 	github.com/adrg/xdg v0.4.0
@@ -19,6 +20,7 @@ require (
 	github.com/hupe1980/golc v0.0.110
 	github.com/ledongthuc/pdf v0.0.0-20240201131950-da5b75280b06
 	github.com/lu4p/cat v0.1.5
+	github.com/mitchellh/mapstructure v1.5.0
 	github.com/philippgille/chromem-go v0.6.0
 	github.com/spf13/cobra v1.8.0
 	github.com/stretchr/testify v1.9.0
@@ -28,10 +30,11 @@ require (
 	github.com/tmc/langchaingo v0.1.8
 	golang.org/x/sync v0.7.0
 	gorm.io/gorm v1.25.9
+	sigs.k8s.io/yaml v1.4.0
 )
 
 require (
-	dario.cat/mergo v1.0.0 // indirect
+	cloud.google.com/go/ai v0.4.0 // indirect
 	github.com/AssemblyAI/assemblyai-go-sdk v1.3.0 // indirect
 	github.com/EndFirstCorp/peekingReader v0.0.0-20171012052444-257fb6f1a1a6 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
@@ -39,9 +42,12 @@ require (
 	github.com/ProtonMail/go-crypto v1.0.0 // indirect
 	github.com/PuerkitoBio/goquery v1.9.1 // indirect
 	github.com/andybalholm/cascadia v1.3.2 // indirect
+	github.com/avast/retry-go v3.0.0+incompatible // indirect
 	github.com/aws/aws-sdk-go-v2 v1.26.0 // indirect
+	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.1 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.4 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.4 // indirect
+	github.com/aws/aws-sdk-go-v2/service/bedrockruntime v1.7.3 // indirect
 	github.com/aws/aws-sdk-go-v2/service/textract v1.30.4 // indirect
 	github.com/aws/smithy-go v1.20.1 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
@@ -50,6 +56,8 @@ require (
 	github.com/chenzhuoyu/base64x v0.0.0-20230717121745-296ad89f973d // indirect
 	github.com/chenzhuoyu/iasm v0.9.1 // indirect
 	github.com/cloudflare/circl v1.3.7 // indirect
+	github.com/cohere-ai/cohere-go/v2 v2.7.0 // indirect
+	github.com/cohere-ai/tokenizer v1.1.2 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.4 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dlclark/regexp2 v1.11.0 // indirect
@@ -70,8 +78,11 @@ require (
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
+	github.com/googleapis/gax-go/v2 v2.12.4 // indirect
 	github.com/gorilla/css v1.0.0 // indirect
+	github.com/hupe1980/go-promptlayer v0.0.6 // indirect
 	github.com/hupe1980/go-textractor v0.0.9 // indirect
+	github.com/hupe1980/go-tiktoken v0.0.6 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
@@ -86,12 +97,12 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.26 // indirect
-	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.1 // indirect
 	github.com/pjbgf/sha1cd v0.3.0 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pkoukk/tiktoken-go v0.1.6 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
@@ -120,6 +131,10 @@ require (
 	golang.org/x/sys v0.19.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/tools v0.20.0 // indirect
+	google.golang.org/api v0.176.1 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20240415180920-8c6c420018be // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240415180920-8c6c420018be // indirect
+	google.golang.org/grpc v1.63.2 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

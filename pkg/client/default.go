@@ -163,7 +163,7 @@ func (c *DefaultClient) DeleteDocuments(_ context.Context, datasetID string, doc
 	return nil
 }
 
-func (c *DefaultClient) Retrieve(_ context.Context, datasetID string, query string, opts RetrieveOpts) ([]vectorstore.Document, error) {
+func (c *DefaultClient) Retrieve(_ context.Context, datasetID string, query string, opts datastore.RetrieveOpts) ([]vectorstore.Document, error) {
 	q := types.Query{Prompt: query}
 
 	if opts.TopK != 0 {
@@ -189,7 +189,7 @@ func (c *DefaultClient) Retrieve(_ context.Context, datasetID string, query stri
 	return docs, nil
 }
 
-func (c *DefaultClient) AskDirectory(ctx context.Context, path string, query string, opts *IngestPathsOpts, ropts *RetrieveOpts) ([]vectorstore.Document, error) {
+func (c *DefaultClient) AskDirectory(ctx context.Context, path string, query string, opts *IngestPathsOpts, ropts *datastore.RetrieveOpts) ([]vectorstore.Document, error) {
 	return AskDir(ctx, c, path, query, opts, ropts)
 }
 

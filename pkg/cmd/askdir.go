@@ -3,8 +3,13 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/acorn-io/z"
 	"github.com/gptscript-ai/knowledge/pkg/client"
+	"github.com/gptscript-ai/knowledge/pkg/datastore"
+	flowconfig "github.com/gptscript-ai/knowledge/pkg/flows/config"
 	"github.com/spf13/cobra"
+	"log/slog"
+	"path/filepath"
 	"strings"
 )
 
@@ -13,6 +18,7 @@ type ClientAskDir struct {
 	Path string `usage:"Path to the directory to query" short:"p" default:"./knowledge"`
 	ClientIngestOpts
 	ClientRetrieveOpts
+	ClientFlowsConfig
 }
 
 func (s *ClientAskDir) Customize(cmd *cobra.Command) {
@@ -36,8 +42,55 @@ func (s *ClientAskDir) Run(cmd *cobra.Command, args []string) error {
 		Recursive:        s.Recursive,
 	}
 
-	retrieveOpts := &client.RetrieveOpts{
+	retrieveOpts := &datastore.RetrieveOpts{
 		TopK: s.TopK,
+	}
+
+	if s.FlowsFile != "" {
+		abspath, err := filepath.Abs(path)
+		if err != nil {
+			return fmt.Errorf("failed to get absolute path from %q: %w", path, err)
+		}
+
+		datasetID := client.HashPath(abspath)
+
+		slog.Debug("Loading ingestion flows from config", "flows_file", s.FlowsFile, "dataset", datasetID)
+		flowCfg, err := flowconfig.FromFile(s.FlowsFile)
+		if err != nil {
+			return err
+		}
+		var flow *flowconfig.FlowConfigEntry
+		if s.Flow != "" {
+			flow, err = flowCfg.GetFlow(s.Flow)
+			if err != nil {
+				return err
+			}
+		} else {
+			flow, err = flowCfg.ForDataset(datasetID) // get flow for the dataset
+			if err != nil {
+				return err
+			}
+		}
+
+		for _, ingestionFlowConfig := range flow.Ingestion {
+			ingestionFlow, err := ingestionFlowConfig.AsIngestionFlow()
+			if err != nil {
+				return err
+			}
+			ingestOpts.IngestionFlows = append(ingestOpts.IngestionFlows, z.Dereference(ingestionFlow))
+		}
+		slog.Debug("Loaded ingestion flows from config", "flows_file", s.FlowsFile, "dataset", datasetID, "flows", len(ingestOpts.IngestionFlows))
+
+		if flow.Retrieval == nil {
+			slog.Info("No retrieval config in assigned flow", "flows_file", s.FlowsFile, "dataset", datasetID)
+		} else {
+			rf, err := flow.Retrieval.AsRetrievalFlow()
+			if err != nil {
+				return err
+			}
+			retrieveOpts.RetrievalFlow = rf
+			slog.Debug("Loaded retrieval flow from config", "flows_file", s.FlowsFile, "dataset", datasetID)
+		}
 	}
 
 	sources, err := c.AskDirectory(cmd.Context(), path, query, ingestOpts, retrieveOpts)
