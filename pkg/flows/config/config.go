@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/postprocessors"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/querymodifiers"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/retrievers"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/textsplitter"
@@ -248,6 +249,22 @@ func (r *RetrievalFlowConfig) AsRetrievalFlow() (*flows.RetrievalFlow, error) {
 			slog.Debug("Retriever custom configuration", "name", r.Retriever.Name, "config", ret)
 		}
 		flow.Retriever = ret
+	}
+
+	if len(r.Postprocessors) > 0 {
+		for _, pp := range r.Postprocessors {
+			postprocessor, err := postprocessors.GetPostprocessor(pp.Name)
+			if err != nil {
+				return nil, err
+			}
+			if len(pp.Options) > 0 {
+				if err := mapstructure.Decode(pp.Options, &postprocessor); err != nil {
+					return nil, fmt.Errorf("failed to decode postprocessor configuration: %w", err)
+				}
+				slog.Debug("Postprocessor custom configuration", "name", pp.Name, "config", postprocessor)
+			}
+			flow.Postprocessors = append(flow.Postprocessors, postprocessor)
+		}
 	}
 
 	return flow, nil

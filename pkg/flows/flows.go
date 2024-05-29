@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/defaults"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/postprocessors"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/querymodifiers"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/retrievers"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/textsplitter"
@@ -98,7 +99,7 @@ func (f *IngestionFlow) Run(ctx context.Context, reader io.Reader) ([]vs.Documen
 type RetrievalFlow struct {
 	QueryModifiers []querymodifiers.QueryModifier
 	Retriever      retrievers.Retriever
-	// TODO: Postprocessors
+	Postprocessors []postprocessors.Postprocessor
 }
 
 func (f *RetrievalFlow) FillDefaults() {
@@ -121,7 +122,12 @@ func (f *RetrievalFlow) Run(ctx context.Context, store vs.VectorStore, query str
 		return nil, err
 	}
 
-	// TODO: add postprocessors
+	for _, pp := range f.Postprocessors {
+		docs, err = pp.Transform(ctx, docs)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	slog.Debug("Retrieved documents", "num_documents", len(docs), "query", query, "dataset", datasetID)
 	return docs, nil
