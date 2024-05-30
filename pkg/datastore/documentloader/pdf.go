@@ -1,22 +1,20 @@
 package documentloader
 
 import (
+	"context"
+	"fmt"
+	"io"
+	"os"
+	"strings"
+
 	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
+	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
+	"github.com/ledongthuc/pdf"
 )
 
 /*
  * Credits to https://github.com/hupe1980/golc/blob/main/documentloader/pdf.go
  */
-
-import (
-	"context"
-	"fmt"
-	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
-	"github.com/ledongthuc/pdf"
-	"io"
-	"os"
-	"strings"
-)
 
 // Compile time check to ensure PDF satisfies the DocumentLoader interface.
 var _ types.DocumentLoader = (*PDF)(nil)

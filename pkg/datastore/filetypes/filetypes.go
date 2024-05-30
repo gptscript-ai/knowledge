@@ -2,10 +2,11 @@ package filetypes
 
 import (
 	"fmt"
-	"github.com/gabriel-vasile/mimetype"
 	"log/slog"
 	"path"
 	"strings"
+
+	"github.com/gabriel-vasile/mimetype"
 )
 
 var FirstclassFileExtensions = map[string]struct{}{

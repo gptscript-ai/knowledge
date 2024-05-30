@@ -2,6 +2,7 @@ package datastore
 
 import (
 	"context"
+
 	"github.com/gptscript-ai/knowledge/pkg/index"
 )
 

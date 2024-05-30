@@ -4,13 +4,14 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"log/slog"
+	"net/http"
+
 	"github.com/acorn-io/z"
 	"github.com/gin-gonic/gin"
 	"github.com/gptscript-ai/knowledge/pkg/datastore"
 	"github.com/gptscript-ai/knowledge/pkg/index"
 	"github.com/gptscript-ai/knowledge/pkg/server/types"
-	"log/slog"
-	"net/http"
 )
 
 // CreateDS creates a new dataset.

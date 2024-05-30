@@ -2,11 +2,12 @@ package cmd
 
 import (
 	"fmt"
+	"log/slog"
+	"os"
+
 	"github.com/acorn-io/cmd"
 	"github.com/gptscript-ai/knowledge/version"
 	"github.com/spf13/cobra"
-	"log/slog"
-	"os"
 )
 
 func init() {

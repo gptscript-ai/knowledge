@@ -2,6 +2,7 @@ package transformers
 
 import (
 	"context"
+
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 )
 

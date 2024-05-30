@@ -3,10 +3,11 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
+
 	"github.com/gptscript-ai/knowledge/pkg/datastore"
 	flowconfig "github.com/gptscript-ai/knowledge/pkg/flows/config"
 	"github.com/spf13/cobra"
-	"log/slog"
 )
 
 type ClientRetrieve struct {

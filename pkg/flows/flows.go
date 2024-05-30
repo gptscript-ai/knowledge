@@ -3,7 +3,10 @@ package flows
 import (
 	"context"
 	"fmt"
-	"github.com/gptscript-ai/knowledge/pkg/datastore/defaults"
+	"io"
+	"log/slog"
+	"slices"
+
 	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/postprocessors"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/querymodifiers"
@@ -12,9 +15,6 @@ import (
 	"github.com/gptscript-ai/knowledge/pkg/datastore/transformers"
 	dstypes "github.com/gptscript-ai/knowledge/pkg/datastore/types"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
-	"io"
-	"log/slog"
-	"slices"
 )
 
 type IngestionFlow struct {
@@ -102,10 +102,10 @@ type RetrievalFlow struct {
 	Postprocessors []postprocessors.Postprocessor
 }
 
-func (f *RetrievalFlow) FillDefaults() {
+func (f *RetrievalFlow) FillDefaults(topK int) {
 	if f.Retriever == nil {
 		slog.Debug("No retriever specified, using basic retriever")
-		f.Retriever = &retrievers.BasicRetriever{TopK: defaults.TopK}
+		f.Retriever = &retrievers.BasicRetriever{TopK: topK}
 	}
 }
 

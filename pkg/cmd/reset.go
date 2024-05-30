@@ -2,10 +2,11 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/gptscript-ai/knowledge/pkg/datastore"
-	"github.com/spf13/cobra"
 	"os"
 	"strings"
+
+	"github.com/gptscript-ai/knowledge/pkg/datastore"
+	"github.com/spf13/cobra"
 )
 
 type ClientResetDatastore struct {

@@ -2,6 +2,7 @@ package transformers
 
 import (
 	"fmt"
+
 	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
 )
 

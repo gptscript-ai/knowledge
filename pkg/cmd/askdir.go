@@ -3,14 +3,15 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
+	"path/filepath"
+	"strings"
+
 	"github.com/acorn-io/z"
 	"github.com/gptscript-ai/knowledge/pkg/client"
 	"github.com/gptscript-ai/knowledge/pkg/datastore"
 	flowconfig "github.com/gptscript-ai/knowledge/pkg/flows/config"
 	"github.com/spf13/cobra"
-	"log/slog"
-	"path/filepath"
-	"strings"
 )
 
 type ClientAskDir struct {

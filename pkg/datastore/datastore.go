@@ -3,6 +3,9 @@ package datastore
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"net/url"
+
 	"github.com/acorn-io/z"
 	"github.com/adrg/xdg"
 	"github.com/gptscript-ai/knowledge/pkg/config"
@@ -11,8 +14,6 @@ import (
 	"github.com/gptscript-ai/knowledge/pkg/vectorstore"
 	"github.com/gptscript-ai/knowledge/pkg/vectorstore/chromem"
 	cg "github.com/philippgille/chromem-go"
-	"log/slog"
-	"net/url"
 )
 
 type Datastore struct {

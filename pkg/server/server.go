@@ -2,14 +2,15 @@ package server
 
 import (
 	"context"
+	"log/slog"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/gptscript-ai/knowledge/pkg/config"
 	"github.com/gptscript-ai/knowledge/pkg/datastore"
 	"github.com/gptscript-ai/knowledge/pkg/docs"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"log/slog"
-	"net/http"
 )
 
 type Config struct {

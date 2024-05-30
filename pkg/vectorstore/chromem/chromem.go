@@ -2,13 +2,14 @@ package chromem
 
 import (
 	"context"
-	"github.com/google/uuid"
-	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
-	"github.com/philippgille/chromem-go"
 	"log/slog"
 	"maps"
 	"runtime"
 	"strconv"
+
+	"github.com/google/uuid"
+	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
+	"github.com/philippgille/chromem-go"
 )
 
 type Store struct {

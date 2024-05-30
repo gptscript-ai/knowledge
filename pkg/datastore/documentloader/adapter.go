@@ -2,6 +2,7 @@ package documentloader
 
 import (
 	"context"
+
 	"github.com/gptscript-ai/knowledge/pkg/datastore/textsplitter"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"

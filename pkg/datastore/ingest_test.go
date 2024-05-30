@@ -2,14 +2,15 @@ package datastore
 
 import (
 	"context"
-	"github.com/gptscript-ai/knowledge/pkg/datastore/textsplitter"
-	"github.com/gptscript-ai/knowledge/pkg/datastore/transformers"
-	"github.com/gptscript-ai/knowledge/pkg/flows"
-	"github.com/stretchr/testify/require"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/gptscript-ai/knowledge/pkg/datastore/textsplitter"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/transformers"
+	"github.com/gptscript-ai/knowledge/pkg/flows"
+	"github.com/stretchr/testify/require"
 )
 
 func TestExtractPDF(t *testing.T) {

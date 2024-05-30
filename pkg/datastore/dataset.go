@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
+
 	"github.com/gptscript-ai/knowledge/pkg/datastore/defaults"
 	"github.com/gptscript-ai/knowledge/pkg/index"
 	"gorm.io/gorm"
-	"log/slog"
 )
 
 func (s *Datastore) NewDataset(ctx context.Context, dataset index.Dataset) error {

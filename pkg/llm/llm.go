@@ -2,6 +2,7 @@ package llm
 
 import (
 	"context"
+
 	"github.com/gptscript-ai/knowledge/pkg/config"
 	golcmodel "github.com/hupe1980/golc/model"
 	"github.com/hupe1980/golc/model/chatmodel"

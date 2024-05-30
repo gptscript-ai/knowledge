@@ -3,6 +3,7 @@ package querymodifiers
 import (
 	"context"
 	"encoding/json"
+
 	"github.com/gptscript-ai/knowledge/pkg/llm"
 )
 
