@@ -3,6 +3,10 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
+	"os"
+	"strings"
+
 	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/postprocessors"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/querymodifiers"
@@ -11,10 +15,7 @@ import (
 	"github.com/gptscript-ai/knowledge/pkg/datastore/transformers"
 	"github.com/gptscript-ai/knowledge/pkg/flows"
 	"github.com/mitchellh/mapstructure"
-	"log/slog"
-	"os"
 	"sigs.k8s.io/yaml"
-	"strings"
 )
 
 type GenericBaseConfig struct {

@@ -2,8 +2,9 @@ package transformers
 
 import (
 	"context"
-	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 	"strings"
+
+	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 )
 
 // FilterMarkdownDocsNoContent filters out Markdown documents with no content or only headings
@@ -18,6 +19,7 @@ func (f *FilterMarkdownDocsNoContent) Transform(_ context.Context, docs []vs.Doc
 			for _, line := range strings.Split(doc.Content, "\n") {
 				if !strings.HasPrefix(line, "#") {
 					filteredDocs = append(filteredDocs, doc)
+					break
 				}
 			}
 		}

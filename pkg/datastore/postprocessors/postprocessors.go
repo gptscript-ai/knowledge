@@ -3,6 +3,7 @@ package postprocessors
 
 import (
 	"fmt"
+
 	"github.com/gptscript-ai/knowledge/pkg/datastore/transformers"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
 )

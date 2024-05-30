@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"log/slog"
+
 	"github.com/acorn-io/z"
 	"github.com/google/uuid"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/filetypes"
@@ -11,7 +13,6 @@ import (
 	"github.com/gptscript-ai/knowledge/pkg/datastore/transformers"
 	"github.com/gptscript-ai/knowledge/pkg/flows"
 	"github.com/gptscript-ai/knowledge/pkg/index"
-	"log/slog"
 )
 
 type IngestOpts struct {

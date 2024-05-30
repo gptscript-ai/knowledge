@@ -1,13 +1,14 @@
 package textsplitter
 
 import (
-	"dario.cat/mergo"
 	"fmt"
+	"log/slog"
+
+	"dario.cat/mergo"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/defaults"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 	"github.com/mitchellh/mapstructure"
 	lcgosplitter "github.com/tmc/langchaingo/textsplitter"
-	"log/slog"
 )
 
 type SplitterFunc func([]vs.Document) ([]vs.Document, error)
@@ -46,6 +47,7 @@ func NewLcgoMarkdownSplitter(opts TextSplitterOpts) *lcgosplitter.MarkdownTextSp
 		lcgosplitter.WithModelName(opts.ModelName),
 		lcgosplitter.WithEncodingName(opts.EncodingName),
 		lcgosplitter.WithHeadingHierarchy(true),
+		lcgosplitter.WithCodeBlocks(true),
 	)
 }
 

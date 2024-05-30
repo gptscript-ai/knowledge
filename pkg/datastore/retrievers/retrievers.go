@@ -2,9 +2,10 @@ package retrievers
 
 import (
 	"context"
+	"log/slog"
+
 	"github.com/gptscript-ai/knowledge/pkg/datastore/defaults"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
-	"log/slog"
 )
 
 type Retriever interface {

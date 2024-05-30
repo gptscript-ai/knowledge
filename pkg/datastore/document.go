@@ -3,8 +3,9 @@ package datastore
 import (
 	"context"
 	"fmt"
-	"github.com/gptscript-ai/knowledge/pkg/index"
 	"log/slog"
+
+	"github.com/gptscript-ai/knowledge/pkg/index"
 )
 
 func (s *Datastore) DeleteDocument(ctx context.Context, documentID, datasetID string) error {

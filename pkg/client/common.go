@@ -5,14 +5,15 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
-	"github.com/gptscript-ai/knowledge/pkg/datastore"
-	"github.com/gptscript-ai/knowledge/pkg/vectorstore"
-	"golang.org/x/sync/errgroup"
-	"golang.org/x/sync/semaphore"
 	"log/slog"
 	"os"
 	"path/filepath"
 	"slices"
+
+	"github.com/gptscript-ai/knowledge/pkg/datastore"
+	"github.com/gptscript-ai/knowledge/pkg/vectorstore"
+	"golang.org/x/sync/errgroup"
+	"golang.org/x/sync/semaphore"
 )
 
 func checkIgnored(path string, ignoreExtensions []string) bool {

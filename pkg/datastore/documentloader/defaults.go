@@ -6,14 +6,15 @@ import (
 	"encoding/csv"
 	"errors"
 	"fmt"
+	"io"
+	"log/slog"
+	"strings"
+
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 	golcdocloaders "github.com/hupe1980/golc/documentloader"
 	"github.com/ledongthuc/pdf"
 	"github.com/lu4p/cat"
 	lcgodocloaders "github.com/tmc/langchaingo/documentloaders"
-	"io"
-	"log/slog"
-	"strings"
 )
 
 func DefaultDocLoaderFunc(filetype string) func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {

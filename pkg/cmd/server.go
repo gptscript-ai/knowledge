@@ -2,12 +2,13 @@ package cmd
 
 import (
 	"fmt"
+	"os/signal"
+	"syscall"
+
 	"github.com/gptscript-ai/knowledge/pkg/config"
 	"github.com/gptscript-ai/knowledge/pkg/datastore"
 	"github.com/gptscript-ai/knowledge/pkg/server"
 	"github.com/spf13/cobra"
-	"os/signal"
-	"syscall"
 )
 
 // Server is the Server CLI command

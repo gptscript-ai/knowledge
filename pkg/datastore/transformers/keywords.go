@@ -2,10 +2,11 @@ package transformers
 
 import (
 	"context"
-	"github.com/gptscript-ai/knowledge/pkg/llm"
-	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 	"log/slog"
 	"strings"
+
+	"github.com/gptscript-ai/knowledge/pkg/llm"
+	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 )
 
 func NewKeyWordExtractor(numKeywords int, llm llm.LLM) *KeywordExtractor {
