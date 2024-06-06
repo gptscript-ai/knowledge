@@ -489,6 +489,9 @@ github.com/sergi/go-diff/diffmatchpatch
 # github.com/serpapi/google-search-results-golang v0.0.0-20240325113416-ec93f510648e
 ## explicit; go 1.17
 github.com/serpapi/google-search-results-golang
+# github.com/sirupsen/logrus v1.9.3
+## explicit; go 1.13
+github.com/sirupsen/logrus
 # github.com/skeema/knownhosts v1.2.2
 ## explicit; go 1.17
 github.com/skeema/knownhosts
@@ -577,6 +580,44 @@ github.com/unidoc/unioffice/schema/urn/schemas_microsoft_com/office/word
 github.com/unidoc/unioffice/schema/urn/schemas_microsoft_com/vml
 github.com/unidoc/unioffice/vmldrawing
 github.com/unidoc/unioffice/zippkg
+# github.com/unidoc/unipdf/v3 v3.55.0 => github.com/StrongMonkey/unipdf/v3 v3.0.0-20240604183559-b790d5fed3c0
+## explicit; go 1.11
+github.com/unidoc/unipdf/v3/common
+github.com/unidoc/unipdf/v3/common/license
+github.com/unidoc/unipdf/v3/contentstream
+github.com/unidoc/unipdf/v3/core
+github.com/unidoc/unipdf/v3/core/security
+github.com/unidoc/unipdf/v3/core/security/crypt
+github.com/unidoc/unipdf/v3/extractor
+github.com/unidoc/unipdf/v3/internal/ccittfax
+github.com/unidoc/unipdf/v3/internal/cmap
+github.com/unidoc/unipdf/v3/internal/cmap/bcmaps
+github.com/unidoc/unipdf/v3/internal/imageutil
+github.com/unidoc/unipdf/v3/internal/jbig2
+github.com/unidoc/unipdf/v3/internal/jbig2/basic
+github.com/unidoc/unipdf/v3/internal/jbig2/bitmap
+github.com/unidoc/unipdf/v3/internal/jbig2/decoder
+github.com/unidoc/unipdf/v3/internal/jbig2/decoder/arithmetic
+github.com/unidoc/unipdf/v3/internal/jbig2/decoder/huffman
+github.com/unidoc/unipdf/v3/internal/jbig2/decoder/mmr
+github.com/unidoc/unipdf/v3/internal/jbig2/document
+github.com/unidoc/unipdf/v3/internal/jbig2/document/segments
+github.com/unidoc/unipdf/v3/internal/jbig2/encoder/arithmetic
+github.com/unidoc/unipdf/v3/internal/jbig2/encoder/classer
+github.com/unidoc/unipdf/v3/internal/jbig2/errors
+github.com/unidoc/unipdf/v3/internal/jbig2/reader
+github.com/unidoc/unipdf/v3/internal/jbig2/writer
+github.com/unidoc/unipdf/v3/internal/sampling
+github.com/unidoc/unipdf/v3/internal/strutils
+github.com/unidoc/unipdf/v3/internal/textencoding
+github.com/unidoc/unipdf/v3/internal/transform
+github.com/unidoc/unipdf/v3/model
+github.com/unidoc/unipdf/v3/model/internal/fonts
+github.com/unidoc/unipdf/v3/ps
+# github.com/unidoc/unitype v0.4.0
+## explicit; go 1.15
+github.com/unidoc/unitype
+github.com/unidoc/unitype/internal/strutils
 # github.com/xanzy/ssh-agent v0.3.3
 ## explicit; go 1.16
 github.com/xanzy/ssh-agent
@@ -619,6 +660,9 @@ golang.org/x/crypto/ssh/knownhosts
 ## explicit; go 1.20
 golang.org/x/exp/constraints
 golang.org/x/exp/slices
+# golang.org/x/image v0.15.0
+## explicit; go 1.18
+golang.org/x/image/tiff/lzw
 # golang.org/x/mod v0.17.0
 ## explicit; go 1.18
 golang.org/x/mod/semver
@@ -650,10 +694,21 @@ golang.org/x/sys/unix
 golang.org/x/sys/windows
 # golang.org/x/text v0.14.0
 ## explicit; go 1.18
+golang.org/x/text/encoding
+golang.org/x/text/encoding/charmap
+golang.org/x/text/encoding/internal
+golang.org/x/text/encoding/internal/identifier
+golang.org/x/text/encoding/japanese
+golang.org/x/text/encoding/simplifiedchinese
+golang.org/x/text/encoding/traditionalchinese
+golang.org/x/text/encoding/unicode
+golang.org/x/text/encoding/unicode/utf32
 golang.org/x/text/internal/language
 golang.org/x/text/internal/language/compact
 golang.org/x/text/internal/tag
+golang.org/x/text/internal/utf8internal
 golang.org/x/text/language
+golang.org/x/text/runes
 golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
@@ -684,6 +739,10 @@ golang.org/x/tools/internal/stdlib
 golang.org/x/tools/internal/tokeninternal
 golang.org/x/tools/internal/typesinternal
 golang.org/x/tools/internal/versions
+# golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028
+## explicit; go 1.18
+golang.org/x/xerrors
+golang.org/x/xerrors/internal
 # google.golang.org/api v0.176.1
 ## explicit; go 1.19
 google.golang.org/api/googleapi
@@ -852,3 +911,4 @@ sigs.k8s.io/yaml/goyaml.v2
 # github.com/ledongthuc/pdf => github.com/iwilltry42/pdf v0.0.0-20240517145113-99fbaebc5dd3
 # github.com/philippgille/chromem-go => github.com/iwilltry42/chromem-go v0.0.0-20240513080122-88f1efa639f5
 # github.com/tmc/langchaingo => github.com/iwilltry42/langchaingo v0.0.0-20240516095223-8cf46ac74799
+# github.com/unidoc/unipdf/v3 => github.com/StrongMonkey/unipdf/v3 v3.0.0-20240604183559-b790d5fed3c0
