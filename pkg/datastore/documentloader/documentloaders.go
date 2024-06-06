@@ -1,7 +1,6 @@
 package documentloader
 
 import (
-	"bytes"
 	"context"
 	"encoding/csv"
 	"errors"
@@ -68,7 +67,7 @@ func GetDocumentLoaderFunc(name string, config any) (LoaderFunc, error) {
 			if err != nil {
 				return nil, fmt.Errorf("failed to read PDF data: %w", err)
 			}
-			r, err := NewPDF(bytes.NewReader(data), int64(len(data)), WithConfig(pdfConfig))
+			r, err := NewPDF(data, WithConfig(pdfConfig))
 			if err != nil {
 				slog.Error("Failed to create PDF loader", "error", err)
 				return nil, err

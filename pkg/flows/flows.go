@@ -69,6 +69,10 @@ func (f *IngestionFlow) Run(ctx context.Context, reader io.Reader) ([]vs.Documen
 	 * and translate them to our document schema.
 	 */
 
+	if f.Load == nil {
+		return nil, nil
+	}
+
 	docs, err = f.Load(ctx, reader)
 	if err != nil {
 		slog.Error("Failed to load documents", "error", err)

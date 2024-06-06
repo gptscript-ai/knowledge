@@ -34,3 +34,6 @@ go.work
 .env
 
 knowledge/
+
+tests/venv/
+tests/__pycache__/
