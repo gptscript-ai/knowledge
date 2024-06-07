@@ -187,8 +187,6 @@ github.com/iwilltry42/chromem-go v0.0.0-20240513080122-88f1efa639f5 h1:g3mhp9K4u
 github.com/iwilltry42/chromem-go v0.0.0-20240513080122-88f1efa639f5/go.mod h1:hTd+wGEm/fFPQl7ilfCwQXkgEUxceYh86iIdoKMolPo=
 github.com/iwilltry42/langchaingo v0.0.0-20240516095223-8cf46ac74799 h1:b5x7HwpU5UzA/qlde8bFWHYfdpRxglHiZKy9KRbll8o=
 github.com/iwilltry42/langchaingo v0.0.0-20240516095223-8cf46ac74799/go.mod h1:QZupRrRBW3fhNUlvll1U4YUHatKZd5h7C0UiHBEWJYc=
-github.com/iwilltry42/pdf v0.0.0-20240517145113-99fbaebc5dd3 h1:rCVwFT7Q+HxpijWfSzKTYX4pCDMS7oy/I/WzU30VXyI=
-github.com/iwilltry42/pdf v0.0.0-20240517145113-99fbaebc5dd3/go.mod h1:p6S8B6MtbSh4sEUXw5DpOsyJVTP3N48e8Ea3mpdhZj4=
 github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 h1:BQSFePA1RWJOlocH6Fxy8MmwDt+yVQYULKfN0RoTN8A=
 github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99/go.mod h1:1lJo3i6rXxKeerYnT8Nvf0QmHCRC1n8sfWVwXF2Frvo=
 github.com/jinzhu/inflection v1.0.0 h1:K317FqzuhWc8YvSVlFMCCUb36O/S9MCKRDI7QkRKD/E=
@@ -219,6 +217,8 @@ github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
 github.com/kr/text v0.2.0 h1:5Nx0Ya0ZqY2ygV366QzturHI13Jq95ApcVaJBhpS+AY=
 github.com/kr/text v0.2.0/go.mod h1:eLer722TekiGuMkidMxC/pM04lWEeraHUUmBw8l2grE=
+github.com/ledongthuc/pdf v0.0.0-20240201131950-da5b75280b06 h1:kacRlPN7EN++tVpGUorNGPn/4DnB7/DfTY82AOn6ccU=
+github.com/ledongthuc/pdf v0.0.0-20240201131950-da5b75280b06/go.mod h1:imJHygn/1yfhB7XSJJKlFZKl/J+dCPAknuiaGOshXAs=
 github.com/leodido/go-urn v1.2.0/go.mod h1:+8+nEpDfqqsY+g338gtMEUOtuK+4dEMhiQEgxpxOKII=
 github.com/leodido/go-urn v1.4.0 h1:WT9HwE9SGECu3lg4d/dIA+jxlljEa1/ffXKmRjqdmIQ=
 github.com/leodido/go-urn v1.4.0/go.mod h1:bvxc+MVxLKB4z00jd1z+Dvzr47oO32F/QSNjSBOlFxI=

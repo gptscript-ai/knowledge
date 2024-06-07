@@ -4,7 +4,7 @@
 
 // Package pdf implements reading of PDF files.
 //
-// # Overview
+// Overview
 //
 // PDF is Adobe's Portable Document Format, ubiquitous on the internet.
 // A PDF document is a complex data format built on a fairly simple structure.
@@ -43,6 +43,7 @@
 // they are implemented only in terms of the Value API and could be moved outside
 // the package. Equally important, traversal of other PDF data structures can be implemented
 // in other packages as needed.
+//
 package pdf
 
 // BUG(rsc): The package is incomplete, although it has been used successfully on some
@@ -69,6 +70,7 @@ import (
 	"encoding/ascii85"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"sort"
 	"strconv"
@@ -76,8 +78,6 @@ import (
 
 // DebugOn is responsible for logging messages into stdout. If problems arise during reading, set it true.
 var DebugOn = false
-
-var TraceOn = false
 
 // A Reader is a single PDF file open for reading.
 type Reader struct {
@@ -105,9 +105,7 @@ func (r *Reader) errorf(format string, args ...interface{}) {
 func Open(file string) (*os.File, *Reader, error) {
 	f, err := os.Open(file)
 	if err != nil {
-		if f != nil {
-			f.Close()
-		}
+		f.Close()
 		return nil, nil, err
 	}
 	fi, err := f.Stat()
@@ -613,7 +611,7 @@ func (v Value) RawString() string {
 	return x
 }
 
-// Text returns v's string value interpreted as a “text string” (defined in the PDF spec)
+// Text returns v's string value interpreted as a ``text string'' (defined in the PDF spec)
 // and converted to UTF-8.
 // If v.Kind() != String, Text returns the empty string.
 func (v Value) Text() string {
@@ -802,7 +800,7 @@ func (e *errorReadCloser) Close() error {
 
 // Reader returns the data contained in the stream v.
 // If v.Kind() != Stream, Reader returns a ReadCloser that
-// responds to all reads with a “stream not present” error.
+// responds to all reads with a ``stream not present'' error.
 func (v Value) Reader() io.ReadCloser {
 	x, ok := v.data.(stream)
 	if !ok {
@@ -828,7 +826,7 @@ func (v Value) Reader() io.ReadCloser {
 		}
 	}
 
-	return io.NopCloser(rd)
+	return ioutil.NopCloser(rd)
 }
 
 func applyFilter(rd io.Reader, name string, param Value) io.Reader {

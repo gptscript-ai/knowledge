@@ -29,7 +29,6 @@ func checkASCII85(r byte) byte {
 func (a *alphaReader) Read(p []byte) (int, error) {
 	n, err := a.reader.Read(p)
 	if err == io.EOF {
-		return 0, nil
 	}
 	if err != nil {
 		return n, err

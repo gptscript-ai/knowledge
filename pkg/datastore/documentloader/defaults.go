@@ -16,7 +16,6 @@ import (
 	"github.com/gptscript-ai/knowledge/pkg/datastore/filetypes"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 	golcdocloaders "github.com/hupe1980/golc/documentloader"
-	"github.com/ledongthuc/pdf"
 	"github.com/lu4p/cat"
 	lcgodocloaders "github.com/tmc/langchaingo/documentloaders"
 )
@@ -29,7 +28,7 @@ func DefaultDocLoaderFunc(filetype string) func(ctx context.Context, reader io.R
 			if nerr != nil {
 				return nil, fmt.Errorf("failed to read PDF data: %w", nerr)
 			}
-			r, nerr := NewPDF(data, WithInterpreterOpts(pdf.WithIgnoreDefOfNonNameVals([]string{"CMapName"})))
+			r, nerr := NewPDF(data)
 			if nerr != nil {
 				slog.Error("Failed to create PDF loader", "error", nerr)
 				return nil, nerr
@@ -107,7 +106,7 @@ func DefaultDocLoaderFunc(filetype string) func(ctx context.Context, reader io.R
 	//			},
 	//		}, nil
 	//	}
-	case "application/zip":
+	case "application/zip", ".zip":
 		var result []vs.Document
 		return func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
 			data, err := io.ReadAll(reader)
@@ -143,7 +142,7 @@ func DefaultDocLoaderFunc(filetype string) func(ctx context.Context, reader io.R
 			return result, nil
 		}
 
-	case "application/x-bzip2":
+	case "application/x-bzip2", ".bz2":
 		return func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
 			tarReader := tar.NewReader(bzip2.NewReader(reader))
 			var result []vs.Document

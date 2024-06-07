@@ -7,14 +7,9 @@ import (
 
 	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
-	"github.com/ledongthuc/pdf"
 	"github.com/unidoc/unipdf/v3/extractor"
 	"github.com/unidoc/unipdf/v3/model"
 )
-
-/*
- * Credits to https://github.com/hupe1980/golc/blob/main/documentloader/pdf.go
- */
 
 // Compile time check to ensure PDF satisfies the DocumentLoader interface.
 var _ types.DocumentLoader = (*PDF)(nil)
@@ -31,34 +26,12 @@ type PDFOptions struct {
 
 	// Source is the name of the pdf document
 	Source string
-
-	// InterpreterConfig is the configuration for the PDF interpreter.
-	InterpreterConfig *pdf.InterpreterConfig
 }
 
 // WithConfig sets the PDF loader configuration.
 func WithConfig(config PDFOptions) func(o *PDFOptions) {
 	return func(o *PDFOptions) {
 		*o = config
-	}
-}
-
-// WithInterpreterConfig sets the interpreter config for the PDF loader.
-func WithInterpreterConfig(cfg pdf.InterpreterConfig) func(o *PDFOptions) {
-	return func(o *PDFOptions) {
-		o.InterpreterConfig = &cfg
-	}
-}
-
-// WithInterpreterOpts sets the interpreter options for the PDF loader.
-func WithInterpreterOpts(opts ...pdf.InterpreterOption) func(o *PDFOptions) {
-	return func(o *PDFOptions) {
-		if o.InterpreterConfig == nil {
-			o.InterpreterConfig = &pdf.InterpreterConfig{}
-		}
-		for _, opt := range opts {
-			opt(o.InterpreterConfig)
-		}
 	}
 }
 

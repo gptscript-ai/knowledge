@@ -3,7 +3,6 @@ module github.com/gptscript-ai/knowledge
 go 1.22.0
 
 replace (
-	github.com/ledongthuc/pdf => github.com/iwilltry42/pdf v0.0.0-20240517145113-99fbaebc5dd3 // fix for reading some PDFs: https://github.com/ledongthuc/pdf/pull/36 + https://github.com/iwilltry42/pdf/pull/2
 	github.com/philippgille/chromem-go => github.com/iwilltry42/chromem-go v0.0.0-20240513080122-88f1efa639f5 // Azure OpenAI support
 	github.com/tmc/langchaingo => github.com/iwilltry42/langchaingo v0.0.0-20240516095223-8cf46ac74799 // Context-Aware Markdown Splitting
 
@@ -21,7 +20,6 @@ require (
 	github.com/glebarez/sqlite v1.11.0
 	github.com/google/uuid v1.6.0
 	github.com/hupe1980/golc v0.0.110
-	github.com/ledongthuc/pdf v0.0.0-20240201131950-da5b75280b06
 	github.com/lu4p/cat v0.1.5
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/philippgille/chromem-go v0.6.0
@@ -96,6 +94,7 @@ require (
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
 	github.com/klauspost/compress v1.17.2 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.7 // indirect
+	github.com/ledongthuc/pdf v0.0.0-20240201131950-da5b75280b06 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
