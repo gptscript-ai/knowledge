@@ -1,0 +1,4 @@
+requests
+gptscript
+pytest
+openai

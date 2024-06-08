@@ -1,7 +1,10 @@
 package documentloader
 
 import (
+	"archive/tar"
+	"archive/zip"
 	"bytes"
+	"compress/bzip2"
 	"context"
 	"encoding/csv"
 	"errors"
@@ -10,9 +13,9 @@ import (
 	"log/slog"
 	"strings"
 
+	"github.com/gptscript-ai/knowledge/pkg/datastore/filetypes"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 	golcdocloaders "github.com/hupe1980/golc/documentloader"
-	"github.com/ledongthuc/pdf"
 	"github.com/lu4p/cat"
 	lcgodocloaders "github.com/tmc/langchaingo/documentloaders"
 )
@@ -25,7 +28,7 @@ func DefaultDocLoaderFunc(filetype string) func(ctx context.Context, reader io.R
 			if nerr != nil {
 				return nil, fmt.Errorf("failed to read PDF data: %w", nerr)
 			}
-			r, nerr := NewPDF(bytes.NewReader(data), int64(len(data)), WithInterpreterOpts(pdf.WithIgnoreDefOfNonNameVals([]string{"CMapName"})))
+			r, nerr := NewPDF(data)
 			if nerr != nil {
 				slog.Error("Failed to create PDF loader", "error", nerr)
 				return nil, nerr
@@ -80,6 +83,101 @@ func DefaultDocLoaderFunc(filetype string) func(ctx context.Context, reader io.R
 			}
 			return FromLangchain(lcgodocloaders.NewText(strings.NewReader(text))).Load(ctx)
 		}
+	// todo: OCR support is commented out for now as it relies on external dependencies.
+	// We might add it back later.
+	//case "image/png", "image/jpeg":
+	//	return func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
+	//		client := gosseract.NewClient()
+	//		defer client.Close()
+	//		data, nerr := io.ReadAll(reader)
+	//		if nerr != nil {
+	//			return nil, fmt.Errorf("failed to read %s data: %w", filetype, nerr)
+	//		}
+	//		if err := client.SetImageFromBytes(data); err != nil {
+	//			return nil, fmt.Errorf("failed to feed data into OCR: %w", nerr)
+	//		}
+	//		text, err := client.Text()
+	//		if err != nil {
+	//			return nil, fmt.Errorf("failed to convert image data into OCR")
+	//		}
+	//		return []vs.Document{
+	//			{
+	//				Content: text,
+	//			},
+	//		}, nil
+	//	}
+	case "application/zip", ".zip":
+		var result []vs.Document
+		return func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
+			data, err := io.ReadAll(reader)
+			if err != nil {
+				return nil, err
+			}
+			zipReader, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
+			if err != nil {
+				return nil, err
+			}
+			for _, f := range zipReader.File {
+				if f.FileInfo().IsDir() {
+					continue
+				}
+				rc, err := f.Open()
+				if err != nil {
+					return nil, err
+				}
+				content, err := io.ReadAll(rc)
+				if err != nil {
+					return nil, err
+				}
+				ft, err := filetypes.GetFiletype(f.Name, content)
+				if err != nil {
+					return nil, err
+				}
+				docs, err := DefaultDocLoaderFunc(ft)(ctx, bytes.NewReader(content))
+				if err != nil {
+					return nil, err
+				}
+				result = append(result, docs...)
+			}
+			return result, nil
+		}
+
+	case "application/x-bzip2", ".bz2":
+		return func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
+			tarReader := tar.NewReader(bzip2.NewReader(reader))
+			var result []vs.Document
+			for {
+				header, err := tarReader.Next()
+				if err == io.EOF {
+					break
+				}
+				if err != nil {
+					return nil, err
+				}
+
+				// ignore any apple metadata files https://en.wikipedia.org/wiki/AppleSingle_and_AppleDouble_formats
+				if strings.HasPrefix(header.Name, "._") {
+					continue
+				}
+
+				var buf bytes.Buffer
+				if _, err := io.Copy(&buf, tarReader); err != nil {
+					return nil, err
+				}
+				content := buf.Bytes()
+				ft, err := filetypes.GetFiletype(header.Name, content)
+				if err != nil {
+					return nil, err
+				}
+				docs, err := DefaultDocLoaderFunc(ft)(ctx, bytes.NewReader(content))
+				if err != nil {
+					return nil, err
+				}
+				result = append(result, docs...)
+			}
+			return result, nil
+		}
+
 	default:
 		slog.Error("Unsupported file type", "type", filetype)
 		return nil

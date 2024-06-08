@@ -34,3 +34,8 @@ go.work
 .env
 
 knowledge/
+
+tests/venv/
+tests/__pycache__/
+
+.DS_Store

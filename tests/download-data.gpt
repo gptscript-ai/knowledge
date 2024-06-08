@@ -1,0 +1,7 @@
+tools: sys.write, github.com/gptscript-ai/csv-reader, sys.download
+
+Read the csv file from /Users/daishan/e2e_df.csv using csv reader. List all the unique names.
+
+1. For each unique name, query question, answer, url using name as constraint.
+2. Print out all the unique urls without any modification.
+3. Download the file from each unique url and put it ./data folder.

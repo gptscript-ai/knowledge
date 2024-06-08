@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<!-- saved from url=(0110)https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/install/ubuntu.html -->
+<html class="writer-html5" lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Install on Ubuntu — Using Driverless AI 1.10.6 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="./ubuntu_files/theme.css" type="text/css">
+  <link rel="stylesheet" href="./ubuntu_files/pygments.css" type="text/css">
+  <link rel="stylesheet" href="./ubuntu_files/tabs.css" type="text/css">
+  <link rel="stylesheet" href="./ubuntu_files/graphviz.css" type="text/css">
+  <link rel="stylesheet" href="./ubuntu_files/panels-main.c949a650a448cc0ae9fd3441c0e17fb0.css" type="text/css">
+  <link rel="stylesheet" href="./ubuntu_files/panels-bootstrap.5fd3999ee7762ccc51105388f4a9d115.css" type="text/css">
+  <link rel="stylesheet" href="./ubuntu_files/panels-variables.06eb56fa6e07937060861dad626602ad.css" type="text/css">
+  <link rel="stylesheet" href="./ubuntu_files/rtd_sphinx_search.min.css" type="text/css">
+
+  
+  
+    <link rel="shortcut icon" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/_static/favicon.ico">
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="./ubuntu_files/documentation_options.js"></script>
+        <script src="./ubuntu_files/jquery.js"></script>
+        <script src="./ubuntu_files/underscore.js"></script>
+        <script src="./ubuntu_files/doctools.js"></script>
+        <script src="./ubuntu_files/tabs.js"></script>
+        <script src="./ubuntu_files/rtd_sphinx_search.min.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="./ubuntu_files/require.min.js"></script>
+        
+        <script type="text/x-mathjax-config;executed=true">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
+    
+    <script type="text/javascript" src="./ubuntu_files/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/genindex.html">
+    <link rel="search" title="Search" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/search.html">
+    <link rel="next" title="Install on RHEL" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/install/rhel.html">
+    <link rel="prev" title="Linux Docker Images" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/install/linux-docker-images.html"> 
+<script type="text/javascript" async="" src="./ubuntu_files/MathJax.js"></script><style type="text/css">.MathJax_Hover_Frame {border-radius: .25em; -webkit-border-radius: .25em; -moz-border-radius: .25em; -khtml-border-radius: .25em; box-shadow: 0px 0px 15px #83A; -webkit-box-shadow: 0px 0px 15px #83A; -moz-box-shadow: 0px 0px 15px #83A; -khtml-box-shadow: 0px 0px 15px #83A; border: 1px solid #A6D ! important; display: inline-block; position: absolute}
+.MathJax_Menu_Button .MathJax_Hover_Arrow {position: absolute; cursor: pointer; display: inline-block; border: 2px solid #AAA; border-radius: 4px; -webkit-border-radius: 4px; -moz-border-radius: 4px; -khtml-border-radius: 4px; font-family: 'Courier New',Courier; font-size: 9px; color: #F0F0F0}
+.MathJax_Menu_Button .MathJax_Hover_Arrow span {display: block; background-color: #AAA; border: 1px solid; border-radius: 3px; line-height: 0; padding: 4px}
+.MathJax_Hover_Arrow:hover {color: white!important; border: 2px solid #CCC!important}
+.MathJax_Hover_Arrow:hover span {background-color: #CCC!important}
+</style><style type="text/css">#MathJax_About {position: fixed; left: 50%; width: auto; text-align: center; border: 3px outset; padding: 1em 2em; background-color: #DDDDDD; color: black; cursor: default; font-family: message-box; font-size: 120%; font-style: normal; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; z-index: 201; border-radius: 15px; -webkit-border-radius: 15px; -moz-border-radius: 15px; -khtml-border-radius: 15px; box-shadow: 0px 10px 20px #808080; -webkit-box-shadow: 0px 10px 20px #808080; -moz-box-shadow: 0px 10px 20px #808080; -khtml-box-shadow: 0px 10px 20px #808080; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
+#MathJax_About.MathJax_MousePost {outline: none}
+.MathJax_Menu {position: absolute; background-color: white; color: black; width: auto; padding: 5px 0px; border: 1px solid #CCCCCC; margin: 0; cursor: default; font: menu; text-align: left; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; z-index: 201; border-radius: 5px; -webkit-border-radius: 5px; -moz-border-radius: 5px; -khtml-border-radius: 5px; box-shadow: 0px 10px 20px #808080; -webkit-box-shadow: 0px 10px 20px #808080; -moz-box-shadow: 0px 10px 20px #808080; -khtml-box-shadow: 0px 10px 20px #808080; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
+.MathJax_MenuItem {padding: 1px 2em; background: transparent}
+.MathJax_MenuArrow {position: absolute; right: .5em; padding-top: .25em; color: #666666; font-size: .75em}
+.MathJax_MenuActive .MathJax_MenuArrow {color: white}
+.MathJax_MenuArrow.RTL {left: .5em; right: auto}
+.MathJax_MenuCheck {position: absolute; left: .7em}
+.MathJax_MenuCheck.RTL {right: .7em; left: auto}
+.MathJax_MenuRadioCheck {position: absolute; left: .7em}
+.MathJax_MenuRadioCheck.RTL {right: .7em; left: auto}
+.MathJax_MenuLabel {padding: 1px 2em 3px 1.33em; font-style: italic}
+.MathJax_MenuRule {border-top: 1px solid #DDDDDD; margin: 4px 3px}
+.MathJax_MenuDisabled {color: GrayText}
+.MathJax_MenuActive {background-color: #606872; color: white}
+.MathJax_MenuDisabled:focus, .MathJax_MenuLabel:focus {background-color: #E8E8E8}
+.MathJax_ContextMenu:focus {outline: none}
+.MathJax_ContextMenu .MathJax_MenuItem:focus {outline: none}
+#MathJax_AboutClose {top: .2em; right: .2em}
+.MathJax_Menu .MathJax_MenuClose {top: -10px; left: -10px}
+.MathJax_MenuClose {position: absolute; cursor: pointer; display: inline-block; border: 2px solid #AAA; border-radius: 18px; -webkit-border-radius: 18px; -moz-border-radius: 18px; -khtml-border-radius: 18px; font-family: 'Courier New',Courier; font-size: 24px; color: #F0F0F0}
+.MathJax_MenuClose span {display: block; background-color: #AAA; border: 1.5px solid; border-radius: 18px; -webkit-border-radius: 18px; -moz-border-radius: 18px; -khtml-border-radius: 18px; line-height: 0; padding: 8px 0 6px}
+.MathJax_MenuClose:hover {color: white!important; border: 2px solid #CCC!important}
+.MathJax_MenuClose:hover span {background-color: #CCC!important}
+.MathJax_MenuClose:hover:focus {outline: none}
+</style><style type="text/css">.MathJax_Preview .MJXf-math {color: inherit!important}
+</style><style type="text/css">.MJX_Assistive_MathML {position: absolute!important; top: 0; left: 0; clip: rect(1px, 1px, 1px, 1px); padding: 1px 0 0 0!important; border: 0!important; height: 1px!important; width: 1px!important; overflow: hidden!important; display: block!important; -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none}
+.MJX_Assistive_MathML.MJX_Assistive_MathML_Block {width: 100%!important}
+</style><style type="text/css">#MathJax_Zoom {position: absolute; background-color: #F0F0F0; overflow: auto; display: block; z-index: 301; padding: .5em; border: 1px solid black; margin: 0; font-weight: normal; font-style: normal; text-align: left; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; -webkit-box-sizing: content-box; -moz-box-sizing: content-box; box-sizing: content-box; box-shadow: 5px 5px 15px #AAAAAA; -webkit-box-shadow: 5px 5px 15px #AAAAAA; -moz-box-shadow: 5px 5px 15px #AAAAAA; -khtml-box-shadow: 5px 5px 15px #AAAAAA; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
+#MathJax_ZoomOverlay {position: absolute; left: 0; top: 0; z-index: 300; display: inline-block; width: 100%; height: 100%; border: 0; padding: 0; margin: 0; background-color: white; opacity: 0; filter: alpha(opacity=0)}
+#MathJax_ZoomFrame {position: relative; display: inline-block; height: 0; width: 0}
+#MathJax_ZoomEventTrap {position: absolute; left: 0; top: 0; z-index: 302; display: inline-block; border: 0; padding: 0; margin: 0; background-color: white; opacity: 0; filter: alpha(opacity=0)}
+</style><style type="text/css">.MathJax_Preview {color: #888}
+#MathJax_Message {position: fixed; left: 1em; bottom: 1.5em; background-color: #E6E6E6; border: 1px solid #959595; margin: 0px; padding: 2px 8px; z-index: 102; color: black; font-size: 80%; width: auto; white-space: nowrap}
+#MathJax_MSIE_Frame {position: absolute; top: 0; left: 0; width: 0px; z-index: 101; border: 0px; margin: 0px; padding: 0px}
+.MathJax_Error {color: #CC0000; font-style: italic}
+</style><style type="text/css">.MJXp-script {font-size: .8em}
+.MJXp-right {-webkit-transform-origin: right; -moz-transform-origin: right; -ms-transform-origin: right; -o-transform-origin: right; transform-origin: right}
+.MJXp-bold {font-weight: bold}
+.MJXp-italic {font-style: italic}
+.MJXp-scr {font-family: MathJax_Script,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-frak {font-family: MathJax_Fraktur,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-sf {font-family: MathJax_SansSerif,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-cal {font-family: MathJax_Caligraphic,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-mono {font-family: MathJax_Typewriter,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-largeop {font-size: 150%}
+.MJXp-largeop.MJXp-int {vertical-align: -.2em}
+.MJXp-math {display: inline-block; line-height: 1.2; text-indent: 0; font-family: 'Times New Roman',Times,STIXGeneral,serif; white-space: nowrap; border-collapse: collapse}
+.MJXp-display {display: block; text-align: center; margin: 1em 0}
+.MJXp-math span {display: inline-block}
+.MJXp-box {display: block!important; text-align: center}
+.MJXp-box:after {content: " "}
+.MJXp-rule {display: block!important; margin-top: .1em}
+.MJXp-char {display: block!important}
+.MJXp-mo {margin: 0 .15em}
+.MJXp-mfrac {margin: 0 .125em; vertical-align: .25em}
+.MJXp-denom {display: inline-table!important; width: 100%}
+.MJXp-denom > * {display: table-row!important}
+.MJXp-surd {vertical-align: top}
+.MJXp-surd > * {display: block!important}
+.MJXp-script-box > *  {display: table!important; height: 50%}
+.MJXp-script-box > * > * {display: table-cell!important; vertical-align: top}
+.MJXp-script-box > *:last-child > * {vertical-align: bottom}
+.MJXp-script-box > * > * > * {display: block!important}
+.MJXp-mphantom {visibility: hidden}
+.MJXp-munderover, .MJXp-munder {display: inline-table!important}
+.MJXp-over {display: inline-block!important; text-align: center}
+.MJXp-over > * {display: block!important}
+.MJXp-munderover > *, .MJXp-munder > * {display: table-row!important}
+.MJXp-mtable {vertical-align: .25em; margin: 0 .125em}
+.MJXp-mtable > * {display: inline-table!important; vertical-align: middle}
+.MJXp-mtr {display: table-row!important}
+.MJXp-mtd {display: table-cell!important; text-align: center; padding: .5em 0 0 .5em}
+.MJXp-mtr > .MJXp-mtd:first-child {padding-left: 0}
+.MJXp-mtr:first-child > .MJXp-mtd {padding-top: 0}
+.MJXp-mlabeledtr {display: table-row!important}
+.MJXp-mlabeledtr > .MJXp-mtd:first-child {padding-left: 0}
+.MJXp-mlabeledtr:first-child > .MJXp-mtd {padding-top: 0}
+.MJXp-merror {background-color: #FFFF88; color: #CC0000; border: 1px solid #CC0000; padding: 1px 3px; font-style: normal; font-size: 90%}
+.MJXp-scale0 {-webkit-transform: scaleX(.0); -moz-transform: scaleX(.0); -ms-transform: scaleX(.0); -o-transform: scaleX(.0); transform: scaleX(.0)}
+.MJXp-scale1 {-webkit-transform: scaleX(.1); -moz-transform: scaleX(.1); -ms-transform: scaleX(.1); -o-transform: scaleX(.1); transform: scaleX(.1)}
+.MJXp-scale2 {-webkit-transform: scaleX(.2); -moz-transform: scaleX(.2); -ms-transform: scaleX(.2); -o-transform: scaleX(.2); transform: scaleX(.2)}
+.MJXp-scale3 {-webkit-transform: scaleX(.3); -moz-transform: scaleX(.3); -ms-transform: scaleX(.3); -o-transform: scaleX(.3); transform: scaleX(.3)}
+.MJXp-scale4 {-webkit-transform: scaleX(.4); -moz-transform: scaleX(.4); -ms-transform: scaleX(.4); -o-transform: scaleX(.4); transform: scaleX(.4)}
+.MJXp-scale5 {-webkit-transform: scaleX(.5); -moz-transform: scaleX(.5); -ms-transform: scaleX(.5); -o-transform: scaleX(.5); transform: scaleX(.5)}
+.MJXp-scale6 {-webkit-transform: scaleX(.6); -moz-transform: scaleX(.6); -ms-transform: scaleX(.6); -o-transform: scaleX(.6); transform: scaleX(.6)}
+.MJXp-scale7 {-webkit-transform: scaleX(.7); -moz-transform: scaleX(.7); -ms-transform: scaleX(.7); -o-transform: scaleX(.7); transform: scaleX(.7)}
+.MJXp-scale8 {-webkit-transform: scaleX(.8); -moz-transform: scaleX(.8); -ms-transform: scaleX(.8); -o-transform: scaleX(.8); transform: scaleX(.8)}
+.MJXp-scale9 {-webkit-transform: scaleX(.9); -moz-transform: scaleX(.9); -ms-transform: scaleX(.9); -o-transform: scaleX(.9); transform: scaleX(.9)}
+.MathJax_PHTML .noError {vertical-align: ; font-size: 90%; text-align: left; color: black; padding: 1px 3px; border: 1px solid}
+</style></head>
+
+<body class="wy-body-for-nav"><div id="MathJax_Message" style="display: none;"></div>
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/index.html">
+          
+
+          
+            
+            <img src="./ubuntu_files/logo.png" class="logo" alt="Logo">
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.10.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs">
+    <input type="hidden" name="check_keywords" value="yes">
+    <input type="hidden" name="area" value="default">
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Release Notes</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/release_notes.html">Change Log</a></li>
+<li class="toctree-l1"><a class="reference internal" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/blog.html">Driverless AI release blogs</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/introduction.html">Introduction to Driverless AI</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Licensing and Version Support</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/licenses.html">Driverless AI License and Version Support</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Installation and Upgrade</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/installation.html"><span class="toctree-expand"></span>Driverless AI Installation and Upgrade</a><ul class="">
+<li class="toctree-l2"><a class="reference internal" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/supported-environments.html">Supported Environments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/installing-before-you-begin.html">Before You Begin</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/docker.html"><span class="toctree-expand"></span>Docker Image Installation</a><ul class="">
+<li class="toctree-l3 current"><a class="reference internal" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/install/linux-docker-images.html"><span class="toctree-expand"></span>Linux Docker Images</a><ul class="">
+<li class="toctree-l4 current"><a class="reference internal current" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/install/ubuntu.html#">Install on Ubuntu</a></li>
+<li class="toctree-l4"><a class="reference internal" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/install/rhel.html">Install on RHEL</a></li>
+<li class="toctree-l4"><a class="reference internal" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/install/nvidia-dgx.html">Install on NVIDIA GPU Cloud/NGC Registry</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/install/mac-osx.html">Mac OS X</a></li>
+<li class="toctree-l3"><a class="reference internal" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/install/windows.html">Windows 10</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/native.html">Native Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/cloud.html">Cloud Installation</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">Configuration</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/configuration.html">Configuration and Authentication</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Datasets</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/datasets.html">Datasets in Driverless AI</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Data Insights</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/autoviz.html">Automatic Visualization</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Custom Recipes</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/custom_recipes.html">Custom Recipe Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/individual-recipe.html">Custom Individual Recipe</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Feature Engineering</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/feature-engineering.html">Automatic Feature Engineering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/feature-count.html">Feature Count Control</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Modeling</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/modeling.html">Building Models in Driverless AI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/dai-wizard.html">Driverless AI Experiment Setup Wizard</a></li>
+<li class="toctree-l1"><a class="reference internal" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/autodoc.html">Automated Model Documentation (AutoDoc)</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Machine Learning Interpretability</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/mli.html">Machine Learning Interpretability</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Scoring on New Datasets</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/score-on-another-dataset.html">Scoring on Another Dataset</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Transforming Datasets</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/transform-another-dataset.html">Transform datasets</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Scoring Pipelines</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/scoring_pipelines.html">Scoring Pipelines</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Productionization</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/deployment.html">Deploy Driverless AI models</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Clients</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/clients.html">Driverless AI Clients</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Monitoring and Logging</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/monitoring_and_logging.html">Monitoring and Logging</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Security</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/security_main.html">Security</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Frequently Asked Questions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/faq.html">FAQ</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Appendices</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/third-party-integrations.html">Appendix A: Third-Party Integrations</a></li>
+</ul>
+<p class="caption"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/references.html">References</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Third-Party Notices</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/docs-licenses/licenses.html">Third-Party Licenses</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Translations</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/install/zh_CN/index.html#https://">Go to User Guide in Chinese</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/install/ko/index.html#https://">Go to User Guide in Korean</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/index.html">Using Driverless AI</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/index.html" class="icon icon-home"></a> »</li>
+        
+          <li><a href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/installation.html">Driverless AI Installation and Upgrade</a> »</li>
+        
+          <li><a href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/docker.html">Docker Image Installation</a> »</li>
+        
+          <li><a href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/install/linux-docker-images.html">Linux Docker Images</a> »</li>
+        
+      <li>Install on Ubuntu</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            
+              <a href="https://github.com//h2oai/h2oai/blob/dev/docs/install/ubuntu.rst" class="fa fa-github"> Edit on GitHub</a>
+            
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<div class="section" id="install-on-ubuntu">
+<h1>Install on Ubuntu<a class="headerlink" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/install/ubuntu.html#install-on-ubuntu" title="Permalink to this headline">¶</a></h1>
+<p>This section describes how to install the Driverless AI Docker image on Ubuntu. The installation steps vary depending on whether your system has GPUs or if it is CPU only.</p>
+<div class="section" id="environment">
+<h2>Environment<a class="headerlink" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/install/ubuntu.html#environment" title="Permalink to this headline">¶</a></h2>
+<div class="wy-table-responsive"><table class="docutils align-default">
+<colgroup>
+<col style="width: 61%">
+<col style="width: 17%">
+<col style="width: 22%">
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Operating System</p></th>
+<th class="head"><p>GPUs?</p></th>
+<th class="head"><p>Min Mem</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Ubuntu with GPUs</p></td>
+<td><p>Yes</p></td>
+<td><p>64 GB</p></td>
+</tr>
+<tr class="row-odd"><td><p>Ubuntu with CPUs</p></td>
+<td><p>No</p></td>
+<td><p>64 GB</p></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="section" id="install-on-ubuntu-with-gpus">
+<span id="id1"></span><h2>Install on Ubuntu with GPUs<a class="headerlink" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/install/ubuntu.html#install-on-ubuntu-with-gpus" title="Permalink to this headline">¶</a></h2>
+<p><strong>Note</strong>: Driverless AI is supported on Ubuntu 16.04 or later.</p>
+<p>Open a Terminal and ssh to the machine that will run Driverless AI. Once you are logged in, perform the following steps.</p>
+<ol class="arabic simple">
+<li><p>Retrieve the Driverless AI Docker image from <a class="reference external" href="https://www.h2o.ai/download/">https://www.h2o.ai/download/</a>. (Note that the contents of this Docker image include a CentOS kernel and CentOS packages.)</p></li>
+<li><p>Install and run Docker on Ubuntu (if not already installed):</p></li>
+</ol>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install and run Docker on Ubuntu</span>
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg <span class="p">|</span> sudo apt-key add -
+sudo apt-key fingerprint 0EBFCD88 sudo add-apt-repository <span class="se">\</span>
+ <span class="s2">"deb [arch=amd64] https://download.docker.com/linux/ubuntu </span><span class="k">$(</span>lsb_release -cs<span class="k">)</span><span class="s2"> stable"</span>
+sudo apt-get update
+sudo apt-get install docker-ce
+sudo systemctl start docker
+</pre></div>
+</div>
+</div></blockquote>
+<ol class="arabic simple" start="3">
+<li><p>Install nvidia-docker2 (if not already installed). More information is available at <a class="reference external" href="https://github.com/NVIDIA/nvidia-docker/blob/master/README.md">https://github.com/NVIDIA/nvidia-docker/blob/master/README.md</a>.</p></li>
+</ol>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey <span class="p">|</span> <span class="se">\</span>
+  sudo apt-key add -
+<span class="nv">distribution</span><span class="o">=</span><span class="k">$(</span>. /etc/os-release<span class="p">;</span><span class="nb">echo</span> <span class="nv">$ID$VERSION_ID</span><span class="k">)</span>
+curl -s -L https://nvidia.github.io/nvidia-docker/<span class="nv">$distribution</span>/nvidia-docker.list <span class="p">|</span> <span class="se">\</span>
+  sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+sudo apt-get update
+
+<span class="c1"># Install nvidia-docker2 and reload the Docker daemon configuration</span>
+sudo apt-get install -y nvidia-docker2
+</pre></div>
+</div>
+</div></blockquote>
+<ol class="arabic simple" start="4">
+<li><p>Verify that the NVIDIA driver is up and running. If the driver is not up and running, log on to <a class="reference external" href="http://www.nvidia.com/Download/index.aspx?lang=en-us">http://www.nvidia.com/Download/index.aspx?lang=en-us</a> to get the latest NVIDIA Tesla V/P/K series driver:</p></li>
+</ol>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>nvidia-smi
+</pre></div>
+</div>
+</div></blockquote>
+<ol class="arabic simple" start="5">
+<li><p>Set up a directory for the version of Driverless AI on the host machine:</p></li>
+</ol>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Set up directory with the version name</span>
+mkdir dai-1.10.6
+</pre></div>
+</div>
+</div></blockquote>
+<ol class="arabic simple" start="6">
+<li><p>Change directories to the new folder, then load the Driverless AI Docker image inside the new directory:</p></li>
+</ol>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># cd into the new directory</span>
+<span class="nb">cd</span> dai-1.10.6
+
+<span class="c1"># Load the Driverless AI docker image</span>
+docker load &lt; dai-docker-ubi8-x86_64-1.10.6.tar.gz
+</pre></div>
+</div>
+</div></blockquote>
+<ol class="arabic simple" start="7">
+<li><p>Enable persistence of the GPU. Note that this needs to be run once every reboot. Refer to the following for more information: <a class="reference external" href="http://docs.nvidia.com/deploy/driver-persistence/index.html">http://docs.nvidia.com/deploy/driver-persistence/index.html</a>.</p></li>
+</ol>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo nvidia-smi -pm <span class="m">1</span>
+</pre></div>
+</div>
+</div></blockquote>
+<ol class="arabic simple" start="8">
+<li><p>Set up the data, log, and license directories on the host machine:</p></li>
+</ol>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Set up the data, log, license, and tmp directories on the host machine (within the new directory)</span>
+mkdir data
+mkdir log
+mkdir license
+mkdir tmp
+</pre></div>
+</div>
+</div></blockquote>
+<ol class="arabic simple" start="9">
+<li><p>At this point, you can copy data into the data directory on the host machine.  The data will be visible inside the Docker container.</p></li>
+<li><p>Run <code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">images</span></code> to find the image tag.</p></li>
+<li><p>Start the Driverless AI Docker image and replace TAG below with the image tag. Depending on your install version, use the <code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">run</span> <span class="pre">--runtime=nvidia</span></code> (&gt;= Docker 19.03) or <code class="docutils literal notranslate"><span class="pre">nvidia-docker</span></code> (&lt; Docker 19.03) command. Note that from version 1.10 DAI docker image runs with internal <code class="docutils literal notranslate"><span class="pre">tini</span></code> that is equivalent to using <code class="docutils literal notranslate"><span class="pre">--init</span></code> from docker, if both are enabled in the launch command, tini will print a (harmless) warning message.</p></li>
+</ol>
+<blockquote>
+<div><p>We recommend <code class="docutils literal notranslate"><span class="pre">--shm-size=2g</span> <span class="pre">--cap-add=SYS_NICE</span> <span class="pre">--ulimit</span> <span class="pre">nofile=131071:131071</span> <span class="pre">--ulimit</span> <span class="pre">nproc=16384:16384</span></code> in docker launch command. But if user plans to build <a class="reference internal" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/image-processing.html#image-model"><span class="std std-ref">image auto model</span></a> extensively, then <code class="docutils literal notranslate"><span class="pre">--shm-size=4g</span></code> is recommended for Driverless AI docker command.</p>
+<p><strong>Note</strong>: Use <code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">version</span></code> to check which version of Docker you are using.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" role="tablist"><button aria-controls="panel-0-0-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-0-0-0" name="0-0" role="tab" tabindex="0">&gt;= Docker 19.03</button><button aria-controls="panel-0-0-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-0-0-1" name="0-1" role="tab" tabindex="-1">&lt; Docker 19.03</button></div><div aria-labelledby="tab-0-0-0" class="sphinx-tabs-panel" id="panel-0-0-0" name="0-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Start the Driverless AI Docker image</span>
+docker run --runtime<span class="o">=</span>nvidia <span class="se">\</span>
+   --pid<span class="o">=</span>host <span class="se">\</span>
+   --rm <span class="se">\</span>
+   --shm-size<span class="o">=</span>2g --cap-add<span class="o">=</span>SYS_NICE --ulimit <span class="nv">nofile</span><span class="o">=</span><span class="m">131071</span>:131071 --ulimit <span class="nv">nproc</span><span class="o">=</span><span class="m">16384</span>:16384 <span class="se">\</span>
+   -u <span class="sb">`</span>id -u<span class="sb">`</span>:<span class="sb">`</span>id -g<span class="sb">`</span> <span class="se">\</span>
+   -p <span class="m">12345</span>:12345 <span class="se">\</span>
+   -v <span class="sb">`</span><span class="nb">pwd</span><span class="sb">`</span>/data:/data <span class="se">\</span>
+   -v <span class="sb">`</span><span class="nb">pwd</span><span class="sb">`</span>/log:/log <span class="se">\</span>
+   -v <span class="sb">`</span><span class="nb">pwd</span><span class="sb">`</span>/license:/license <span class="se">\</span>
+   -v <span class="sb">`</span><span class="nb">pwd</span><span class="sb">`</span>/tmp:/tmp <span class="se">\</span>
+   h2oai/dai-ubi8-x86_64:<span class="p">|</span>tag:
+</pre></div>
+</div>
+</div><div aria-labelledby="tab-0-0-1" class="sphinx-tabs-panel" hidden="true" id="panel-0-0-1" name="0-1" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Start the Driverless AI Docker image</span>
+nvidia-docker run <span class="se">\</span>
+   --pid<span class="o">=</span>host <span class="se">\</span>
+   --rm <span class="se">\</span>
+   --shm-size<span class="o">=</span>2g --cap-add<span class="o">=</span>SYS_NICE --ulimit <span class="nv">nofile</span><span class="o">=</span><span class="m">131071</span>:131071 --ulimit <span class="nv">nproc</span><span class="o">=</span><span class="m">16384</span>:16384 <span class="se">\</span>
+   -u <span class="sb">`</span>id -u<span class="sb">`</span>:<span class="sb">`</span>id -g<span class="sb">`</span> <span class="se">\</span>
+   -p <span class="m">12345</span>:12345 <span class="se">\</span>
+   -v <span class="sb">`</span><span class="nb">pwd</span><span class="sb">`</span>/data:/data <span class="se">\</span>
+   -v <span class="sb">`</span><span class="nb">pwd</span><span class="sb">`</span>/log:/log <span class="se">\</span>
+   -v <span class="sb">`</span><span class="nb">pwd</span><span class="sb">`</span>/license:/license <span class="se">\</span>
+   -v <span class="sb">`</span><span class="nb">pwd</span><span class="sb">`</span>/tmp:/tmp <span class="se">\</span>
+   h2oai/dai-ubi8-x86_64:1.10.6-cuda11.2.2.xx
+</pre></div>
+</div>
+</div></div>
+<p>Driverless AI will begin running:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>--------------------------------
+Welcome to H2O.ai's Driverless AI
+---------------------------------
+
+- Put data in the volume mounted at /data
+- Logs are written to the volume mounted at /log/20180606-044258
+- Connect to Driverless AI on port 12345 inside the container
+- Connect to Jupyter notebook on port 8888 inside the container
+</pre></div>
+</div>
+</div></blockquote>
+<ol class="arabic simple" start="12">
+<li><p>Connect to Driverless AI with your browser:</p></li>
+</ol>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>http://Your-Driverless-AI-Host-Machine:12345
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+<div class="section" id="install-on-ubuntu-with-cpus">
+<span id="install-on-ubuntu-cpus-only"></span><h2>Install on Ubuntu with CPUs<a class="headerlink" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/install/ubuntu.html#install-on-ubuntu-with-cpus" title="Permalink to this headline">¶</a></h2>
+<p><strong>Note</strong>: Driverless AI is supported on Ubuntu 16.04 or later.</p>
+<p>This section describes how to install and start the Driverless AI Docker image on Ubuntu. Note that this uses <code class="docutils literal notranslate"><span class="pre">docker</span></code> and not <code class="docutils literal notranslate"><span class="pre">nvidia-docker</span></code>. GPU support will not be available.</p>
+<p><strong>Watch the installation video</strong> <a class="reference external" href="https://www.youtube.com/watch?v=ZQRlvLVHQ3s&amp;index=3&amp;list=PLNtMya54qvOE9fs3ylzaR_McnoUsuMV7X">here</a>. Note that some of the images in this video may change between releases, but the installation steps remain the same.</p>
+<p>Open a Terminal and ssh to the machine that will run Driverless AI. Once you are logged in, perform the following steps.</p>
+<ol class="arabic simple">
+<li><p>Retrieve the Driverless AI Docker image from <a class="reference external" href="https://www.h2o.ai/download/">https://www.h2o.ai/download/</a>.</p></li>
+<li><p>Install and run Docker on Ubuntu (if not already installed):</p></li>
+</ol>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install and run Docker on Ubuntu</span>
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg <span class="p">|</span> sudo apt-key add -
+sudo apt-key fingerprint 0EBFCD88 sudo add-apt-repository <span class="se">\</span>
+ <span class="s2">"deb [arch=amd64] https://download.docker.com/linux/ubuntu </span><span class="k">$(</span>lsb_release -cs<span class="k">)</span><span class="s2"> stable"</span>
+sudo apt-get update
+sudo apt-get install docker-ce
+sudo systemctl start docker
+</pre></div>
+</div>
+</div></blockquote>
+<ol class="arabic simple" start="3">
+<li><p>Set up a directory for the version of Driverless AI on the host machine:</p></li>
+</ol>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Set up directory with the version name</span>
+mkdir dai-1.10.6
+</pre></div>
+</div>
+</div></blockquote>
+<ol class="arabic simple" start="4">
+<li><p>Change directories to the new folder, then load the Driverless AI Docker image inside the new directory:</p></li>
+</ol>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># cd into the new directory</span>
+<span class="nb">cd</span> dai-1.10.6
+
+<span class="c1"># Load the Driverless AI docker image</span>
+docker load &lt; dai-docker-ubi8-x86_64-1.10.6.tar.gz
+</pre></div>
+</div>
+</div></blockquote>
+<ol class="arabic simple" start="5">
+<li><p>Set up the data, log, license, and tmp directories on the host machine (within the new directory):</p></li>
+</ol>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Set up the data, log, license, and tmp directories</span>
+mkdir data
+mkdir log
+mkdir license
+mkdir tmp
+</pre></div>
+</div>
+</div></blockquote>
+<ol class="arabic simple" start="6">
+<li><p>At this point, you can copy data into the data directory on the host machine. The data will be visible inside the Docker container.</p></li>
+<li><p>Run <code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">images</span></code> to find the new image tag.</p></li>
+<li><p>Start the Driverless AI Docker image. Note that GPU support will not be available. Note that from version 1.10 DAI docker image runs with internal <code class="docutils literal notranslate"><span class="pre">tini</span></code> that is equivalent to using <code class="docutils literal notranslate"><span class="pre">--init</span></code> from docker, if both are enabled in the launch command, tini will print a (harmless) warning message.</p></li>
+</ol>
+<blockquote>
+<div><p>We recommend <code class="docutils literal notranslate"><span class="pre">--shm-size=2g</span> <span class="pre">--cap-add=SYS_NICE</span> <span class="pre">--ulimit</span> <span class="pre">nofile=131071:131071</span> <span class="pre">--ulimit</span> <span class="pre">nproc=16384:16384</span></code> in docker launch command. But if user plans to build <a class="reference internal" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/image-processing.html#image-model"><span class="std std-ref">image auto model</span></a> extensively, then <code class="docutils literal notranslate"><span class="pre">--shm-size=4g</span></code> is recommended for Driverless AI docker command.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Start the Driverless AI Docker image</span>
+docker run <span class="se">\</span>
+    --pid<span class="o">=</span>host <span class="se">\</span>
+    --rm <span class="se">\</span>
+    --shm-size<span class="o">=</span>2g --cap-add<span class="o">=</span>SYS_NICE --ulimit <span class="nv">nofile</span><span class="o">=</span><span class="m">131071</span>:131071 --ulimit <span class="nv">nproc</span><span class="o">=</span><span class="m">16384</span>:16384 <span class="se">\</span>
+    -u <span class="sb">`</span>id -u<span class="sb">`</span>:<span class="sb">`</span>id -g<span class="sb">`</span> <span class="se">\</span>
+    -p <span class="m">12345</span>:12345 <span class="se">\</span>
+    -v <span class="sb">`</span><span class="nb">pwd</span><span class="sb">`</span>/data:/data <span class="se">\</span>
+    -v <span class="sb">`</span><span class="nb">pwd</span><span class="sb">`</span>/log:/log <span class="se">\</span>
+    -v <span class="sb">`</span><span class="nb">pwd</span><span class="sb">`</span>/license:/license <span class="se">\</span>
+    -v <span class="sb">`</span><span class="nb">pwd</span><span class="sb">`</span>/tmp:/tmp <span class="se">\</span>
+    -v /etc/passwd:/etc/passwd:ro <span class="se">\</span>
+    -v /etc/group:/etc/group:ro <span class="se">\</span>
+    h2oai/dai-ubi8-x86_64:1.10.6-cuda11.2.2.xx
+</pre></div>
+</div>
+<p>Driverless AI will begin running:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>--------------------------------
+Welcome to H2O.ai's Driverless AI
+---------------------------------
+
+- Put data in the volume mounted at /data
+- Logs are written to the volume mounted at /log/20180606-044258
+- Connect to Driverless AI on port 12345 inside the container
+- Connect to Jupyter notebook on port 8888 inside the container
+</pre></div>
+</div>
+</div></blockquote>
+<ol class="arabic simple" start="9">
+<li><p>Connect to Driverless AI with your browser:</p></li>
+</ol>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>http://Your-Driverless-AI-Host-Machine:12345
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+<div class="section" id="stopping-the-docker-image">
+<h2>Stopping the Docker Image<a class="headerlink" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/install/ubuntu.html#stopping-the-docker-image" title="Permalink to this headline">¶</a></h2>
+<p>To stop the Driverless AI Docker image, type <strong>Ctrl + C</strong> in the Terminal (Mac OS X) or PowerShell (Windows 10) window that is running the Driverless AI Docker image.</p>
+</div>
+<div class="section" id="upgrading-the-docker-image">
+<h2>Upgrading the Docker Image<a class="headerlink" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/install/ubuntu.html#upgrading-the-docker-image" title="Permalink to this headline">¶</a></h2>
+<p>This section provides instructions for upgrading Driverless AI versions that were installed in a Docker container. These steps ensure that existing experiments are saved.</p>
+<p><strong>WARNING</strong>: Experiments, MLIs, and MOJOs reside in the Driverless AI tmp directory and are not automatically upgraded when Driverless AI is upgraded.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Build MLI models before upgrading.</p></li>
+<li><p>Build MOJO pipelines before upgrading.</p></li>
+<li><p>Stop Driverless AI and make a backup of your Driverless AI tmp directory before upgrading.</p></li>
+</ul>
+<p>If you did not build MLI on a model before upgrading Driverless AI, then you will not be able to view MLI on that model after upgrading. Before upgrading, be sure to run MLI jobs on models that you want to continue to interpret in future releases. If that MLI job appears in the list of Interpreted Models in your current version, then it will be retained after upgrading.</p>
+<p>If you did not build a MOJO pipeline on a model before upgrading Driverless AI, then you will not be able to build a MOJO pipeline on that model after upgrading.  Before upgrading, be sure to build MOJO pipelines on all desired models and then back up your Driverless AI tmp directory.</p>
+</div></blockquote>
+<p><strong>Note</strong>: Stop Driverless AI if it is still running.</p>
+<div class="section" id="requirements">
+<h3>Requirements<a class="headerlink" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/install/ubuntu.html#requirements" title="Permalink to this headline">¶</a></h3>
+<p>We recommend to have NVIDIA driver &gt;= 471.68 installed (GPU only) in your host environment for a seamless experience on all architectures, including Ampere. Driverless AI ships with CUDA 11.2.2 for GPUs, but the driver must exist in the host environment.</p>
+<p>Go to <a class="reference external" href="https://www.nvidia.com/Download/index.aspx">NVIDIA download driver</a> to get the latest NVIDIA Tesla A/T/V/P/K series drivers. For reference on CUDA Toolkit and Minimum Required Driver Versions and CUDA Toolkit and Corresponding Driver Versions, see <a class="reference external" href="https://docs.nvidia.com/cuda/cuda-toolkit-release-notes/index.html">here</a> .</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you are using K80 GPUs, the minimum required NVIDIA driver version is 450.80.02.</p>
+</div>
+</div>
+<div class="section" id="upgrade-steps">
+<h3>Upgrade Steps<a class="headerlink" href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/install/ubuntu.html#upgrade-steps" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>SSH into the IP address of the machine that is running Driverless AI.</p></li>
+<li><p>Set up a directory for the version of Driverless AI on the host machine:</p></li>
+</ol>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Set up directory with the version name</span>
+mkdir dai-1.10.6
+
+<span class="c1"># cd into the new directory</span>
+<span class="nb">cd</span> dai-1.10.6
+</pre></div>
+</div>
+</div></blockquote>
+<ol class="arabic simple" start="3">
+<li><p>Retrieve the Driverless AI package from <a class="reference external" href="https://www.h2o.ai/download/">https://www.h2o.ai/download/</a> and add it to the new directory.</p></li>
+<li><p>Load the Driverless AI Docker image inside the new directory:</p></li>
+</ol>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load the Driverless AI docker image</span>
+docker load &lt; dai-docker-ubi8-x86_64-1.10.6.tar.gz
+</pre></div>
+</div>
+</div></blockquote>
+<ol class="arabic simple" start="5">
+<li><p>Copy the data, log, license, and tmp directories from the previous Driverless AI directory to the new Driverless AI directory:</p></li>
+</ol>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Copy the data, log, license, and tmp directories on the host machine</span>
+cp -a dai_rel_1.4.2/data dai-1.10.6/data
+cp -a dai_rel_1.4.2/log dai-1.10.6/log
+cp -a dai_rel_1.4.2/license dai-1.10.6/license
+cp -a dai_rel_1.4.2/tmp dai-1.10.6/tmp
+</pre></div>
+</div>
+<p>At this point, your experiments from the previous versions will be visible inside the Docker container.</p>
+</div></blockquote>
+<ol class="arabic simple" start="6">
+<li><p>Use <code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">images</span></code> to find the new image tag.</p></li>
+<li><p>Start the Driverless AI Docker image.</p></li>
+<li><p>Connect to Driverless AI with your browser at <a class="reference external" href="http://your-driverless-ai-host-machine:12345/">http://Your-Driverless-AI-Host-Machine:12345</a>.</p></li>
+</ol>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/install/rhel.html" class="btn btn-neutral float-right" title="Install on RHEL" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="https://s3.amazonaws.com/artifacts.h2o.ai/releases/ai/h2o/dai/rel-1.10.6-17/docs/userguide/install/linux-docker-images.html" class="btn btn-neutral float-left" title="Linux Docker Images" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+        © Copyright 2017-2023 H2O.ai.
+      <span class="lastupdated">
+        Last updated on Aug 28, 2023.
+      </span>
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org/">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+
+</body></html>

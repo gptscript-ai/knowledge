@@ -1,0 +1,53 @@
+tools: sys.write, sys.append, csv-reader
+
+Read the csv file from /Users/daishan/e2e_df.csv using csv reader. List all the unique names.
+
+1. For each unique name, query question, answer, url using name as constraint based on the schema. Remove all the quotes and [] in each answer.
+2. Use question, answer, and url from previous output to write python tests. You need to append two files, one is conftest-gpt.py and one is test.py. Use the last part from url as file name. Use the following code pattern below.
+Parametrize all the questions and answer you can find. if you see multiple answer, just use the first one and convert it to string.
+
+Repeat the steps above until you have iterated through all the names. Perform the step one by one and do not continue process the next task until the current task finishes.
+
+conftest.py:
+@pytest.fixture(scope="module")
+def setup_${dataset_name}_dataset():
+    datasetName = "${dataset_name}"
+
+    subprocess.run(['knowledge', 'create-dataset', datasetName])
+    subprocess.run(['knowledge', 'ingest', '-d', datasetName, "./data/${file_name}"])
+
+    yield datasetName
+
+    subprocess.run(['knowledge', 'delete-dataset', datasetName])
+
+test-gpt.py:
+@pytest.mark.parametrize("question,answer", [
+    ("${question}", "${answer}"),
+    ("${question}", "${answer}"),
+])
+def test_${dataset_name}_dataset(setup_${dataset_name}_dataset, judge_client, question, answer):
+    dataset = setup_${dataset_name}_dataset
+    run_test(question, answer, dataset, judge_client)
+
+
+---
+name: csv-reader
+export: read-csv-schema, duckdb
+description: a toolset that is able to read csv files and make queries using nature language
+---
+name: read-csv-schema
+description: read schema from a csv file. Install duckdb first
+args: csvPath: the path to csv file
+
+#!/bin/bash
+echo "CREATE TEMPORARY TABLE temp_csv AS SELECT * FROM read_csv_auto('${csvPath}'); PRAGMA table_info('temp_csv');" | duckdb ":memory:"
+
+---
+name: duckdb
+description: use duckdb to analyze csv file and make query. Install duckdb first.
+args: input: command line arg input
+
+#!/bin/bash
+set -x
+
+duckdb -csv -c "${input}"

@@ -61,8 +61,7 @@ func (r *Reader) NumPage() int {
 }
 
 // GetPlainText returns all the text in the PDF file
-func (r *Reader) GetPlainText(interpreterOpts ...InterpreterOption) (reader io.Reader, err error) {
-	interpreter := NewInterpreter(interpreterOpts...)
+func (r *Reader) GetPlainText() (reader io.Reader, err error) {
 	pages := r.NumPage()
 	var buf bytes.Buffer
 	fonts := make(map[string]*Font)
@@ -74,7 +73,7 @@ func (r *Reader) GetPlainText(interpreterOpts ...InterpreterOption) (reader io.R
 				fonts[name] = &f
 			}
 		}
-		text, err := p.GetPlainText(fonts, WithInterpreterConfig(interpreter.Config))
+		text, err := p.GetPlainText(fonts)
 		if err != nil {
 			return &bytes.Buffer{}, err
 		}
@@ -161,15 +160,14 @@ func (f Font) Width(code int) float64 {
 }
 
 // Encoder returns the encoding between font code point sequences and UTF-8.
-func (f Font) Encoder(interpreterOpts ...InterpreterOption) TextEncoding {
-	interpreter := NewInterpreter(interpreterOpts...)
-	if f.enc == nil { // caching the Encoder, so we don't have to continually parse charmap
-		f.enc = f.getEncoder(*interpreter)
+func (f Font) Encoder() TextEncoding {
+	if f.enc == nil { // caching the Encoder so we don't have to continually parse charmap
+		f.enc = f.getEncoder()
 	}
 	return f.enc
 }
 
-func (f Font) getEncoder(interpreter Interpreter) TextEncoding {
+func (f Font) getEncoder() TextEncoding {
 	enc := f.V.Key("Encoding")
 	switch enc.Kind() {
 	case Name:
@@ -179,7 +177,7 @@ func (f Font) getEncoder(interpreter Interpreter) TextEncoding {
 		case "MacRomanEncoding":
 			return &byteEncoder{&macRomanEncoding}
 		case "Identity-H":
-			return f.charmapEncoding(interpreter)
+			return f.charmapEncoding()
 		default:
 			if DebugOn {
 				println("unknown encoding", enc.Name())
@@ -189,7 +187,7 @@ func (f Font) getEncoder(interpreter Interpreter) TextEncoding {
 	case Dict:
 		return &dictEncoder{enc.Key("Differences")}
 	case Null:
-		return f.charmapEncoding(interpreter)
+		return f.charmapEncoding()
 	default:
 		if DebugOn {
 			println("unexpected encoding", enc.String())
@@ -198,10 +196,10 @@ func (f Font) getEncoder(interpreter Interpreter) TextEncoding {
 	}
 }
 
-func (f *Font) charmapEncoding(interpreter Interpreter) TextEncoding {
+func (f *Font) charmapEncoding() TextEncoding {
 	toUnicode := f.V.Key("ToUnicode")
 	if toUnicode.Kind() == Stream {
-		m := readCmap(toUnicode, interpreter)
+		m := readCmap(toUnicode)
 		if m == nil {
 			return &nopEncoder{}
 		}
@@ -352,11 +350,11 @@ Parse:
 	return string(r)
 }
 
-func readCmap(toUnicode Value, interpreter Interpreter) *cmap {
+func readCmap(toUnicode Value) *cmap {
 	n := -1
 	var m cmap
 	ok := true
-	interpreter.Interpret(toUnicode, func(stk *Stack, op string) {
+	Interpret(toUnicode, func(stk *Stack, op string) {
 		if !ok {
 			return
 		}
@@ -488,9 +486,7 @@ type gstate struct {
 
 // GetPlainText returns the page's all text without format.
 // fonts can be passed in (to improve parsing performance) or left nil
-func (p Page) GetPlainText(fonts map[string]*Font, interpreterOpts ...InterpreterOption) (result string, err error) {
-	interpreter := NewInterpreter(interpreterOpts...)
-
+func (p Page) GetPlainText(fonts map[string]*Font) (result string, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			result = ""
@@ -519,7 +515,7 @@ func (p Page) GetPlainText(fonts map[string]*Font, interpreterOpts ...Interprete
 		}
 	}
 
-	interpreter.Interpret(strm, func(stk *Stack, op string) {
+	Interpret(strm, func(stk *Stack, op string) {
 		n := stk.Len()
 		args := make([]Value, n)
 		for i := n - 1; i >= 0; i-- {
@@ -536,7 +532,7 @@ func (p Page) GetPlainText(fonts map[string]*Font, interpreterOpts ...Interprete
 				panic("bad TL")
 			}
 			if font, ok := fonts[args[0].Name()]; ok {
-				enc = font.Encoder(interpreterOpts...)
+				enc = font.Encoder()
 			} else {
 				enc = &nopEncoder{}
 			}
@@ -578,8 +574,7 @@ type Column struct {
 type Columns []*Column
 
 // GetTextByColumn returns the page's all text grouped by column
-func (p Page) GetTextByColumn(interpreterOpts ...InterpreterOption) (Columns, error) {
-	interpreter := NewInterpreter(interpreterOpts...)
+func (p Page) GetTextByColumn() (Columns, error) {
 	result := Columns{}
 	var err error
 
@@ -626,7 +621,7 @@ func (p Page) GetTextByColumn(interpreterOpts ...InterpreterOption) (Columns, er
 		currentColumn.Content = append(currentColumn.Content, text)
 	}
 
-	p.walkTextBlocks(*interpreter, showText)
+	p.walkTextBlocks(showText)
 
 	for _, column := range result {
 		sort.Sort(column.Content)
@@ -649,8 +644,7 @@ type Row struct {
 type Rows []*Row
 
 // GetTextByRow returns the page's all text grouped by rows
-func (p Page) GetTextByRow(interpreterOpts ...InterpreterOption) (Rows, error) {
-	interpreter := NewInterpreter(interpreterOpts...)
+func (p Page) GetTextByRow() (Rows, error) {
 	result := Rows{}
 	var err error
 
@@ -701,7 +695,7 @@ func (p Page) GetTextByRow(interpreterOpts ...InterpreterOption) (Rows, error) {
 		currentRow.Content = append(currentRow.Content, text)
 	}
 
-	p.walkTextBlocks(*interpreter, showText)
+	p.walkTextBlocks(showText)
 
 	for _, row := range result {
 		sort.Sort(row.Content)
@@ -714,7 +708,7 @@ func (p Page) GetTextByRow(interpreterOpts ...InterpreterOption) (Rows, error) {
 	return result, err
 }
 
-func (p Page) walkTextBlocks(interpreter Interpreter, walker func(enc TextEncoding, x, y float64, s string)) {
+func (p Page) walkTextBlocks(walker func(enc TextEncoding, x, y float64, s string)) {
 	strm := p.V.Key("Contents")
 
 	fonts := make(map[string]*Font)
@@ -725,7 +719,7 @@ func (p Page) walkTextBlocks(interpreter Interpreter, walker func(enc TextEncodi
 
 	var enc TextEncoding = &nopEncoder{}
 	var currentX, currentY float64
-	interpreter.Interpret(strm, func(stk *Stack, op string) {
+	Interpret(strm, func(stk *Stack, op string) {
 		n := stk.Len()
 		args := make([]Value, n)
 		for i := n - 1; i >= 0; i-- {
@@ -746,7 +740,7 @@ func (p Page) walkTextBlocks(interpreter Interpreter, walker func(enc TextEncodi
 			}
 
 			if font, ok := fonts[args[0].Name()]; ok {
-				enc = font.Encoder(WithInterpreterConfig(interpreter.Config))
+				enc = font.Encoder()
 			} else {
 				enc = &nopEncoder{}
 			}
@@ -784,9 +778,7 @@ func (p Page) walkTextBlocks(interpreter Interpreter, walker func(enc TextEncodi
 }
 
 // Content returns the page's content.
-func (p Page) Content(interpreterOpts ...InterpreterOption) Content {
-	interpreter := NewInterpreter(interpreterOpts...)
-
+func (p Page) Content() Content {
 	strm := p.V.Key("Contents")
 	var enc TextEncoding = &nopEncoder{}
 
@@ -822,7 +814,7 @@ func (p Page) Content(interpreterOpts ...InterpreterOption) Content {
 
 	var rect []Rect
 	var gstack []gstate
-	interpreter.Interpret(strm, func(stk *Stack, op string) {
+	Interpret(strm, func(stk *Stack, op string) {
 		n := stk.Len()
 		args := make([]Value, n)
 		for i := n - 1; i >= 0; i-- {
@@ -830,9 +822,9 @@ func (p Page) Content(interpreterOpts ...InterpreterOption) Content {
 		}
 		switch op {
 		default:
-			if TraceOn {
-				fmt.Println(op, args)
-			}
+			// if DebugOn {
+			// 	fmt.Println(op, args)
+			// }
 			return
 
 		case "cm": // update g.CTM
@@ -917,7 +909,7 @@ func (p Page) Content(interpreterOpts ...InterpreterOption) Content {
 			}
 			f := args[0].Name()
 			g.Tf = p.Font(f)
-			enc = g.Tf.Encoder(WithInterpreterConfig(interpreter.Config))
+			enc = g.Tf.Encoder()
 			if enc == nil {
 				if DebugOn {
 					println("no cmap for", f)

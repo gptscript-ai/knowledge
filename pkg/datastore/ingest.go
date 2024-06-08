@@ -102,8 +102,7 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 	}
 
 	if len(docs) == 0 {
-		slog.Error("No documents found")
-		return nil, fmt.Errorf("no documents found")
+		return nil, nil
 	}
 
 	// Add documents to VectorStore -> This generates the embeddings
