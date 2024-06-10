@@ -5,17 +5,17 @@ go 1.22.0
 replace (
 	github.com/philippgille/chromem-go => github.com/iwilltry42/chromem-go v0.0.0-20240513080122-88f1efa639f5 // Azure OpenAI support
 	github.com/tmc/langchaingo => github.com/iwilltry42/langchaingo v0.0.0-20240516095223-8cf46ac74799 // Context-Aware Markdown Splitting
-
-	// bind unidoc to v3.9.0 to use APGL version of source code
-	github.com/unidoc/unipdf/v3 => github.com/StrongMonkey/unipdf/v3 v3.0.0-20240604183559-b790d5fed3c0
 )
 
 require (
 	dario.cat/mergo v1.0.0
+	github.com/JohannesKaufmann/html-to-markdown v1.6.0
+	github.com/PuerkitoBio/goquery v1.9.2
 	github.com/acorn-io/cmd v0.0.0-20240404013709-34f690bde37b
 	github.com/acorn-io/z v0.0.0-20231104012607-4cab1b3ec5e5
 	github.com/adrg/xdg v0.4.0
 	github.com/gabriel-vasile/mimetype v1.4.3
+	github.com/gen2brain/go-fitz v1.23.7
 	github.com/gin-gonic/gin v1.9.1
 	github.com/glebarez/sqlite v1.11.0
 	github.com/google/uuid v1.6.0
@@ -31,6 +31,7 @@ require (
 	github.com/tmc/langchaingo v0.1.8
 	github.com/unidoc/unipdf/v3 v3.55.0
 	golang.org/x/sync v0.7.0
+	golang.org/x/text v0.15.0
 	gorm.io/gorm v1.25.9
 	sigs.k8s.io/yaml v1.4.0
 )
@@ -42,7 +43,6 @@ require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/ProtonMail/go-crypto v1.0.0 // indirect
-	github.com/PuerkitoBio/goquery v1.9.1 // indirect
 	github.com/andybalholm/cascadia v1.3.2 // indirect
 	github.com/avast/retry-go v3.0.0+incompatible // indirect
 	github.com/aws/aws-sdk-go-v2 v1.26.0 // indirect
@@ -120,6 +120,8 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect
+	github.com/unidoc/pkcs7 v0.2.0 // indirect
+	github.com/unidoc/timestamp v0.0.0-20200412005513-91597fd3793a // indirect
 	github.com/unidoc/unioffice v1.30.0 // indirect
 	github.com/unidoc/unitype v0.4.0 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
@@ -129,13 +131,12 @@ require (
 	gitlab.com/golang-commonmark/mdurl v0.0.0-20191124015652-932350d1cb84 // indirect
 	gitlab.com/golang-commonmark/puny v0.0.0-20191124015043-9f83538fa04f // indirect
 	golang.org/x/arch v0.7.0 // indirect
-	golang.org/x/crypto v0.22.0 // indirect
+	golang.org/x/crypto v0.23.0 // indirect
 	golang.org/x/exp v0.0.0-20240416160154-fe59bbe5cc7f // indirect
 	golang.org/x/image v0.15.0 // indirect
 	golang.org/x/mod v0.17.0 // indirect
-	golang.org/x/net v0.24.0 // indirect
-	golang.org/x/sys v0.19.0 // indirect
-	golang.org/x/text v0.14.0 // indirect
+	golang.org/x/net v0.25.0 // indirect
+	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/tools v0.20.0 // indirect
 	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
 	google.golang.org/api v0.176.1 // indirect

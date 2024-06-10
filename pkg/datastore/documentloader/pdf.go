@@ -1,14 +1,15 @@
 package documentloader
 
 import (
-	"bytes"
 	"context"
+	"io"
 	"strings"
 
+	md "github.com/JohannesKaufmann/html-to-markdown"
+	"github.com/PuerkitoBio/goquery"
+	"github.com/gen2brain/go-fitz"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
-	"github.com/unidoc/unipdf/v3/extractor"
-	"github.com/unidoc/unipdf/v3/model"
 )
 
 // Compile time check to ensure PDF satisfies the DocumentLoader interface.
@@ -37,12 +38,17 @@ func WithConfig(config PDFOptions) func(o *PDFOptions) {
 
 // PDF represents a PDF document loader that implements the DocumentLoader interface.
 type PDF struct {
-	data []byte
-	opts PDFOptions
+	opts      PDFOptions
+	document  *fitz.Document
+	converter *md.Converter
 }
 
 // NewPDFFromFile creates a new PDF loader with the given options.
-func NewPDF(data []byte, optFns ...func(o *PDFOptions)) (*PDF, error) {
+func NewPDF(r io.Reader, optFns ...func(o *PDFOptions)) (*PDF, error) {
+	doc, err := fitz.NewFromReader(r)
+	if err != nil {
+		return nil, err
+	}
 	opts := PDFOptions{
 		StartPage: 1,
 	}
@@ -55,64 +61,46 @@ func NewPDF(data []byte, optFns ...func(o *PDFOptions)) (*PDF, error) {
 		opts.StartPage = 1
 	}
 
+	converter := md.NewConverter("", true, nil)
+
 	return &PDF{
-		data: data,
-		opts: opts,
+		opts:      opts,
+		document:  doc,
+		converter: converter,
 	}, nil
 }
 
 // Load loads the PDF document and returns a slice of vs.Document containing the page contents and metadata.
 func (l *PDF) Load(ctx context.Context) ([]vs.Document, error) {
-	var (
-		err error
-	)
+	docs := make([]vs.Document, 0, l.document.NumPage())
 
-	rs := bytes.NewReader(l.data)
-	pdfReader, err := model.NewPdfReader(rs)
-	if err != nil {
-		return nil, err
-	}
-
-	encrypted, err := pdfReader.IsEncrypted()
-	if err != nil {
-		return nil, err
-	}
-
-	if encrypted {
-		_, err := pdfReader.Decrypt([]byte(l.opts.Password))
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	numPages, err := pdfReader.GetNumPages()
-	if err != nil {
-		return nil, err
-	}
-
-	docs := make([]vs.Document, 0, numPages)
-
-	for i := 1; i <= numPages; i++ {
-		page, err := pdfReader.GetPage(i)
+	for pageNum := 0; pageNum < l.document.NumPage(); pageNum++ {
+		html, err := l.document.HTML(pageNum, true)
 		if err != nil {
 			return nil, err
 		}
 
-		ex, err := extractor.New(page)
+		htmlDoc, err := goquery.NewDocumentFromReader(strings.NewReader(html))
+		if err != nil {
+			return nil, err
+		}
+		htmlDoc.Find("img").Remove()
+
+		ret, err := htmlDoc.First().Html()
 		if err != nil {
 			return nil, err
 		}
 
-		pageText, err := ex.ExtractText()
+		markdown, err := l.converter.ConvertString(ret)
 		if err != nil {
 			return nil, err
 		}
 
 		doc := vs.Document{
-			Content: strings.TrimSpace(pageText),
+			Content: strings.TrimSpace(markdown),
 			Metadata: map[string]any{
-				"page":       i,
-				"totalPages": numPages,
+				"page":       pageNum + 1,
+				"totalPages": l.document.NumPage(),
 			},
 		}
 

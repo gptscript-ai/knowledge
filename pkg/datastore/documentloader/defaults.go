@@ -24,11 +24,7 @@ func DefaultDocLoaderFunc(filetype string) func(ctx context.Context, reader io.R
 	switch filetype {
 	case ".pdf", "application/pdf":
 		return func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
-			data, nerr := io.ReadAll(reader)
-			if nerr != nil {
-				return nil, fmt.Errorf("failed to read PDF data: %w", nerr)
-			}
-			r, nerr := NewPDF(data)
+			r, nerr := NewPDF(reader)
 			if nerr != nil {
 				slog.Error("Failed to create PDF loader", "error", nerr)
 				return nil, nerr

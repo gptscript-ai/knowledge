@@ -22,11 +22,11 @@ def run_test(question, answer, dataset, judge_client):
             args={"query": "Query to be executed against the Knowledge Base Dataset"},
             instructions="""
 
-                #!knowledge retrieve -d {} -k 10 ${{query}}
+                #!knowledge retrieve -d {} -k 20 ${{query}}
                 """.format(dataset)),
     ]
 
-    os.environ['GPTSCRIPT_INTERNAL_SYSTEM_PROMPT'] = ('You are an expert understanding context and extracting information')
+    os.environ['GPTSCRIPT_INTERNAL_SYSTEM_PROMPT'] = ('You are an expert in understanding context and extracting information')
     resp = exec(tools)
 
     if isinstance(resp, (list, tuple)):
