@@ -1,0 +1,29 @@
+name: Test
+
+on:
+  pull_request:
+    branches:
+      - main
+
+env:
+  GO_VERSION: "1.22.x"
+
+jobs:
+  test-suite:
+    timeout-minutes: 30
+    name: Full Test Suite
+    runs-on: ubuntu-22.04
+    steps:
+      # Setup
+      - uses: actions/checkout@v4
+      - name: Setup Go environment
+        uses: actions/setup-go@v5
+        with:
+          go-version: "${{ env.GO_VERSION }}"
+      - name: Setup CI Tools
+        run: make ci-setup
+      - name: Build
+        run: make build
+      # Tests
+      - name: Run Go Tests
+        run: make test
