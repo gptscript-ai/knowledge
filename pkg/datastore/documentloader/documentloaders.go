@@ -63,11 +63,7 @@ func GetDocumentLoaderFunc(name string, config any) (LoaderFunc, error) {
 			slog.Debug("PDF custom config (decoded)", "pdfConfig", pdfConfig)
 		}
 		return func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
-			data, err := io.ReadAll(reader)
-			if err != nil {
-				return nil, fmt.Errorf("failed to read PDF data: %w", err)
-			}
-			r, err := NewPDF(data, WithConfig(pdfConfig))
+			r, err := NewPDF(reader, WithConfig(pdfConfig))
 			if err != nil {
 				slog.Error("Failed to create PDF loader", "error", err)
 				return nil, err

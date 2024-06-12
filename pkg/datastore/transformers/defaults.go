@@ -1,6 +1,8 @@
 package transformers
 
-import "github.com/gptscript-ai/knowledge/pkg/datastore/types"
+import (
+	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
+)
 
 func DefaultDocumentTransformers(filetype string) (transformers []types.DocumentTransformer) {
 	switch filetype {

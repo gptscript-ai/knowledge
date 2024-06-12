@@ -12,7 +12,7 @@ endif
 GO_TAGS := netgo
 LD_FLAGS := -s -w -X github.com/gptscript-ai/knowledge/version.Version=${GIT_TAG}
 build:
-	CGO_ENABLED=0 go build -o bin/knowledge -tags "${GO_TAGS}" -ldflags '$(LD_FLAGS)' .
+	go build -o bin/knowledge -tags "${GO_TAGS}" -ldflags '$(LD_FLAGS)' .
 
 run: build
 	bin/knowledge server
