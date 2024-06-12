@@ -1,38 +1,20 @@
-name: Test & Release
+name: Release
 
 on:
-  - push
-  - workflow_dispatch
+  push:
+    tags:
+      - "v*"
 
 env:
   GO_VERSION: "1.22.x"
 
 jobs:
-  test-suite:
-    timeout-minutes: 30
-    name: Full Test Suite
-    runs-on: ubuntu-22.04
-    steps:
-      # Setup
-      - uses: actions/checkout@v4
-      - name: Setup Go environment
-        uses: actions/setup-go@v5
-        with:
-          go-version: "${{ env.GO_VERSION }}"
-      - name: Setup CI Tools
-        run: make ci-setup
-      # Tests
-      - name: Run Go Tests
-        run: make test
-      # Builds
-      - name: Test Platform Builds
-        run: make build-cross
-
-
   release-github:
     name: Build & Release Binaries
-    # Only run on tags
-    runs-on: ubuntu-22.04
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-22.04, macos-latest ]
     steps:
       # Setup
       - uses: actions/checkout@v4
@@ -42,9 +24,18 @@ jobs:
           go-version: "${{ env.GO_VERSION }}"
       - name: Setup CI Tools
         run: make ci-setup
+      - name: Run Go Tests
+        run: make test
+      - name: Install Homebrew on macOS
+        if: runner.os == 'macOS'
+        run: |
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
+          eval "$(/opt/homebrew/bin/brew shellenv)"
+          brew install mingw-w64
       # Go Build
       - name: Build Binary
-        run: make gen-checksum build-cross
+        run: make build-cross
       # Create Git Release
       - name: Extract Tag from Ref
         if: startsWith(github.ref, 'refs/tags/')
@@ -63,7 +54,6 @@ jobs:
           allowUpdates: true
           artifactErrorsFailBuild: true
           artifacts: dist/*
-          # discussionCategory: releases
           makeLatest: ${{ steps.semver.outputs.prerelease == '' }}
           generateReleaseNotes: true
           prerelease: ${{ steps.semver.outputs.prerelease != '' }}

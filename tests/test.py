@@ -295,11 +295,11 @@ def test_imagejon7_dataset(setup_imagejon7_dataset, judge_client, question, answ
     ("What was net income?", "$14,845 million or $14.845 billion"),
     ("How many hours were volunteered, and across how many countries to help confronting society’s challenge?", "115,000, 84"),
     ("How much did Citi finance for affordable housing in the U.S.?", "$6, billion"),
-    ("What were total liabilities of Citigroup as of Dec 31 2022?", "$2,214,838, million"),
+    ("What were total liabilities of Citigroup as of Dec 31 2022?", "$2,214,838 million"),
     ("What were total assets of Citigroup as of Dec 31 2022?", "2,416,676, million"),
     ("On what page are Basel III Revisions?", "49"),
     ("How many employees are at Citi?", "240,000"),
-    ("What was the revenue from legacy franchises", "8.5, billion"),
+    ("What was the revenue from legacy franchises", "$8.5 billion or $8.472 billion"),
     ("How large is the new stress capital buffer?", "4.0%"),
     ("What were total revenues of Citigroup in 2022?", "$75,338 million or $75.338 billion or $75.3 billion"),
 ])
