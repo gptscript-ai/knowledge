@@ -8,15 +8,15 @@ import (
 	"context"
 	"encoding/csv"
 	"errors"
-	"fmt"
 	"io"
 	"log/slog"
 	"strings"
 
+	"code.sajari.com/docconv/v2"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/filetypes"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 	golcdocloaders "github.com/hupe1980/golc/documentloader"
-	"github.com/lu4p/cat"
+	"github.com/lu4p/cat/rtftxt"
 	lcgodocloaders "github.com/tmc/langchaingo/documentloaders"
 )
 
@@ -67,17 +67,42 @@ func DefaultDocLoaderFunc(filetype string) func(ctx context.Context, reader io.R
 		return func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
 			return FromGolc(golcdocloaders.NewNotebook(reader)).Load(ctx)
 		}
-	case ".docx", ".odt", ".rtf", "application/vnd.oasis.opendocument.text", "text/rtf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+	case ".docx", ".odt", ".rtf", "text/rtf", "application/vnd.oasis.opendocument.text", "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
 		return func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
-			data, nerr := io.ReadAll(reader)
-			if nerr != nil {
-				return nil, fmt.Errorf("failed to read %s data: %w", filetype, nerr)
+			var text string
+			var metadata map[string]string
+			var err error
+			switch filetype {
+			case ".docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+				text, metadata, err = docconv.ConvertDocx(reader)
+			case ".rtf", ".rtfd", "text/rtf":
+				buf, err := rtftxt.Text(reader)
+				if err != nil {
+					return nil, err
+				}
+				text = buf.String()
+			case ".odt", "application/vnd.oasis.opendocument.text":
+				text, metadata, err = docconv.ConvertODT(reader)
 			}
-			text, nerr := cat.FromBytes(data)
-			if nerr != nil {
-				return nil, fmt.Errorf("failed to extract text from %s: %w", filetype, nerr)
+
+			if err != nil {
+				return nil, err
 			}
-			return FromLangchain(lcgodocloaders.NewText(strings.NewReader(text))).Load(ctx)
+
+			docs, err := FromLangchain(lcgodocloaders.NewText(strings.NewReader(text))).Load(ctx)
+			if err != nil {
+				return nil, err
+			}
+
+			for _, doc := range docs {
+				m := map[string]any{}
+				for k, v := range metadata {
+					m[k] = v
+				}
+				doc.Metadata = m
+			}
+
+			return docs, nil
 		}
 	// todo: OCR support is commented out for now as it relies on external dependencies.
 	// We might add it back later.
