@@ -1,7 +1,8 @@
-Description: Create a knowledge base from files in the ./knowledge directory and retrieve information from it.
+Description: Create a knowledge base from files in the workspace directory and retrieve information from it.
+Context: github.com/gptscript-ai/context/workspace
 Args: query: The query to search for in the knowledge directory.
 
-#!${GPTSCRIPT_TOOL_DIR}/bin/gptscript-go-tool askdir "${query}"
+#!${GPTSCRIPT_TOOL_DIR}/bin/gptscript-go-tool askdir --path ${GPTSCRIPT_WORKSPACE_DIR} "${query}"
 
 ---
 name: retrieval
