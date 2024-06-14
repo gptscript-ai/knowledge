@@ -4,12 +4,14 @@ import (
 	"context"
 	"io"
 	"strings"
+	"sync"
 
 	md "github.com/JohannesKaufmann/html-to-markdown"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gen2brain/go-fitz"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
+	"golang.org/x/sync/errgroup"
 )
 
 // Compile time check to ensure PDF satisfies the DocumentLoader interface.
@@ -27,6 +29,9 @@ type PDFOptions struct {
 
 	// Source is the name of the pdf document
 	Source string
+
+	// Number of goroutines to load pdf documents
+	NumThread int
 }
 
 // WithConfig sets the PDF loader configuration.
@@ -41,6 +46,7 @@ type PDF struct {
 	opts      PDFOptions
 	document  *fitz.Document
 	converter *md.Converter
+	lock      *sync.Mutex
 }
 
 // NewPDFFromFile creates a new PDF loader with the given options.
@@ -63,51 +69,67 @@ func NewPDF(r io.Reader, optFns ...func(o *PDFOptions)) (*PDF, error) {
 
 	converter := md.NewConverter("", true, nil)
 
+	if opts.NumThread == 0 {
+		opts.NumThread = 100
+	}
+
 	return &PDF{
 		opts:      opts,
 		document:  doc,
 		converter: converter,
+		lock:      &sync.Mutex{},
 	}, nil
 }
 
 // Load loads the PDF document and returns a slice of vs.Document containing the page contents and metadata.
 func (l *PDF) Load(ctx context.Context) ([]vs.Document, error) {
 	docs := make([]vs.Document, 0, l.document.NumPage())
+	numPages := l.document.NumPage()
 
-	for pageNum := 0; pageNum < l.document.NumPage(); pageNum++ {
+	g, childCtx := errgroup.WithContext(ctx)
+	g.SetLimit(l.opts.NumThread)
+	for pageNum := 0; pageNum < numPages; pageNum++ {
 		html, err := l.document.HTML(pageNum, true)
 		if err != nil {
 			return nil, err
 		}
+		g.Go(func() error {
+			select {
+			case <-childCtx.Done():
+				return context.Canceled
+			default:
+				htmlDoc, err := goquery.NewDocumentFromReader(strings.NewReader(html))
+				if err != nil {
+					return err
+				}
+				htmlDoc.Find("img").Remove()
 
-		htmlDoc, err := goquery.NewDocumentFromReader(strings.NewReader(html))
-		if err != nil {
-			return nil, err
-		}
-		htmlDoc.Find("img").Remove()
+				ret, err := htmlDoc.First().Html()
+				if err != nil {
+					return err
+				}
 
-		ret, err := htmlDoc.First().Html()
-		if err != nil {
-			return nil, err
-		}
+				markdown, err := l.converter.ConvertString(ret)
+				if err != nil {
+					return err
+				}
 
-		markdown, err := l.converter.ConvertString(ret)
-		if err != nil {
-			return nil, err
-		}
-
-		doc := vs.Document{
-			Content: strings.TrimSpace(markdown),
-			Metadata: map[string]any{
-				"page":       pageNum + 1,
-				"totalPages": l.document.NumPage(),
-			},
-		}
-
-		docs = append(docs, doc)
+				doc := vs.Document{
+					Content: strings.TrimSpace(markdown),
+					Metadata: map[string]any{
+						"page":       pageNum + 1,
+						"totalPages": numPages,
+					},
+				}
+				l.lock.Lock()
+				docs = append(docs, doc)
+				l.lock.Unlock()
+				return nil
+			}
+		})
 	}
 
-	return docs, nil
+	return docs, g.Wait()
 }
 
 // LoadAndSplit loads PDF documents from the provided reader and splits them using the specified text splitter.

@@ -4,13 +4,16 @@ import (
 	"context"
 	"log/slog"
 	"maps"
-	"runtime"
 	"strconv"
 
 	"github.com/google/uuid"
+	"github.com/gptscript-ai/knowledge/pkg/env"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 	"github.com/philippgille/chromem-go"
 )
+
+// EmbeddingParallelThread can be set as an environment variable to control the number of parallel API calls to create embedding for documents. Default is 100
+const VsChromemEmbeddingParallelThread = "VS_CHROMEM_EMBEDDING_PARALLEL_THREAD"
 
 type Store struct {
 	db            *chromem.DB
@@ -58,7 +61,7 @@ func (s *Store) AddDocuments(ctx context.Context, docs []vs.Document, collection
 		return nil, vs.ErrCollectionNotFound{Collection: collection}
 	}
 
-	err := col.AddDocuments(ctx, chromemDocs, runtime.NumCPU()/2)
+	err := col.AddDocuments(ctx, chromemDocs, env.GetIntFromEnvOrDefault(VsChromemEmbeddingParallelThread, 100))
 	if err != nil {
 		return nil, err
 	}
