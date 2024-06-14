@@ -16,7 +16,7 @@ import (
 
 type ClientAskDir struct {
 	Client
-	Path string `usage:"Path to the directory to query" short:"p" default:"./knowledge"`
+	Path string `usage:"Path to the directory to query" short:"p" default:"."`
 	ClientIngestOpts
 	ClientRetrieveOpts
 	ClientFlowsConfig
