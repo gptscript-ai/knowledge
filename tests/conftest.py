@@ -805,6 +805,54 @@ def setup_imagejonm_dataset():
     subprocess.run(['knowledge', 'delete-dataset', datasetName])
 
 
+@pytest.fixture(scope="module")
+def setup_docx_1_dataset():
+    datasetName = "docx"
+
+    subprocess.run(['knowledge', 'create-dataset', datasetName])
+    subprocess.run(['knowledge', 'ingest', '-d', datasetName, "./data/docs-demo.docx"])
+
+    yield datasetName
+
+    subprocess.run(['knowledge', 'delete-dataset', datasetName])
+
+
+@pytest.fixture(scope="module")
+def setup_rtfd_1_dataset():
+    datasetName = "rtfd"
+
+    subprocess.run(['knowledge', 'create-dataset', datasetName])
+    subprocess.run(['knowledge', 'ingest', '-d', datasetName, "./data/docs-demo.rtf"])
+
+    yield datasetName
+
+    subprocess.run(['knowledge', 'delete-dataset', datasetName])
+
+
+@pytest.fixture(scope="module")
+def setup_odt_1_dataset():
+    datasetName = "odt"
+
+    subprocess.run(['knowledge', 'create-dataset', datasetName])
+    subprocess.run(['knowledge', 'ingest', '-d', datasetName, "./data/odt-demo.odt"])
+
+    yield datasetName
+
+    subprocess.run(['knowledge', 'delete-dataset', datasetName])
+
+
+@pytest.fixture(scope="module")
+def setup_markdown_dataset():
+    datasetName = "markdown"
+
+    subprocess.run(['knowledge', 'create-dataset', datasetName])
+    subprocess.run(['knowledge', 'ingest', '-d', datasetName, "./data/markdown-demo.md"])
+
+    yield datasetName
+
+    subprocess.run(['knowledge', 'delete-dataset', datasetName])
+
+
 @pytest.fixture(scope="session")
 def judge_client():
     api_key = os.getenv("OPENAI_API_KEY")

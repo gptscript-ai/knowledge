@@ -636,3 +636,35 @@ def test_lowes_dataset(setup_lowes_dataset, judge_client, question, answer):
 def test_imagejonm_dataset(setup_imagejonm_dataset, judge_client, question, answer):
     dataset = setup_imagejonm_dataset
     run_test(question, answer, dataset, judge_client)
+
+
+@pytest.mark.parametrize("question,answer", [
+    ("what are the 3 main types of images", "Inline, floating and block")
+])
+def test_docx_1_dataset(setup_docx_1_dataset, judge_client, question, answer):
+    dataset = setup_docx_1_dataset
+    run_test(question, answer, dataset, judge_client)
+
+
+@pytest.mark.parametrize("question,answer", [
+    ("what are the 3 main types of images", "Inline, floating and block")
+])
+def test_rtfd_1_dataset(setup_rtfd_1_dataset, judge_client, question, answer):
+    dataset = setup_rtfd_1_dataset
+    run_test(question, answer, dataset, judge_client)
+
+
+@pytest.mark.parametrize("question,answer", [
+    ("what are the possible tags that can be wrapped to a code block", "pre, code")
+])
+def test_markdown_dataset(setup_markdown_dataset, judge_client, question, answer):
+    dataset = setup_markdown_dataset
+    run_test(question, answer, dataset, judge_client)
+
+
+@pytest.mark.parametrize("question,answer", [
+    ("what are the 3 main types of images", "Inline, floating and block")
+])
+def test_odt_1_dataset(setup_odt_1_dataset, judge_client, question, answer):
+    dataset = setup_odt_1_dataset
+    run_test(question, answer, dataset, judge_client)
