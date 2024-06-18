@@ -2,6 +2,8 @@ package chromem
 
 import (
 	"context"
+	"fmt"
+	"github.com/gptscript-ai/knowledge/pkg/vectorstore/errors"
 	"log/slog"
 	"maps"
 	"runtime"
@@ -55,7 +57,7 @@ func (s *Store) AddDocuments(ctx context.Context, docs []vs.Document, collection
 
 	col := s.db.GetCollection(collection, s.embeddingFunc)
 	if col == nil {
-		return nil, vs.ErrCollectionNotFound{Collection: collection}
+		return nil, fmt.Errorf("%w: %q", errors.ErrCollectionNotFound, collection)
 	}
 
 	err := col.AddDocuments(ctx, chromemDocs, runtime.NumCPU()/2)
@@ -102,7 +104,11 @@ func convertStringMapToAnyMap(m map[string]string) map[string]any {
 func (s *Store) SimilaritySearch(ctx context.Context, query string, numDocuments int, collection string) ([]vs.Document, error) {
 	col := s.db.GetCollection(collection, s.embeddingFunc)
 	if col == nil {
-		return nil, vs.ErrCollectionNotFound{Collection: collection}
+		return nil, fmt.Errorf("%w: %q", errors.ErrCollectionNotFound, collection)
+	}
+
+	if col.Count() == 0 {
+		return nil, fmt.Errorf("%w: %q", errors.ErrCollectionEmpty, collection)
 	}
 
 	if numDocuments > col.Count() {
@@ -139,7 +145,7 @@ func (s *Store) RemoveCollection(_ context.Context, collection string) error {
 func (s *Store) RemoveDocument(ctx context.Context, documentID string, collection string) error {
 	col := s.db.GetCollection(collection, s.embeddingFunc)
 	if col == nil {
-		return vs.ErrCollectionNotFound{Collection: collection}
+		return fmt.Errorf("%w: %q", errors.ErrCollectionNotFound, collection)
 	}
 	return col.Delete(ctx, nil, nil, documentID)
 }

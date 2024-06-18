@@ -2,7 +2,9 @@ package cmd
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	vserr "github.com/gptscript-ai/knowledge/pkg/vectorstore/errors"
 	"log/slog"
 
 	"github.com/gptscript-ai/knowledge/pkg/datastore"
@@ -73,6 +75,11 @@ func (s *ClientRetrieve) Run(cmd *cobra.Command, args []string) error {
 
 	sources, err := c.Retrieve(cmd.Context(), datasetID, query, retrieveOpts)
 	if err != nil {
+		// An empty collection is not a hard error - the LLM session can "recover" from it
+		if errors.Is(err, vserr.ErrCollectionEmpty) {
+			fmt.Printf("Dataset %q does not contain any documents\n", datasetID)
+			return nil
+		}
 		return err
 	}
 
