@@ -127,7 +127,7 @@ func (f *RetrievalFlow) Run(ctx context.Context, store vs.VectorStore, query str
 	}
 
 	for _, pp := range f.Postprocessors {
-		docs, err = pp.Transform(ctx, docs)
+		docs, err = pp.Transform(ctx, query, docs)
 		if err != nil {
 			return nil, err
 		}
