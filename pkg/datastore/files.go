@@ -21,7 +21,7 @@ func (s *Datastore) DeleteFile(ctx context.Context, datasetID, fileID string) er
 
 	// Remove owned documents from VectorStore and Database
 	for _, doc := range file.Documents {
-		if err := s.Vectorstore.RemoveDocument(ctx, doc.ID, datasetID); err != nil {
+		if err := s.Vectorstore.RemoveDocument(ctx, doc.ID, datasetID, nil, nil); err != nil {
 			return fmt.Errorf("failed to remove document from VectorStore: %w", err)
 		}
 

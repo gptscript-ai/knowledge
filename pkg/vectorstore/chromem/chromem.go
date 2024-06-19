@@ -14,7 +14,7 @@ import (
 	"github.com/philippgille/chromem-go"
 )
 
-// EmbeddingParallelThread can be set as an environment variable to control the number of parallel API calls to create embedding for documents. Default is 100
+// VsChromemEmbeddingParallelThread can be set as an environment variable to control the number of parallel API calls to create embedding for documents. Default is 100
 const VsChromemEmbeddingParallelThread = "VS_CHROMEM_EMBEDDING_PARALLEL_THREAD"
 
 type Store struct {
@@ -145,10 +145,10 @@ func (s *Store) RemoveCollection(_ context.Context, collection string) error {
 	return s.db.DeleteCollection(collection)
 }
 
-func (s *Store) RemoveDocument(ctx context.Context, documentID string, collection string) error {
+func (s *Store) RemoveDocument(ctx context.Context, documentID string, collection string, where, whereDocument map[string]string) error {
 	col := s.db.GetCollection(collection, s.embeddingFunc)
 	if col == nil {
 		return fmt.Errorf("%w: %q", errors.ErrCollectionNotFound, collection)
 	}
-	return col.Delete(ctx, nil, nil, documentID)
+	return col.Delete(ctx, where, whereDocument, documentID)
 }

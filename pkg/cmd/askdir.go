@@ -40,7 +40,7 @@ func (s *ClientAskDir) Run(cmd *cobra.Command, args []string) error {
 	ingestOpts := &client.IngestPathsOpts{
 		IgnoreExtensions: strings.Split(s.IgnoreExtensions, ","),
 		Concurrency:      s.Concurrency,
-		Recursive:        s.Recursive,
+		Recursive:        !s.NoRecursive,
 	}
 
 	retrieveOpts := &datastore.RetrieveOpts{
