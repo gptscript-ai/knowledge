@@ -20,7 +20,7 @@ type ClientRetrieve struct {
 }
 
 type ClientRetrieveOpts struct {
-	TopK int `usage:"Number of sources to retrieve" short:"k" default:"5"`
+	TopK int `usage:"Number of sources to retrieve" short:"k" default:"10"`
 }
 
 func (s *ClientRetrieve) Customize(cmd *cobra.Command) {
