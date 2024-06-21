@@ -27,7 +27,5 @@ func (s *Datastore) Retrieve(ctx context.Context, datasetID string, query string
 	}
 	retrievalFlow.FillDefaults(topK)
 
-	slog.Debug("Retrieval flow", "flow", *retrievalFlow)
-
 	return retrievalFlow.Run(ctx, s.Vectorstore, query, datasetID)
 }

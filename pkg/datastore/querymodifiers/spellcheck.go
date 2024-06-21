@@ -8,24 +8,28 @@ import (
 )
 
 type SpellcheckQueryModifier struct {
-	LLM llm.LLM
+	Model llm.LLMConfig
 }
 
-var promptTpl = `The following query will be used for a vector similarity search.
+var spellcheckPromptTpl = `The following query will be used for a vector similarity search.
 Please spellcheck it and correct any mistakes that may interfere with the semantic similarity search.
-Query: "{.query}"
+Query: "{{.query}}"
 Reply only with {"result": "<corrected-query>"}.`
 
-type response struct {
+type spellcheckResponse struct {
 	Result string `json:"result"`
 }
 
 func (s SpellcheckQueryModifier) ModifyQuery(query string) (string, error) {
-	result, err := s.LLM.Prompt(context.Background(), promptTpl, map[string]interface{}{"query": query})
+	m, err := llm.NewFromConfig(s.Model)
 	if err != nil {
 		return "", err
 	}
-	var resp response
+	result, err := m.Prompt(context.Background(), spellcheckPromptTpl, map[string]interface{}{"query": query})
+	if err != nil {
+		return "", err
+	}
+	var resp spellcheckResponse
 	err = json.Unmarshal([]byte(result), &resp)
 	if err != nil {
 		return "", err
