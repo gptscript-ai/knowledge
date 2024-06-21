@@ -92,7 +92,7 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 	ingestionFlow.FillDefaults(filetype, opts.TextSplitterOpts)
 
 	// Mandatory Transformation: Add filename to metadata
-	em := &transformers.ExtraMetadata{Metadata: map[string]any{"filename": filename}}
+	em := &transformers.ExtraMetadata{Metadata: map[string]any{"filename": filename, "absPath": opts.FileMetadata.AbsolutePath}}
 	ingestionFlow.Transformations = append(ingestionFlow.Transformations, em)
 
 	docs, err := ingestionFlow.Run(ctx, bytes.NewReader(content))
@@ -103,6 +103,14 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 
 	if len(docs) == 0 {
 		return nil, nil
+	}
+
+	// Before adding doc, we need to remove the existing documents for duplicates or old contents
+	where := map[string]string{
+		"absPath": opts.FileMetadata.AbsolutePath,
+	}
+	if err := s.Vectorstore.RemoveDocument(ctx, "", datasetID, where, nil); err != nil {
+		return nil, err
 	}
 
 	// Add documents to VectorStore -> This generates the embeddings
