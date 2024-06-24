@@ -79,6 +79,9 @@ func FromFile(filename string) (*FlowConfig, error) {
 		return nil, err
 	}
 
+	// Expand environment variables in config
+	content = []byte(os.ExpandEnv(string(content)))
+
 	var config FlowConfig
 	jsondata := content
 	if !json.Valid(content) {

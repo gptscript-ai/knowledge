@@ -115,16 +115,21 @@ func (f *RetrievalFlow) FillDefaults(topK int) {
 
 func (f *RetrievalFlow) Run(ctx context.Context, store vs.VectorStore, query string, datasetID string) ([]vs.Document, error) {
 	var err error
+	originalQuery := query
+
 	for _, m := range f.QueryModifiers {
 		query, err = m.ModifyQuery(query)
 		if err != nil {
 			return nil, err
 		}
 	}
+	slog.Debug("Updated query", "original_query", originalQuery, "updated_query", query)
+
 	docs, err := f.Retriever.Retrieve(ctx, store, query, datasetID)
 	if err != nil {
 		return nil, err
 	}
+	slog.Debug("Retrieved documents", "num_documents", len(docs), "query", query, "dataset", datasetID)
 
 	for _, pp := range f.Postprocessors {
 		docs, err = pp.Transform(ctx, query, docs)
@@ -132,7 +137,8 @@ func (f *RetrievalFlow) Run(ctx context.Context, store vs.VectorStore, query str
 			return nil, err
 		}
 	}
+	slog.Debug("Postprocessed retrieved documents", "num_documents", len(docs), "query", query, "dataset", datasetID)
 
-	slog.Debug("Retrieved documents", "num_documents", len(docs), "query", query, "dataset", datasetID)
+	slog.Debug("Retrieval flow finished", "num_documents", len(docs), "query", query, "dataset", datasetID)
 	return docs, nil
 }

@@ -34,6 +34,7 @@ var PostprocessorMap = map[string]Postprocessor{
 	"similarity":                      &SimilarityPostprocessor{},
 	"content_substring_filter":        &ContentSubstringFilterPostprocessor{},
 	"content_filter":                  &ContentFilterPostprocessor{},
+	"cohere_rerank":                   &CohereRerankPostprocessor{},
 }
 
 func GetPostprocessor(name string) (Postprocessor, error) {
