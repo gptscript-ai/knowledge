@@ -2,6 +2,8 @@ package llm
 
 import (
 	"context"
+	"fmt"
+	"log/slog"
 
 	"github.com/gptscript-ai/knowledge/pkg/config"
 	golcmodel "github.com/hupe1980/golc/model"
@@ -12,6 +14,17 @@ import (
 
 type LLM struct {
 	model schema.Model
+}
+
+type LLMConfig struct {
+	OpenAI config.OpenAIConfig
+}
+
+func NewFromConfig(cfg LLMConfig) (*LLM, error) {
+	if cfg.OpenAI.APIKey != "" {
+		return NewOpenAI(cfg.OpenAI)
+	}
+	return nil, fmt.Errorf("no LLM configuration found")
 }
 
 func NewOpenAI(cfg config.OpenAIConfig) (*LLM, error) {
@@ -31,6 +44,7 @@ func (llm *LLM) Prompt(ctx context.Context, promptTpl string, values map[string]
 	if err != nil {
 		return "", err
 	}
+	slog.Debug("Prompting LLM with: %s", p)
 
 	res, err := golcmodel.GeneratePrompt(ctx, llm.model, p)
 	if err != nil {
