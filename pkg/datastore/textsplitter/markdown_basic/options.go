@@ -14,6 +14,9 @@ type Options struct {
 	ModelName      string
 	EncodingName   string
 	SecondSplitter lcgosplitter.TextSplitter
+
+	MaxHeadingLevel   int  // Maximum heading level to split on
+	IgnoreHeadingOnly bool // Ignore chunks that only contain headings
 }
 
 // DefaultOptions returns the default options for all text splitter.
@@ -24,6 +27,9 @@ func DefaultOptions() Options {
 
 		ModelName:    defaults.TextSplitterTokenModel,
 		EncodingName: defaults.TextSplitterTokenEncoding,
+
+		MaxHeadingLevel:   6,
+		IgnoreHeadingOnly: false,
 	}
 }
 
@@ -73,5 +79,17 @@ func WithSecondSplitter(secondSplitter lcgosplitter.TextSplitter) Option {
 func WithKeepSeparator(keepSeparator bool) Option {
 	return func(o *Options) {
 		o.KeepSeparator = keepSeparator
+	}
+}
+
+func WithMaxHeadingLevel(maxHeadingLevel int) Option {
+	return func(o *Options) {
+		o.MaxHeadingLevel = maxHeadingLevel
+	}
+}
+
+func WithIgnoreHeadingOnly(ignoreHeadingOnly bool) Option {
+	return func(o *Options) {
+		o.IgnoreHeadingOnly = ignoreHeadingOnly
 	}
 }
