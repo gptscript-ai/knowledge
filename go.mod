@@ -5,7 +5,7 @@ go 1.22.3
 toolchain go1.22.4
 
 replace (
-	github.com/philippgille/chromem-go => github.com/iwilltry42/chromem-go v0.0.0-20240513080122-88f1efa639f5 // Azure OpenAI support
+	github.com/philippgille/chromem-go => github.com/iwilltry42/chromem-go v0.0.0-20240627131850-b7f5672836c8 // Export selected collections
 	github.com/tmc/langchaingo => github.com/StrongMonkey/langchaingo v0.0.0-20240617180437-9af4bee04c8b // Context-Aware Markdown Splitting
 )
 

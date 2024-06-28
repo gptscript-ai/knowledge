@@ -218,3 +218,8 @@ func (c *DefaultClient) request(method, path string, body io.Reader) ([]byte, er
 
 	return nil, nil
 }
+
+func (c *DefaultClient) ExportDatasets(ctx context.Context, path string, datasets ...string) error {
+	// TODO: implement
+	panic("not implemented")
+}

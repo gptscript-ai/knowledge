@@ -1,10 +1,15 @@
 package datastore
 
 import (
+	"archive/zip"
 	"context"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/url"
+	"os"
+	"path/filepath"
+	"time"
 
 	"github.com/acorn-io/z"
 	"github.com/adrg/xdg"
@@ -122,4 +127,85 @@ func NewDatastore(dsn string, automigrate bool, vectorDBPath string, openAIConfi
 	}
 
 	return ds, nil
+}
+
+func (s *Datastore) ExportDatasetsToFile(ctx context.Context, path string, datasets ...string) error {
+	tmpDir, err := os.MkdirTemp(os.TempDir(), "knowledge-export-")
+	if err != nil {
+		return err
+	}
+
+	if err = s.Vectorstore.ExportCollectionsToFile(ctx, tmpDir, datasets...); err != nil {
+		return err
+	}
+
+	finfo, err := os.Stat(path)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			return err
+		}
+		if err = os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+			return err
+		}
+	}
+
+	// make sure target path is a file
+	if finfo != nil && finfo.IsDir() {
+		path = filepath.Join(path, fmt.Sprintf("knowledge-export-%s.zip", time.Now().Format("2006-01-02-15-04-05")))
+	}
+
+	// zip it up
+	if err = zipDir(tmpDir, path); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func zipDir(src, dst string) error {
+	zipfile, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer zipfile.Close()
+
+	// Create a new zip archive.
+	w := zip.NewWriter(zipfile)
+	defer w.Close()
+
+	// Walk the file tree and add files to the zip archive.
+	return filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// Get the file information
+		header, err := zip.FileInfoHeader(info)
+		if err != nil {
+			return err
+		}
+
+		if !info.IsDir() {
+			// Update the header name
+			header.Name = filepath.Base(path)
+
+			// Write the header
+			writer, err := w.CreateHeader(header)
+			if err != nil {
+				return err
+			}
+
+			// If the file is not a directory, write the file to the archive
+			file, err := os.Open(path)
+			if err != nil {
+				return err
+			}
+			defer file.Close()
+			_, err = io.Copy(writer, file)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 }

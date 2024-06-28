@@ -43,7 +43,6 @@ type MarkdownTextSplitter struct {
 
 // SplitText splits a text into multiple text.
 func (sp MarkdownTextSplitter) SplitText(text string) ([]string, error) {
-
 	// Parse markdown line-by-line
 	headerStack := make([]string, sp.MaxHeadingLevel)
 	chunks := []string{}
@@ -52,7 +51,6 @@ func (sp MarkdownTextSplitter) SplitText(text string) ([]string, error) {
 	var err error
 
 	for _, line := range strings.Split(text, "\n") {
-
 		// Handle headers: maintian a header stack
 		if strings.HasPrefix(line, "#") {
 			// Get the header level
@@ -92,7 +90,7 @@ func (sp MarkdownTextSplitter) SplitText(text string) ([]string, error) {
 		currentChunk = append(currentChunk, line)
 	}
 
-	chunks, currentChunk, err = sp.flushChunk(chunks, currentChunk)
+	chunks, _, err = sp.flushChunk(chunks, currentChunk)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +99,6 @@ func (sp MarkdownTextSplitter) SplitText(text string) ([]string, error) {
 }
 
 func (sp MarkdownTextSplitter) flushChunk(chunks []string, currentChunk []string) ([]string, []string, error) {
-
 	// Ignore heading only chunks if the option is set and the last line in the chunk is a header
 	if sp.IgnoreHeadingOnly && strings.HasPrefix(currentChunk[len(currentChunk)-1], "#") {
 		return chunks, []string{}, nil
@@ -125,21 +122,17 @@ func (sp MarkdownTextSplitter) flushChunk(chunks []string, currentChunk []string
 
 	if chunkstr != "" && chunkstr != "\n" {
 		if sp.SecondSplitter != nil {
-
 			// Split the chunk into smaller chunks
 			splits, err := sp.SecondSplitter.SplitText(chunkstr)
 			if err != nil {
 				return chunks, []string{}, err
 			}
 
-			for _, split := range splits {
-				chunks = append(chunks, split)
-			}
+			chunks = append(chunks, splits...)
 
 			if len(splits) == 0 {
 				chunks = append(chunks, headerstr)
 			}
-
 		} else {
 			splits, err := lcgosplitter.NewRecursiveCharacter(
 				lcgosplitter.WithChunkSize(sp.ChunkSize-utf8.RuneCountInString(headerstr)),
@@ -158,7 +151,6 @@ func (sp MarkdownTextSplitter) flushChunk(chunks []string, currentChunk []string
 			if len(splits) == 0 {
 				chunks = append(chunks, headerstr)
 			}
-
 		}
 	}
 

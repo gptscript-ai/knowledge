@@ -197,8 +197,8 @@ github.com/hupe1980/golc v0.0.112 h1:aFUMfnEkqdapukuj6/Ny0zbwBDngeC/ZyvvACRdBfv4
 github.com/hupe1980/golc v0.0.112/go.mod h1:w692KzkSTSvXROfyu+jYauNXB4YaL1s8zHPDMnNW88o=
 github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
-github.com/iwilltry42/chromem-go v0.0.0-20240513080122-88f1efa639f5 h1:g3mhp9K4ujkjne0JDvtmP8i36uQlibwzbWKYzZbzcKU=
-github.com/iwilltry42/chromem-go v0.0.0-20240513080122-88f1efa639f5/go.mod h1:hTd+wGEm/fFPQl7ilfCwQXkgEUxceYh86iIdoKMolPo=
+github.com/iwilltry42/chromem-go v0.0.0-20240627131850-b7f5672836c8 h1:GC4Bk6eE9u2I/uuhyM/LVe1UKAj8gG4MUlrm0d2t7j0=
+github.com/iwilltry42/chromem-go v0.0.0-20240627131850-b7f5672836c8/go.mod h1:hTd+wGEm/fFPQl7ilfCwQXkgEUxceYh86iIdoKMolPo=
 github.com/jaytaylor/html2text v0.0.0-20180606194806-57d518f124b0/go.mod h1:CVKlgaMiht+LXvHG173ujK6JUhZXKb2u/BQtjPDIvyk=
 github.com/jaytaylor/html2text v0.0.0-20200412013138-3577fbdbcff7 h1:g0fAGBisHaEQ0TRq1iBvemFRf+8AEWEmBESSiWB3Vsc=
 github.com/jaytaylor/html2text v0.0.0-20200412013138-3577fbdbcff7/go.mod h1:CVKlgaMiht+LXvHG173ujK6JUhZXKb2u/BQtjPDIvyk=
