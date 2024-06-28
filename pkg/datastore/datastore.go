@@ -135,6 +135,12 @@ func (s *Datastore) ExportDatasetsToFile(ctx context.Context, path string, datas
 		return err
 	}
 
+	defer os.RemoveAll(tmpDir)
+
+	if err = s.Index.ExportDatasetsToFile(ctx, tmpDir, datasets...); err != nil {
+		return err
+	}
+
 	if err = s.Vectorstore.ExportCollectionsToFile(ctx, tmpDir, datasets...); err != nil {
 		return err
 	}

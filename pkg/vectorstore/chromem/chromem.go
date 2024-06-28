@@ -167,5 +167,6 @@ func (s *Store) ExportCollectionsToFile(ctx context.Context, path string, collec
 	if finfo.IsDir() {
 		path = filepath.Join(path, "chromem-export.gob")
 	}
+	slog.Debug("Exporting collections to file", "path", path)
 	return s.db.ExportToFile(path, false, "", collections...)
 }
