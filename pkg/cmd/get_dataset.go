@@ -3,8 +3,6 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gptscript-ai/knowledge/pkg/client"
-
 	"github.com/spf13/cobra"
 )
 
@@ -21,18 +19,9 @@ func (s *ClientGetDataset) Customize(cmd *cobra.Command) {
 }
 
 func (s *ClientGetDataset) Run(cmd *cobra.Command, args []string) error {
-	var err error
-	var c client.Client
-	if s.Archive != "" {
-		c, err = s.getClientFromArchive(s.Archive)
-		if err != nil {
-			return err
-		}
-	} else {
-		c, err = s.getClient()
-		if err != nil {
-			return err
-		}
+	c, err := s.getClient()
+	if err != nil {
+		return err
 	}
 
 	datasetID := args[0]

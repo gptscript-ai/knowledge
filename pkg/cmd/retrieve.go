@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/gptscript-ai/knowledge/pkg/client"
 	"github.com/gptscript-ai/knowledge/pkg/datastore"
 	flowconfig "github.com/gptscript-ai/knowledge/pkg/flows/config"
 	vserr "github.com/gptscript-ai/knowledge/pkg/vectorstore/errors"
@@ -32,18 +31,9 @@ func (s *ClientRetrieve) Customize(cmd *cobra.Command) {
 
 func (s *ClientRetrieve) Run(cmd *cobra.Command, args []string) error {
 
-	var err error
-	var c client.Client
-	if s.Archive != "" {
-		c, err = s.getClientFromArchive(s.Archive)
-		if err != nil {
-			return err
-		}
-	} else {
-		c, err = s.getClient()
-		if err != nil {
-			return err
-		}
+	c, err := s.getClient()
+	if err != nil {
+		return err
 	}
 
 	datasetID := s.Dataset

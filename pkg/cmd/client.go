@@ -13,7 +13,8 @@ import (
 )
 
 type Client struct {
-	Server string `usage:"URL of the Knowledge API Server" default:"" env:"KNOW_SERVER_URL"`
+	Server           string `usage:"URL of the Knowledge API Server" default:"" env:"KNOW_SERVER_URL"`
+	datastoreArchive string
 	config.OpenAIConfig
 	config.DatabaseConfig
 	config.VectorDBConfig
@@ -24,22 +25,25 @@ type ClientFlowsConfig struct {
 	Flow      string `usage:"Flow name" env:"KNOW_FLOW"`
 }
 
-func (s *Client) getClientFromArchive(archive string) (client.Client, error) {
+func (s *Client) loadArchive() error {
+	if s.datastoreArchive == "" {
+		return nil
+	}
 	// unpack to tempdir
 	tmpDir, err := os.MkdirTemp(os.TempDir(), "knowledge-retrieve-*")
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer os.RemoveAll(tmpDir)
 
-	r, err := zip.OpenReader(archive)
+	r, err := zip.OpenReader(s.datastoreArchive)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer r.Close()
 
 	if len(r.File) != 2 {
-		return nil, fmt.Errorf("knowledge archive must contain exactly two files, found %d", len(r.File))
+		return fmt.Errorf("knowledge archive must contain exactly two files, found %d", len(r.File))
 	}
 
 	dbFile := ""
@@ -47,7 +51,7 @@ func (s *Client) getClientFromArchive(archive string) (client.Client, error) {
 	for _, f := range r.File {
 		rc, err := f.Open()
 		if err != nil {
-			return nil, err
+			return err
 		}
 		defer rc.Close()
 
@@ -58,12 +62,12 @@ func (s *Client) getClientFromArchive(archive string) (client.Client, error) {
 
 		f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
 		if err != nil {
-			return nil, err
+			return err
 		}
 		defer f.Close()
 
 		if _, err := io.Copy(f, rc); err != nil {
-			return nil, err
+			return err
 		}
 		_ = f.Close()
 		_ = rc.Close()
@@ -77,16 +81,20 @@ func (s *Client) getClientFromArchive(archive string) (client.Client, error) {
 	}
 
 	if dbFile == "" || vectorStoreFile == "" {
-		return nil, fmt.Errorf("knowledge archive must contain exactly one .db and one .gob file")
+		return fmt.Errorf("knowledge archive must contain exactly one .db and one .gob file")
 	}
 
 	s.DSN = types.ArchivePrefix + dbFile
 	s.VectorDBPath = types.ArchivePrefix + vectorStoreFile
 
-	return s.getClient()
+	return nil
 }
 
 func (s *Client) getClient() (client.Client, error) {
+
+	if err := s.loadArchive(); err != nil {
+		return nil, err
+	}
 
 	if s.Server == "" || s.Server == "standalone" {
 		ds, err := datastore.NewDatastore(s.DSN, s.AutoMigrate == "true", s.VectorDBConfig.VectorDBPath, s.OpenAIConfig)
