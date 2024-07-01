@@ -223,3 +223,8 @@ func (c *DefaultClient) ExportDatasets(ctx context.Context, path string, dataset
 	// TODO: implement
 	panic("not implemented")
 }
+
+func (c *DefaultClient) ImportDatasets(ctx context.Context, path string, datasets ...string) error {
+	// TODO: implement
+	panic("not implemented")
+}

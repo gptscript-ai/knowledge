@@ -29,4 +29,5 @@ type Client interface {
 	DeleteDocuments(ctx context.Context, datasetID string, documentIDs ...string) error
 	Retrieve(ctx context.Context, datasetID string, query string, opts datastore.RetrieveOpts) ([]vectorstore.Document, error)
 	ExportDatasets(ctx context.Context, path string, datasets ...string) error
+	ImportDatasets(ctx context.Context, path string, datasets ...string) error
 }

@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 func GetDataset(db *gorm.DB, id string) (*Dataset, error) {
@@ -55,6 +56,34 @@ func (db *DB) ExportDatasetsToFile(ctx context.Context, path string, ids ...stri
 		}
 	}
 	ngdb.Commit()
+
+	return nil
+}
+
+func (db *DB) ImportDatasetsFromFile(ctx context.Context, path string) error {
+	gdb := db.gormDB.WithContext(ctx)
+
+	ndb, err := New("sqlite://"+strings.TrimPrefix(path, "sqlite://"), false)
+	if err != nil {
+		return err
+	}
+	ngdb := ndb.gormDB.WithContext(ctx)
+
+	defer ndb.Close()
+
+	var datasets []Dataset
+	err = ngdb.Find(&datasets).Error
+	if err != nil {
+		return err
+	}
+
+	// fill new database with exported datasets
+	for _, dataset := range datasets {
+		if err := gdb.Create(&dataset).Error; err != nil {
+			return err
+		}
+	}
+	gdb.Commit()
 
 	return nil
 }

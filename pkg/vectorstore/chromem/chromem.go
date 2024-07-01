@@ -156,7 +156,15 @@ func (s *Store) RemoveDocument(ctx context.Context, documentID string, collectio
 }
 
 func (s *Store) ImportCollectionsFromFile(ctx context.Context, path string, collections ...string) error {
-	return fmt.Errorf("not implemented")
+	finfo, err := os.Stat(path)
+	if err != nil {
+		return fmt.Errorf("couldn't stat file %q: %w", path, err)
+	}
+	if finfo.IsDir() {
+		return fmt.Errorf("path %q is a directory", path)
+	}
+	slog.Debug("Importing collections from file", "path", path)
+	return s.db.ImportFromFile(path, "", collections...)
 }
 
 func (s *Store) ExportCollectionsToFile(ctx context.Context, path string, collections ...string) error {
