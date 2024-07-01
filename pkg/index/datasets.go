@@ -20,7 +20,7 @@ func (db *DB) ExportDatasetsToFile(ctx context.Context, path string, ids ...stri
 	gdb := db.gormDB.WithContext(ctx)
 
 	var datasets []Dataset
-	err := gdb.Find(&datasets, "id IN ?", ids).Error
+	err := gdb.Preload("Files.Documents").Find(&datasets, "id IN ?", ids).Error
 	if err != nil {
 		return err
 	}

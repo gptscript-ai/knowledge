@@ -3,12 +3,14 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gptscript-ai/knowledge/pkg/client"
 
 	"github.com/spf13/cobra"
 )
 
 type ClientListDatasets struct {
 	Client
+	Archive string `usage:"Path to the archive file"`
 }
 
 func (s *ClientListDatasets) Customize(cmd *cobra.Command) {
@@ -18,9 +20,18 @@ func (s *ClientListDatasets) Customize(cmd *cobra.Command) {
 }
 
 func (s *ClientListDatasets) Run(cmd *cobra.Command, args []string) error {
-	c, err := s.getClient()
-	if err != nil {
-		return err
+	var err error
+	var c client.Client
+	if s.Archive != "" {
+		c, err = s.getClientFromArchive(s.Archive)
+		if err != nil {
+			return err
+		}
+	} else {
+		c, err = s.getClient()
+		if err != nil {
+			return err
+		}
 	}
 
 	ds, err := c.ListDatasets(cmd.Context())

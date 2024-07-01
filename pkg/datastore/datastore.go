@@ -4,11 +4,13 @@ import (
 	"archive/zip"
 	"context"
 	"fmt"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
 	"io"
 	"log/slog"
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/acorn-io/z"
@@ -27,31 +29,44 @@ type Datastore struct {
 	Vectorstore vectorstore.VectorStore
 }
 
-func GetDatastorePaths(dsn, vectordbPath string) (string, string, error) {
+// GetDatastorePaths returns the paths for the datastore and vectorstore databases.
+// In addition, it returns a boolean indicating whether the datastore is an archive.
+func GetDatastorePaths(dsn, vectordbPath string) (string, string, bool, error) {
+	var isArchive bool
+
 	if dsn == "" {
 		var err error
 		dsn, err = xdg.DataFile("gptscript/knowledge/knowledge.db")
 		if err != nil {
-			return "", "", err
+			return "", "", isArchive, err
 		}
 		dsn = "sqlite://" + dsn
 		slog.Debug("Using default DSN", "dsn", dsn)
+	}
+
+	if strings.HasPrefix(dsn, types.ArchivePrefix) {
+		dsn = "sqlite://" + strings.TrimPrefix(dsn, types.ArchivePrefix)
+		isArchive = true
 	}
 
 	if vectordbPath == "" {
 		var err error
 		vectordbPath, err = xdg.DataFile("gptscript/knowledge/vector.db")
 		if err != nil {
-			return "", "", err
+			return "", "", isArchive, err
 		}
 		slog.Debug("Using default VectorDBPath", "vectordbPath", vectordbPath)
 	}
+	if strings.HasPrefix(vectordbPath, types.ArchivePrefix) {
+		vectordbPath = strings.TrimPrefix(vectordbPath, types.ArchivePrefix)
+		isArchive = true
+	}
 
-	return dsn, vectordbPath, nil
+	return dsn, vectordbPath, isArchive, nil
 }
 
 func NewDatastore(dsn string, automigrate bool, vectorDBPath string, openAIConfig config.OpenAIConfig) (*Datastore, error) {
-	dsn, vectorDBPath, err := GetDatastorePaths(dsn, vectorDBPath)
+	dsn, vectorDBPath, isArchive, err := GetDatastorePaths(dsn, vectorDBPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to determine datastore paths: %w", err)
 	}
@@ -65,9 +80,18 @@ func NewDatastore(dsn string, automigrate bool, vectorDBPath string, openAIConfi
 		return nil, fmt.Errorf("failed to auto-migrate index: %w", err)
 	}
 
-	vsdb, err := cg.NewPersistentDB(vectorDBPath, false)
-	if err != nil {
-		return nil, err
+	var vsdb *cg.DB
+	if !isArchive {
+		vsdb, err = cg.NewPersistentDB(vectorDBPath, false)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		// Import from archive -> in-memory DB, not persisted back to the archive
+		vsdb = cg.NewDB()
+		if err := vsdb.ImportFromFile(vectorDBPath, ""); err != nil {
+			return nil, fmt.Errorf("failed to import vector database: %w", err)
+		}
 	}
 
 	var embeddingFunc cg.EmbeddingFunc
@@ -111,6 +135,10 @@ func NewDatastore(dsn string, automigrate bool, vectorDBPath string, openAIConfi
 		LLM:         *model,
 		Index:       idx,
 		Vectorstore: chromem.New(vsdb, embeddingFunc),
+	}
+
+	if isArchive {
+		return ds, nil
 	}
 
 	// Ensure default dataset exists

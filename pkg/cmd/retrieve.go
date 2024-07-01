@@ -4,17 +4,18 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	vserr "github.com/gptscript-ai/knowledge/pkg/vectorstore/errors"
-	"log/slog"
-
+	"github.com/gptscript-ai/knowledge/pkg/client"
 	"github.com/gptscript-ai/knowledge/pkg/datastore"
 	flowconfig "github.com/gptscript-ai/knowledge/pkg/flows/config"
+	vserr "github.com/gptscript-ai/knowledge/pkg/vectorstore/errors"
 	"github.com/spf13/cobra"
+	"log/slog"
 )
 
 type ClientRetrieve struct {
 	Client
 	Dataset string `usage:"Target Dataset ID" short:"d" default:"default" env:"KNOW_TARGET_DATASET"`
+	Archive string `usage:"Path to the archive file"`
 	ClientRetrieveOpts
 	ClientFlowsConfig
 }
@@ -30,9 +31,19 @@ func (s *ClientRetrieve) Customize(cmd *cobra.Command) {
 }
 
 func (s *ClientRetrieve) Run(cmd *cobra.Command, args []string) error {
-	c, err := s.getClient()
-	if err != nil {
-		return err
+
+	var err error
+	var c client.Client
+	if s.Archive != "" {
+		c, err = s.getClientFromArchive(s.Archive)
+		if err != nil {
+			return err
+		}
+	} else {
+		c, err = s.getClient()
+		if err != nil {
+			return err
+		}
 	}
 
 	datasetID := s.Dataset
