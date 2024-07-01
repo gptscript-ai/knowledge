@@ -6,6 +6,8 @@ import (
 	"github.com/gptscript-ai/knowledge/pkg/vectorstore/errors"
 	"log/slog"
 	"maps"
+	"os"
+	"path/filepath"
 	"strconv"
 
 	"github.com/google/uuid"
@@ -151,4 +153,28 @@ func (s *Store) RemoveDocument(ctx context.Context, documentID string, collectio
 		return fmt.Errorf("%w: %q", errors.ErrCollectionNotFound, collection)
 	}
 	return col.Delete(ctx, where, whereDocument, documentID)
+}
+
+func (s *Store) ImportCollectionsFromFile(ctx context.Context, path string, collections ...string) error {
+	finfo, err := os.Stat(path)
+	if err != nil {
+		return fmt.Errorf("couldn't stat file %q: %w", path, err)
+	}
+	if finfo.IsDir() {
+		return fmt.Errorf("path %q is a directory", path)
+	}
+	slog.Debug("Importing collections from file", "path", path)
+	return s.db.ImportFromFile(path, "", collections...)
+}
+
+func (s *Store) ExportCollectionsToFile(ctx context.Context, path string, collections ...string) error {
+	finfo, err := os.Stat(path)
+	if err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("couldn't stat file %q: %w", path, err)
+	}
+	if finfo.IsDir() {
+		path = filepath.Join(path, "chromem-export.gob")
+	}
+	slog.Debug("Exporting collections to file", "path", path)
+	return s.db.ExportToFile(path, false, "", collections...)
 }

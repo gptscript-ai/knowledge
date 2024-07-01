@@ -124,3 +124,11 @@ func (c *StandaloneClient) Retrieve(ctx context.Context, datasetID string, query
 func (c *StandaloneClient) AskDirectory(ctx context.Context, path string, query string, opts *IngestPathsOpts, ropts *datastore.RetrieveOpts) ([]vectorstore.Document, error) {
 	return AskDir(ctx, c, path, query, opts, ropts)
 }
+
+func (c *StandaloneClient) ExportDatasets(ctx context.Context, path string, datasets ...string) error {
+	return c.Datastore.ExportDatasetsToFile(ctx, path, datasets...)
+}
+
+func (c *StandaloneClient) ImportDatasets(ctx context.Context, path string, datasets ...string) error {
+	return c.Datastore.ImportDatasetsFromFile(ctx, path, datasets...)
+}

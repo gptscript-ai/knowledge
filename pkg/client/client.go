@@ -2,7 +2,6 @@ package client
 
 import (
 	"context"
-
 	"github.com/gptscript-ai/knowledge/pkg/datastore"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/textsplitter"
 	"github.com/gptscript-ai/knowledge/pkg/flows"
@@ -29,4 +28,6 @@ type Client interface {
 	AskDirectory(ctx context.Context, path string, query string, opts *IngestPathsOpts, ropts *datastore.RetrieveOpts) ([]vectorstore.Document, error)
 	DeleteDocuments(ctx context.Context, datasetID string, documentIDs ...string) error
 	Retrieve(ctx context.Context, datasetID string, query string, opts datastore.RetrieveOpts) ([]vectorstore.Document, error)
+	ExportDatasets(ctx context.Context, path string, datasets ...string) error
+	ImportDatasets(ctx context.Context, path string, datasets ...string) error
 }

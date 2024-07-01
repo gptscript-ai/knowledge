@@ -6,6 +6,10 @@ import (
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 )
 
+const (
+	ArchivePrefix = "archive://"
+)
+
 type DocumentTransformerFunc func(context.Context, []vs.Document) ([]vs.Document, error)
 
 type DocumentTransformer interface {

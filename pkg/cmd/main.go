@@ -28,6 +28,8 @@ func New() *cobra.Command {
 		new(ClientRetrieve),
 		new(ClientResetDatastore),
 		new(ClientAskDir),
+		new(ClientExportDatasets),
+		new(ClientImportDatasets),
 		new(Version),
 	)
 }

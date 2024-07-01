@@ -17,7 +17,6 @@ func TestSplitTextWithBasicMarkdown(t *testing.T) {
 }
 
 func TestSplitTextWithOptions(t *testing.T) {
-
 	md := `
 # Heading 1
 
@@ -82,5 +81,4 @@ some p under h4
 			assert.Equal(t, tc.expected, chunks)
 		})
 	}
-
 }
