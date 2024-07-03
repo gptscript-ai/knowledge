@@ -91,7 +91,6 @@ func (s *Client) loadArchive() error {
 }
 
 func (s *Client) getClient() (client.Client, error) {
-
 	if err := s.loadArchive(); err != nil {
 		return nil, err
 	}

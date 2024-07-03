@@ -30,7 +30,6 @@ func (s *ClientRetrieve) Customize(cmd *cobra.Command) {
 }
 
 func (s *ClientRetrieve) Run(cmd *cobra.Command, args []string) error {
-
 	c, err := s.getClient()
 	if err != nil {
 		return err

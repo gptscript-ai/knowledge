@@ -18,7 +18,6 @@ func (s *ClientListDatasets) Customize(cmd *cobra.Command) {
 }
 
 func (s *ClientListDatasets) Run(cmd *cobra.Command, args []string) error {
-
 	c, err := s.getClient()
 	if err != nil {
 		return err

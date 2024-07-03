@@ -44,7 +44,7 @@ func (llm *LLM) Prompt(ctx context.Context, promptTpl string, values map[string]
 	if err != nil {
 		return "", err
 	}
-	slog.Debug("Prompting LLM with: %s", p)
+	slog.Debug("Prompting LLM", "prompt", p)
 
 	res, err := golcmodel.GeneratePrompt(ctx, llm.model, p)
 	if err != nil {

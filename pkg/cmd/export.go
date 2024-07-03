@@ -39,7 +39,6 @@ func (s *ClientExportDatasets) Run(cmd *cobra.Command, args []string) error {
 			dsnames[i] = ds.ID
 		}
 	} else {
-
 		for _, datasetID := range dsnames {
 			ds, err := c.GetDataset(cmd.Context(), datasetID)
 			if err != nil {

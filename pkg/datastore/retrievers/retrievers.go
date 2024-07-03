@@ -2,6 +2,7 @@ package retrievers
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 
 	"github.com/gptscript-ai/knowledge/pkg/datastore/defaults"
@@ -16,8 +17,10 @@ func GetRetriever(name string) (Retriever, error) {
 	switch name {
 	case "basic", "default":
 		return &BasicRetriever{TopK: defaults.TopK}, nil
+	case "subquery":
+		return &SubqueryRetriever{Limit: 3, TopK: 3}, nil
 	default:
-		return nil, nil
+		return nil, fmt.Errorf("unknown retriever %q", name)
 	}
 }
 
