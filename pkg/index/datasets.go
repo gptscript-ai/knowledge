@@ -87,3 +87,16 @@ func (db *DB) ImportDatasetsFromFile(ctx context.Context, path string) error {
 
 	return nil
 }
+
+func (db *DB) UpdateDataset(ctx context.Context, dataset Dataset) error {
+	gdb := db.gormDB.WithContext(ctx)
+
+	slog.Debug("Updating dataset in DB", "id", dataset.ID, "metadata", dataset.Metadata)
+	err := gdb.Save(dataset).Error
+	if err != nil {
+		return err
+	}
+
+	gdb.Commit()
+	return nil
+}

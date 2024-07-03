@@ -228,3 +228,8 @@ func (c *DefaultClient) ImportDatasets(ctx context.Context, path string, dataset
 	// TODO: implement
 	panic("not implemented")
 }
+
+func (c *DefaultClient) UpdateDataset(ctx context.Context, dataset index.Dataset, opts *datastore.UpdateDatasetOpts) (*index.Dataset, error) {
+	// TODO: implement
+	panic("not implemented")
+}

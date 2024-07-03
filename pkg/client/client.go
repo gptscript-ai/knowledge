@@ -30,4 +30,5 @@ type Client interface {
 	Retrieve(ctx context.Context, datasetID string, query string, opts datastore.RetrieveOpts) ([]vectorstore.Document, error)
 	ExportDatasets(ctx context.Context, path string, datasets ...string) error
 	ImportDatasets(ctx context.Context, path string, datasets ...string) error
+	UpdateDataset(ctx context.Context, dataset index.Dataset, opts *datastore.UpdateDatasetOpts) (*index.Dataset, error)
 }

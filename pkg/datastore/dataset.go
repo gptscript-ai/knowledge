@@ -11,6 +11,10 @@ import (
 	"gorm.io/gorm"
 )
 
+type UpdateDatasetOpts struct {
+	ReplaceMedata bool
+}
+
 func (s *Datastore) NewDataset(ctx context.Context, dataset index.Dataset) error {
 	// Set defaults
 	if dataset.EmbedDimension <= 0 {
@@ -74,4 +78,45 @@ func (s *Datastore) ListDatasets(ctx context.Context) ([]index.Dataset, error) {
 	}
 
 	return datasets, nil
+}
+
+func (s *Datastore) UpdateDataset(ctx context.Context, updatedDataset index.Dataset, opts *UpdateDatasetOpts) (*index.Dataset, error) {
+	if opts == nil {
+		opts = &UpdateDatasetOpts{}
+	}
+
+	var origDS *index.Dataset
+	var err error
+
+	if updatedDataset.ID == "" {
+		return origDS, fmt.Errorf("dataset ID is required")
+	}
+
+	origDS, err = s.GetDataset(ctx, updatedDataset.ID)
+	if err != nil {
+		return origDS, err
+	}
+	if origDS == nil {
+		return origDS, fmt.Errorf("dataset not found: %s", updatedDataset.ID)
+	}
+
+	// Update Metadata
+	if opts.ReplaceMedata {
+		origDS.ReplaceMetadata(updatedDataset.Metadata)
+	} else {
+		origDS.UpdateMetadata(updatedDataset.Metadata)
+	}
+
+	// Check if there is any other non-null field in the updatedDataset
+	if updatedDataset.EmbedDimension > 0 {
+		return origDS, fmt.Errorf("embedding dimension cannot be updated")
+	}
+
+	if updatedDataset.Files != nil {
+		return origDS, fmt.Errorf("files cannot be updated")
+	}
+
+	slog.Debug("Updating dataset", "id", updatedDataset.ID, "metadata", updatedDataset.Metadata)
+
+	return origDS, s.Index.UpdateDataset(ctx, *origDS)
 }
