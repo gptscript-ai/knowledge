@@ -27,5 +27,9 @@ func (s *Datastore) Retrieve(ctx context.Context, datasetID string, query string
 	}
 	retrievalFlow.FillDefaults(topK)
 
-	return retrievalFlow.Run(ctx, s.Vectorstore, query, datasetID)
+	return retrievalFlow.Run(ctx, s, query, datasetID)
+}
+
+func (s *Datastore) SimilaritySearch(ctx context.Context, query string, numDocuments int, datasetID string) ([]vectorstore.Document, error) {
+	return s.Vectorstore.SimilaritySearch(ctx, query, numDocuments, datasetID)
 }

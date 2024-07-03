@@ -30,6 +30,7 @@ func New() *cobra.Command {
 		new(ClientAskDir),
 		new(ClientExportDatasets),
 		new(ClientImportDatasets),
+		new(ClientEditDataset),
 		new(Version),
 	)
 }

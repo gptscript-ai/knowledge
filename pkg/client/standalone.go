@@ -132,3 +132,7 @@ func (c *StandaloneClient) ExportDatasets(ctx context.Context, path string, data
 func (c *StandaloneClient) ImportDatasets(ctx context.Context, path string, datasets ...string) error {
 	return c.Datastore.ImportDatasetsFromFile(ctx, path, datasets...)
 }
+
+func (c *StandaloneClient) UpdateDataset(ctx context.Context, dataset index.Dataset, opts *datastore.UpdateDatasetOpts) (*index.Dataset, error) {
+	return c.Datastore.UpdateDataset(ctx, dataset, opts)
+}
