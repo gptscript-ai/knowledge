@@ -63,6 +63,8 @@ func (s *ClientEditDataset) Run(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to update dataset: %w", err)
 	}
 
+	dataset.Files = nil // Don't print files
+
 	jsonOutput, err := json.Marshal(dataset)
 	if err != nil {
 		return fmt.Errorf("failed to marshal dataset: %w", err)

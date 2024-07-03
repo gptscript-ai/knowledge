@@ -3,6 +3,7 @@ package flows
 import (
 	"context"
 	"fmt"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/store"
 	"io"
 	"log/slog"
 	"slices"
@@ -113,7 +114,7 @@ func (f *RetrievalFlow) FillDefaults(topK int) {
 	}
 }
 
-func (f *RetrievalFlow) Run(ctx context.Context, store vs.VectorStore, query string, datasetID string) ([]vs.Document, error) {
+func (f *RetrievalFlow) Run(ctx context.Context, store store.Store, query string, datasetID string) ([]vs.Document, error) {
 	var err error
 	originalQuery := query
 
