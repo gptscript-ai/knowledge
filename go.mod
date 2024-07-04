@@ -4,10 +4,7 @@ go 1.22.3
 
 toolchain go1.22.4
 
-replace (
-	github.com/philippgille/chromem-go => github.com/iwilltry42/chromem-go v0.0.0-20240701135946-49eb4988eab1 // Import/Export selected collections
-	github.com/tmc/langchaingo => github.com/StrongMonkey/langchaingo v0.0.0-20240617180437-9af4bee04c8b // Context-Aware Markdown Splitting
-)
+replace github.com/tmc/langchaingo => github.com/StrongMonkey/langchaingo v0.0.0-20240617180437-9af4bee04c8b // Context-Aware Markdown Splitting
 
 require (
 	code.sajari.com/docconv/v2 v2.0.0-pre.4
@@ -26,7 +23,7 @@ require (
 	github.com/hupe1980/golc v0.0.112
 	github.com/lu4p/cat v0.1.5
 	github.com/mitchellh/mapstructure v1.5.0
-	github.com/philippgille/chromem-go v0.6.0
+	github.com/philippgille/chromem-go v0.6.1-0.20240703185604-935ec301a0a4
 	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.9.0
 	github.com/swaggo/files v1.0.1
