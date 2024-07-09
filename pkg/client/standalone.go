@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"fmt"
+	dstypes "github.com/gptscript-ai/knowledge/pkg/datastore/types"
 	"os"
 	"path/filepath"
 
@@ -10,7 +11,6 @@ import (
 	"github.com/gptscript-ai/knowledge/pkg/datastore"
 	"github.com/gptscript-ai/knowledge/pkg/index"
 	"github.com/gptscript-ai/knowledge/pkg/server/types"
-	"github.com/gptscript-ai/knowledge/pkg/vectorstore"
 )
 
 type StandaloneClient struct {
@@ -117,11 +117,11 @@ func (c *StandaloneClient) DeleteDocuments(ctx context.Context, datasetID string
 	return nil
 }
 
-func (c *StandaloneClient) Retrieve(ctx context.Context, datasetID string, query string, opts datastore.RetrieveOpts) ([]vectorstore.Document, error) {
+func (c *StandaloneClient) Retrieve(ctx context.Context, datasetID string, query string, opts datastore.RetrieveOpts) (*dstypes.RetrievalResponse, error) {
 	return c.Datastore.Retrieve(ctx, datasetID, query, opts)
 }
 
-func (c *StandaloneClient) AskDirectory(ctx context.Context, path string, query string, opts *IngestPathsOpts, ropts *datastore.RetrieveOpts) ([]vectorstore.Document, error) {
+func (c *StandaloneClient) AskDirectory(ctx context.Context, path string, query string, opts *IngestPathsOpts, ropts *datastore.RetrieveOpts) (*dstypes.RetrievalResponse, error) {
 	return AskDir(ctx, c, path, query, opts, ropts)
 }
 

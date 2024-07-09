@@ -73,7 +73,7 @@ func (s *ClientRetrieve) Run(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	sources, err := c.Retrieve(cmd.Context(), datasetID, query, retrieveOpts)
+	retrievalResp, err := c.Retrieve(cmd.Context(), datasetID, query, retrieveOpts)
 	if err != nil {
 		// An empty collection is not a hard error - the LLM session can "recover" from it
 		if errors.Is(err, vserr.ErrCollectionEmpty) {
@@ -83,12 +83,12 @@ func (s *ClientRetrieve) Run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	jsonSources, err := json.Marshal(sources)
+	jsonSources, err := json.Marshal(retrievalResp.Responses)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("Retrieved the following %d sources for the query %q from dataset %q: %s\n", len(sources), query, datasetID, jsonSources)
+	fmt.Printf("Retrieved the following %d source collections for the original query %q: %s\n", len(retrievalResp.Responses), query, jsonSources)
 
 	return nil
 }

@@ -94,22 +94,22 @@ func (s *ClientAskDir) Run(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	sources, err := c.AskDirectory(cmd.Context(), path, query, ingestOpts, retrieveOpts)
+	retrievalResp, err := c.AskDirectory(cmd.Context(), path, query, ingestOpts, retrieveOpts)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve sources: %w", err)
 	}
 
-	if len(sources) == 0 {
+	if len(retrievalResp.Responses) == 0 {
 		fmt.Printf("No sources found for the query %q from path %q\n", query, path)
 		return nil
 	}
 
-	jsonSources, err := json.Marshal(sources)
+	jsonSources, err := json.Marshal(retrievalResp.Responses)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("Retrieved the following %d sources for the query %q from path %q: %s\n", len(sources), query, path, jsonSources)
+	fmt.Printf("Retrieved the following %d source collections for the query %q from path %q: %s\n", len(retrievalResp.Responses), query, path, jsonSources)
 
 	return nil
 }

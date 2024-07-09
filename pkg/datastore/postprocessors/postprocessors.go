@@ -7,12 +7,12 @@ import (
 
 	"github.com/gptscript-ai/knowledge/pkg/datastore/transformers"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
-	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 )
 
 // Postprocessor is similar to types.DocumentTransformer, but can take into account the retrieval query
 type Postprocessor interface {
-	Transform(ctx context.Context, query string, docs []vs.Document) ([]vs.Document, error)
+	Transform(ctx context.Context, response *types.RetrievalResponse) error
+	Name() string
 }
 
 type TransformerWrapper struct {
@@ -23,18 +23,29 @@ func NewTransformerWrapper(transformer types.DocumentTransformer) *TransformerWr
 	return &TransformerWrapper{DocumentTransformer: transformer}
 }
 
-func (t *TransformerWrapper) Transform(ctx context.Context, query string, docs []vs.Document) ([]vs.Document, error) {
-	return t.DocumentTransformer.Transform(ctx, docs)
+func (t *TransformerWrapper) Transform(ctx context.Context, response *types.RetrievalResponse) error {
+	for q, docs := range response.Responses {
+		newDocs, err := t.DocumentTransformer.Transform(ctx, docs)
+		if err != nil {
+			return err
+		}
+		response.Responses[q] = newDocs
+	}
+	return nil
+}
+
+func (t *TransformerWrapper) Name() string {
+	return t.DocumentTransformer.Name()
 }
 
 var PostprocessorMap = map[string]Postprocessor{
-	"extra_metadata":                  NewTransformerWrapper(&transformers.ExtraMetadata{}),
-	"keywords":                        NewTransformerWrapper(&transformers.KeywordExtractor{}),
-	"filter_markdown_docs_no_content": NewTransformerWrapper(&transformers.FilterMarkdownDocsNoContent{}),
-	"similarity":                      &SimilarityPostprocessor{},
-	"content_substring_filter":        &ContentSubstringFilterPostprocessor{},
-	"content_filter":                  &ContentFilterPostprocessor{},
-	"cohere_rerank":                   &CohereRerankPostprocessor{},
+	transformers.ExtraMetadataName:               NewTransformerWrapper(&transformers.ExtraMetadata{}),
+	transformers.KeywordExtractorName:            NewTransformerWrapper(&transformers.KeywordExtractor{}),
+	transformers.FilterMarkdownDocsNoContentName: NewTransformerWrapper(&transformers.FilterMarkdownDocsNoContent{}),
+	SimilarityPostprocessorName:                  &SimilarityPostprocessor{},
+	ContentSubstringFilterPostprocessorName:      &ContentSubstringFilterPostprocessor{},
+	ContentFilterPostprocessorName:               &ContentFilterPostprocessor{},
+	CohereRerankPostprocessorName:                &CohereRerankPostprocessor{},
 }
 
 func GetPostprocessor(name string) (Postprocessor, error) {

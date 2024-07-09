@@ -5,9 +5,12 @@ import (
 	"github.com/acorn-io/z"
 	cohere "github.com/cohere-ai/cohere-go/v2"
 	cohereclient "github.com/cohere-ai/cohere-go/v2/client"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 	"log/slog"
 )
+
+const CohereRerankPostprocessorName = "cohere_rerank"
 
 type CohereRerankPostprocessor struct {
 	ApiKey string `json:"apiKey" yaml:"apiKey"`
@@ -15,7 +18,18 @@ type CohereRerankPostprocessor struct {
 	TopN   int
 }
 
-func (c *CohereRerankPostprocessor) Transform(ctx context.Context, query string, docs []vs.Document) ([]vs.Document, error) {
+func (c *CohereRerankPostprocessor) Transform(ctx context.Context, response *types.RetrievalResponse) error {
+	var err error
+	for q, docs := range response.Responses {
+		response.Responses[q], err = c.transform(ctx, q, docs)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (c *CohereRerankPostprocessor) transform(ctx context.Context, query string, docs []vs.Document) ([]vs.Document, error) {
 	slog.Debug("Reranking documents", "model", c.Model, "topN", c.TopN, "numDocs", len(docs))
 	client := cohereclient.NewClient(cohereclient.WithToken(c.ApiKey))
 
@@ -54,4 +68,8 @@ func (c *CohereRerankPostprocessor) Transform(ctx context.Context, query string,
 	}
 
 	return rerankedDocs, nil
+}
+
+func (c *CohereRerankPostprocessor) Name() string {
+	return CohereRerankPostprocessorName
 }

@@ -2,6 +2,7 @@ package datastore
 
 import (
 	"context"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
 	"log/slog"
 
 	"github.com/gptscript-ai/knowledge/pkg/datastore/defaults"
@@ -14,7 +15,7 @@ type RetrieveOpts struct {
 	RetrievalFlow *flows.RetrievalFlow
 }
 
-func (s *Datastore) Retrieve(ctx context.Context, datasetID string, query string, opts RetrieveOpts) ([]vectorstore.Document, error) {
+func (s *Datastore) Retrieve(ctx context.Context, datasetID string, query string, opts RetrieveOpts) (*types.RetrievalResponse, error) {
 	slog.Debug("Retrieving content from dataset", "dataset", datasetID, "query", query)
 
 	retrievalFlow := opts.RetrievalFlow

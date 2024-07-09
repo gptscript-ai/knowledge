@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	dstypes "github.com/gptscript-ai/knowledge/pkg/datastore/types"
 	"io"
 	"net/http"
 	"os"
@@ -16,7 +17,6 @@ import (
 	"github.com/gptscript-ai/knowledge/pkg/datastore"
 	"github.com/gptscript-ai/knowledge/pkg/index"
 	"github.com/gptscript-ai/knowledge/pkg/server/types"
-	"github.com/gptscript-ai/knowledge/pkg/vectorstore"
 )
 
 type DefaultClient struct {
@@ -164,7 +164,7 @@ func (c *DefaultClient) DeleteDocuments(_ context.Context, datasetID string, doc
 	return nil
 }
 
-func (c *DefaultClient) Retrieve(_ context.Context, datasetID string, query string, opts datastore.RetrieveOpts) ([]vectorstore.Document, error) {
+func (c *DefaultClient) Retrieve(_ context.Context, datasetID string, query string, opts datastore.RetrieveOpts) (*dstypes.RetrievalResponse, error) {
 	q := types.Query{Prompt: query}
 
 	if opts.TopK != 0 {
@@ -181,16 +181,16 @@ func (c *DefaultClient) Retrieve(_ context.Context, datasetID string, query stri
 		return nil, err
 	}
 
-	var docs []vectorstore.Document
-	err = json.Unmarshal(resp, &docs)
+	var res dstypes.RetrievalResponse
+	err = json.Unmarshal(resp, &res)
 	if err != nil {
 		return nil, err
 	}
 
-	return docs, nil
+	return &res, nil
 }
 
-func (c *DefaultClient) AskDirectory(ctx context.Context, path string, query string, opts *IngestPathsOpts, ropts *datastore.RetrieveOpts) ([]vectorstore.Document, error) {
+func (c *DefaultClient) AskDirectory(ctx context.Context, path string, query string, opts *IngestPathsOpts, ropts *datastore.RetrieveOpts) (*dstypes.RetrievalResponse, error) {
 	return AskDir(ctx, c, path, query, opts, ropts)
 }
 

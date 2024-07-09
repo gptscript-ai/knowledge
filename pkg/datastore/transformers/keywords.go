@@ -9,6 +9,8 @@ import (
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 )
 
+const KeywordExtractorName = "keywords"
+
 func NewKeyWordExtractor(numKeywords int, llm llm.LLM) *KeywordExtractor {
 	return &KeywordExtractor{
 		NumKeywords: numKeywords,
@@ -46,4 +48,8 @@ func (k *KeywordExtractor) Transform(ctx context.Context, docs []vs.Document) ([
 		docs[i].Metadata["keywords"] = strings.Join(keywords, ",")
 	}
 	return docs, nil
+}
+
+func (k *KeywordExtractor) Name() string {
+	return KeywordExtractorName
 }

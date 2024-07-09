@@ -4,10 +4,10 @@ import (
 	"context"
 	"github.com/gptscript-ai/knowledge/pkg/datastore"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/textsplitter"
+	dstypes "github.com/gptscript-ai/knowledge/pkg/datastore/types"
 	"github.com/gptscript-ai/knowledge/pkg/flows"
 	"github.com/gptscript-ai/knowledge/pkg/index"
 	"github.com/gptscript-ai/knowledge/pkg/server/types"
-	"github.com/gptscript-ai/knowledge/pkg/vectorstore"
 )
 
 type IngestPathsOpts struct {
@@ -25,9 +25,9 @@ type Client interface {
 	ListDatasets(ctx context.Context) ([]types.Dataset, error)
 	Ingest(ctx context.Context, datasetID string, data []byte, opts datastore.IngestOpts) ([]string, error)
 	IngestPaths(ctx context.Context, datasetID string, opts *IngestPathsOpts, paths ...string) (int, error) // returns number of files ingested
-	AskDirectory(ctx context.Context, path string, query string, opts *IngestPathsOpts, ropts *datastore.RetrieveOpts) ([]vectorstore.Document, error)
+	AskDirectory(ctx context.Context, path string, query string, opts *IngestPathsOpts, ropts *datastore.RetrieveOpts) (*dstypes.RetrievalResponse, error)
 	DeleteDocuments(ctx context.Context, datasetID string, documentIDs ...string) error
-	Retrieve(ctx context.Context, datasetID string, query string, opts datastore.RetrieveOpts) ([]vectorstore.Document, error)
+	Retrieve(ctx context.Context, datasetID string, query string, opts datastore.RetrieveOpts) (*dstypes.RetrievalResponse, error)
 	ExportDatasets(ctx context.Context, path string, datasets ...string) error
 	ImportDatasets(ctx context.Context, path string, datasets ...string) error
 	UpdateDataset(ctx context.Context, dataset index.Dataset, opts *datastore.UpdateDatasetOpts) (*index.Dataset, error)

@@ -6,6 +6,8 @@ import (
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 )
 
+const ExtraMetadataName = "extra_metadata"
+
 type ExtraMetadata struct {
 	Metadata map[string]any
 }
@@ -17,4 +19,8 @@ func (e *ExtraMetadata) Transform(_ context.Context, docs []vs.Document) ([]vs.D
 		}
 	}
 	return docs, nil
+}
+
+func (e *ExtraMetadata) Name() string {
+	return ExtraMetadataName
 }
