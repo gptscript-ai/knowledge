@@ -11,10 +11,16 @@ import (
 	"log/slog"
 )
 
+const RoutingRetrieverName = "routing"
+
 type RoutingRetriever struct {
 	Model             llm.LLMConfig
 	AvailableDatasets []string
 	TopK              int
+}
+
+func (r *RoutingRetriever) Name() string {
+	return RoutingRetrieverName
 }
 
 var routingPromptTpl = `The following query will be used for a vector similarity search.
@@ -32,7 +38,7 @@ type routingResp struct {
 func (r *RoutingRetriever) Retrieve(ctx context.Context, store store.Store, query string, datasetID string) ([]vs.Document, error) {
 	log := slog.With("component", "RoutingRetriever")
 
-	log.Debug("Ignoring input datasetID in routing retriever, as it chooses on by itself", "query", query, "inputDataset", datasetID)
+	log.Debug("Ignoring input datasetID in routing retriever, as it chooses one by itself", "query", query, "inputDataset", datasetID)
 
 	if r.TopK <= 0 {
 		log.Debug("TopK not set, using default", "default", defaults.TopK)

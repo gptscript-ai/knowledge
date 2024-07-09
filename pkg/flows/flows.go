@@ -114,32 +114,39 @@ func (f *RetrievalFlow) FillDefaults(topK int) {
 	}
 }
 
-func (f *RetrievalFlow) Run(ctx context.Context, store store.Store, query string, datasetID string) ([]vs.Document, error) {
-	var err error
-	originalQuery := query
-
+func (f *RetrievalFlow) Run(ctx context.Context, store store.Store, query string, datasetID string) (*dstypes.RetrievalResponse, error) {
+	queries := []string{query}
 	for _, m := range f.QueryModifiers {
-		query, err = m.ModifyQuery(query)
+		mq, err := m.ModifyQueries(queries)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to modify queries %v with QueryModifier %q: %w", queries, m.Name(), err)
 		}
-	}
-	slog.Debug("Updated query", "original_query", originalQuery, "updated_query", query)
+		slog.Debug("Modified queries", "before", queries, "queryModifier", m.Name(), "after", mq)
+		queries = mq
 
-	docs, err := f.Retriever.Retrieve(ctx, store, query, datasetID)
-	if err != nil {
-		return nil, err
 	}
-	slog.Debug("Retrieved documents", "num_documents", len(docs), "query", query, "dataset", datasetID)
+	slog.Debug("Updated query set", "query", query, "modified_query_set", queries)
+
+	response := &dstypes.RetrievalResponse{
+		Query:     query,
+		Responses: make(map[string][]vs.Document, len(queries)),
+	}
+	for _, q := range queries {
+		docs, err := f.Retriever.Retrieve(ctx, store, q, datasetID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to retrieve documents for query %q using retriever %q: %w", q, f.Retriever.Name(), err)
+		}
+		slog.Debug("Retrieved documents", "num_documents", len(docs), "query", q, "dataset", datasetID, "retriever", f.Retriever.Name())
+		response.Responses[q] = docs
+	}
 
 	for _, pp := range f.Postprocessors {
-		docs, err = pp.Transform(ctx, query, docs)
+		err := pp.Transform(ctx, response)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to postprocess retrieval response with Postprocessor %q: %w", pp.Name(), err)
 		}
 	}
-	slog.Debug("Postprocessed retrieved documents", "num_documents", len(docs), "query", query, "dataset", datasetID)
+	slog.Debug("Postprocessed RetrievalResponse", "num_responses", len(response.Responses), "original_query", query)
 
-	slog.Debug("Retrieval flow finished", "num_documents", len(docs), "query", query, "dataset", datasetID)
-	return docs, nil
+	return response, nil
 }

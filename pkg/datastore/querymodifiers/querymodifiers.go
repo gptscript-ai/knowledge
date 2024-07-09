@@ -5,12 +5,13 @@ import (
 )
 
 type QueryModifier interface {
-	ModifyQuery(query string) (string, error)
+	ModifyQueries(queries []string) ([]string, error)
+	Name() string
 }
 
 var QueryModifiers = map[string]QueryModifier{
-	"spellcheck": SpellcheckQueryModifier{},
-	"enhance":    EnhanceQueryModifier{},
+	SpellcheckQueryModifierName: SpellcheckQueryModifier{},
+	EnhanceQueryModifierName:    EnhanceQueryModifier{},
 }
 
 func GetQueryModifier(name string) (QueryModifier, error) {

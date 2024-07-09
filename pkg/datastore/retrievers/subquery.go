@@ -11,10 +11,16 @@ import (
 	"strings"
 )
 
+const SubqueryRetrieverName = "subquery"
+
 type SubqueryRetriever struct {
 	Model llm.LLMConfig
 	Limit int
 	TopK  int
+}
+
+func (s SubqueryRetriever) Name() string {
+	return SubqueryRetrieverName
 }
 
 var subqueryPrompt = `The following query will be used for a vector similarity search.

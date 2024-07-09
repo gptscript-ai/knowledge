@@ -7,6 +7,8 @@ import (
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 )
 
+const FilterMarkdownDocsNoContentName = "filter_markdown_docs_no_content"
+
 // FilterMarkdownDocsNoContent filters out Markdown documents with no content or only headings
 //
 // TODO: this may be moved into the MarkdownTextSplitter
@@ -25,4 +27,8 @@ func (f *FilterMarkdownDocsNoContent) Transform(_ context.Context, docs []vs.Doc
 		}
 	}
 	return filteredDocs, nil
+}
+
+func (f *FilterMarkdownDocsNoContent) Name() string {
+	return FilterMarkdownDocsNoContentName
 }

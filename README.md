@@ -107,3 +107,11 @@ The knowledge tool is composed of the following components, which are all run fr
         - indexing knowledge bases (datasets): dataset <(1:n)> files <(1:n)> documents
           - this is useful for deleting specific documents or files from a dataset and to get quick overviews over datasets without having to query the vector database (which holds this information in the metadata)
         - storing knowledge base metadata and e.g. attached ingestion flows
+
+## Retrieval Flows
+
+The knowledge tool allows you to configure how sources are retrieved and how they should be treated before being returned to the caller (usually an LLM).
+
+Here's how it looks like:
+
+![Retrieval Flows](./docs/img/retrieval_flows.png)

@@ -14,6 +14,7 @@ type DocumentTransformerFunc func(context.Context, []vs.Document) ([]vs.Document
 
 type DocumentTransformer interface {
 	Transform(context.Context, []vs.Document) ([]vs.Document, error)
+	Name() string
 }
 
 type DocumentLoader interface {
@@ -23,4 +24,9 @@ type DocumentLoader interface {
 
 type TextSplitter interface {
 	SplitDocuments(docs []vs.Document) ([]vs.Document, error)
+}
+
+type RetrievalResponse struct {
+	Query     string
+	Responses map[string][]vs.Document
 }

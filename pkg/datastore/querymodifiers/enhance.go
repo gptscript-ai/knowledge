@@ -6,8 +6,14 @@ import (
 	"github.com/gptscript-ai/knowledge/pkg/llm"
 )
 
+const EnhanceQueryModifierName = "enhance"
+
 type EnhanceQueryModifier struct {
 	Model llm.LLMConfig
+}
+
+func (s EnhanceQueryModifier) Name() string {
+	return EnhanceQueryModifierName
 }
 
 var enhancePromptTpl = `The following query will be used for a vector similarity search.
@@ -19,19 +25,24 @@ type enhanceResp struct {
 	Result string `json:"result"`
 }
 
-func (s EnhanceQueryModifier) ModifyQuery(query string) (string, error) {
+func (s EnhanceQueryModifier) ModifyQueries(queries []string) ([]string, error) {
 	m, err := llm.NewFromConfig(s.Model)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	result, err := m.Prompt(context.Background(), enhancePromptTpl, map[string]interface{}{"query": query})
-	if err != nil {
-		return "", err
+
+	modifiedQueries := make([]string, len(queries))
+	for i, query := range queries {
+		result, err := m.Prompt(context.Background(), enhancePromptTpl, map[string]interface{}{"query": query})
+		if err != nil {
+			return nil, err
+		}
+		var resp enhanceResp
+		err = json.Unmarshal([]byte(result), &resp)
+		if err != nil {
+			return nil, err
+		}
+		modifiedQueries[i] = resp.Result
 	}
-	var resp enhanceResp
-	err = json.Unmarshal([]byte(result), &resp)
-	if err != nil {
-		return "", err
-	}
-	return resp.Result, nil
+	return modifiedQueries, nil
 }
