@@ -5,7 +5,7 @@ import (
 )
 
 type QueryModifier interface {
-	ModifyQuery(query string) ([]string, error)
+	ModifyQueries(queries []string) ([]string, error)
 	Name() string
 }
 

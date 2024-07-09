@@ -117,14 +117,13 @@ func (f *RetrievalFlow) FillDefaults(topK int) {
 func (f *RetrievalFlow) Run(ctx context.Context, store store.Store, query string, datasetID string) (*dstypes.RetrievalResponse, error) {
 	queries := []string{query}
 	for _, m := range f.QueryModifiers {
-		for _, q := range queries {
-			mq, err := m.ModifyQuery(q)
-			if err != nil {
-				return nil, fmt.Errorf("failed to modify query %q with QueryModifier %q: %w", q, m.Name(), err)
-			}
-			slog.Debug("Modified query", "query", q, "queryModifier", m.Name(), "modifiedQuery", mq)
-			queries = append(queries, mq...)
+		mq, err := m.ModifyQueries(queries)
+		if err != nil {
+			return nil, fmt.Errorf("failed to modify queries %v with QueryModifier %q: %w", queries, m.Name(), err)
 		}
+		slog.Debug("Modified queries", "before", queries, "queryModifier", m.Name(), "after", mq)
+		queries = mq
+
 	}
 	slog.Debug("Updated query set", "query", query, "modified_query_set", queries)
 
