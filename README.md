@@ -14,8 +14,6 @@ make build
 
 The knowledge tool can run in two modes: server and client, where client can be standalone or referring to a remote server.
 
-You can find a full gptscript-generated documentation in the [CLI documentation](./docs/cli.md).
-
 
 ### Client - Standalone
 
@@ -114,4 +112,4 @@ The knowledge tool allows you to configure how sources are retrieved and how the
 
 Here's how it looks like:
 
-![Retrieval Flows](./docs/img/retrieval_flows.png)
+![Retrieval Flows](./docs/static/img/retrieval_flows.png)
