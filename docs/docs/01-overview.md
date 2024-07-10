@@ -192,7 +192,7 @@ Retrieved the following 1 source collections for the query "Which vector databas
 The above didn't really look nice - It just returned what the Knowledge tool yielded.
 Now let's actually use that as part of a GPTScript such that the Knowledge tool output will be used by the LLM to generate a pretty answer for us.
 
-1. Create a GPTScript script that leverages the knowledge tool (see [examples/quickstart.gpt](examples/quickstart.gpt)):
+1. Create a GPTScript script that leverages the knowledge tool (see [examples/quickstart.gpt](https://github.com/gptscript-ai/knowledge/blob/main/examples/quickstart.gpt)):
     
    ```yaml
    # examples/quickstart.gpt
