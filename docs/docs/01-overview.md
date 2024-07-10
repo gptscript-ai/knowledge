@@ -30,7 +30,7 @@ You can download the latest release from the [GitHub releases page](https://gith
 :::note
 
 The output of the knowledge is tailored for LLM readability, not necessarily meant to be read by humans.
-When used with GPTScript (the main use case), the LLM will only receive the relevant output, not the log output.
+When used with GPTScript ([the target use case for the knowledge tool](#human-readable-with-gptscript)), the LLM will only receive the relevant output, not the log output.
    
 :::
 
