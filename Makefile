@@ -48,7 +48,10 @@ cli-docs:
 	go run docs/gendocs/main.go
 
 serve-docs:
-	(cd docs && npm i && npm start)
+	(cd docs && yarn install && yarn start)
+
+build-docs:
+	(cd docs && yarn install && yarn build)
 
 # This will initialize the node_modules needed to run the docs dev server. Run this before running serve-docs
 init-docs:
