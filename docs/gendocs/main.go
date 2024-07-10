@@ -31,7 +31,7 @@ func main() {
 		}
 	}
 
-	err = doc.GenMarkdownTreeCustom(cmd, "docs/docs/03-cmd", filePrepender, linkHandler)
+	err = doc.GenMarkdownTreeCustom(cmd, "docs/docs/99-cmd", filePrepender, linkHandler)
 	if err != nil {
 		log.Fatal(err)
 	}
