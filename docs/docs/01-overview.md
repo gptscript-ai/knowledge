@@ -27,6 +27,13 @@ You can download the latest release from the [GitHub releases page](https://gith
 
 ## Quickstart
 
+:::note
+
+The output of the knowledge is tailored for LLM readability, not necessarily meant to be read by humans.
+When used with GPTScript (the main use case), the LLM will only receive the relevant output, not the log output.
+   
+:::
+
 We're going to use all the default settings and run Knowledge in standalone mode. For more information, see the [Usage](/usage) page.
 
 The commands below are using files from this repository.
@@ -103,11 +110,6 @@ The commands below are using files from this repository.
     {"content":"## knowledge version\n### SEE ALSO\n- [knowledge](knowledge.md)\t -","metadata":{"absPath":"<path>/docs/docs/99-cmd/knowledge_version.md","filename":"knowledge_version.md"},"similarity_score":0.7807098},
     {"content":"# Ingestion and Retrieval Flows\nKnowledge lets you configure how data is ingested and how it is retrieved back at querytime using flows.\nFlows are a series of steps that can be configured via simple YAML files - so-called Flow Files or Flow Configs.","metadata":{"absPath":"<path>/docs/docs/11-flows/01-overview.md","filename":"01-overview.md"},"similarity_score":0.77821434}]}
     ```
-   :::note
-
-   The output is tailored for LLM readability, not necessarily meant to be read by humans.
-   
-   :::
     </details>
 
 ## Quickstart with [GPTScript](https://github.com/gptscript-ai/gptscript)
