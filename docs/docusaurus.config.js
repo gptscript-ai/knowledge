@@ -33,6 +33,7 @@ const config = {
           sidebarPath: "./sidebars.js",
           editUrl: "https://github.com/gptscript-ai/knowledge/tree/main/docs/",
           routeBasePath: "/", // Serve the docs at the site's root
+          showLastUpdateTime: true,
         },
         theme: {
           customCss: "./src/css/custom.css",
