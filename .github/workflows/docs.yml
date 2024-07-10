@@ -21,8 +21,7 @@ jobs:
         with:
           node-version: 18.x
           cache: yarn
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile --non-interactive
+          cache-dependency-path: docs/yarn.lock
       - name: Build
         run: make build-docs
       - name: Setup Pages

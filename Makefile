@@ -51,7 +51,7 @@ serve-docs:
 	(cd docs && yarn install && yarn start)
 
 build-docs:
-	(cd docs && yarn install && yarn build)
+	(cd docs && yarn install --frozen-lockfile --non-interactive && yarn build)
 
 # This will initialize the node_modules needed to run the docs dev server. Run this before running serve-docs
 init-docs:
