@@ -5,7 +5,7 @@ slug: /
 
 [![Discord](https://img.shields.io/discord/1204558420984864829?label=Discord)](https://discord.gg/9sSf4UyAMC)
 
-<img alt="Knowledge Logo" src="/img/logo.png" style={{width: 400}}/>
+<img alt="Knowledge Logo" src="img/logo.png" style={{width: 400}}/>
 
 GPTScript **Knowledge** is a tool to enhance GPTScript with Retrieval Augmented Generation (RAG).
 It covers the whole pipeline to ingest data into a local or remote server and retrieve it back when queried.
