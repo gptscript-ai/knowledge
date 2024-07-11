@@ -12,6 +12,7 @@ type QueryModifier interface {
 var QueryModifiers = map[string]QueryModifier{
 	SpellcheckQueryModifierName: SpellcheckQueryModifier{},
 	EnhanceQueryModifierName:    EnhanceQueryModifier{},
+	GenericQueryModifierName:    GenericQueryModifier{},
 }
 
 func GetQueryModifier(name string) (QueryModifier, error) {
