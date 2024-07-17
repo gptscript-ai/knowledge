@@ -44,4 +44,10 @@ export OPENAI_EMBEDDING_MODEL="CompendiumLabs/bge-large-en-v1.5-gguf"
 export VS_CHROMEM_EMBEDDING_PARALLEL_THREAD="1"
 ```
 
+::: note
+
+    Running with VS_CHROMEM_EMBEDDING_PARALLEL_THREAD="1" may be really really slow for a large amount of files (or just really large files).
+
+:::
+
 </details>
