@@ -65,7 +65,9 @@ func (s *Store) AddDocuments(ctx context.Context, docs []vs.Document, collection
 		return nil, fmt.Errorf("%w: %q", errors.ErrCollectionNotFound, collection)
 	}
 
-	err := col.AddDocuments(ctx, chromemDocs, env.GetIntFromEnvOrDefault(VsChromemEmbeddingParallelThread, 100))
+	concurrency := env.GetIntFromEnvOrDefault(VsChromemEmbeddingParallelThread, 100)
+	slog.Debug("Adding documents to collection", "collection", collection, "numDocuments", len(chromemDocs), "concurrency", concurrency)
+	err := col.AddDocuments(ctx, chromemDocs, concurrency)
 	if err != nil {
 		return nil, err
 	}
