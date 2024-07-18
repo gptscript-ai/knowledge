@@ -51,3 +51,16 @@ export VS_CHROMEM_EMBEDDING_PARALLEL_THREAD="1"
 :::
 
 </details>
+
+<details>
+<summary id="example-configurations-ollama"><strong>Olama</strong></summary>
+
+Tested with Ollama v0.2.6 (pre-release that introduced OpenAI API compatibility).
+
+
+```dotenv
+export OPENAI_BASE_URL=http://localhost:11434/v1
+export OPENAI_EMBEDDING_MODEL="mxbai-embed-large"
+```
+
+</details>
