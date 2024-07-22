@@ -123,7 +123,6 @@ func (f *RetrievalFlow) Run(ctx context.Context, store store.Store, query string
 		}
 		slog.Debug("Modified queries", "before", queries, "queryModifier", m.Name(), "after", mq)
 		queries = mq
-
 	}
 	slog.Debug("Updated query set", "query", query, "modified_query_set", queries)
 

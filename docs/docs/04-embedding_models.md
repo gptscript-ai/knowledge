@@ -53,7 +53,7 @@ export VS_CHROMEM_EMBEDDING_PARALLEL_THREAD="1"
 </details>
 
 <details>
-<summary id="example-configurations-ollama"><strong>Olama</strong></summary>
+<summary id="example-configurations-ollama"><strong>Ollama</strong></summary>
 
 Tested with Ollama v0.2.6 (pre-release that introduced OpenAI API compatibility).
 

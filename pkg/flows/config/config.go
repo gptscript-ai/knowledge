@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gptscript-ai/knowledge/pkg/output"
 	"log/slog"
 	"os"
 	"strings"
@@ -203,7 +204,7 @@ func (i *IngestionFlowConfig) AsIngestionFlow() (*flows.IngestionFlow, error) {
 				if err := mapstructure.Decode(tf.Options, &transformer); err != nil {
 					return nil, fmt.Errorf("failed to decode transformer configuration: %w", err)
 				}
-				slog.Debug("Transformer custom configuration", "name", tf.Name, "config", RedactSensitive(transformer))
+				slog.Debug("Transformer custom configuration", "name", tf.Name, "config", output.RedactSensitive(transformer))
 			}
 			flow.Transformations = append(flow.Transformations, transformer)
 		}
@@ -235,7 +236,7 @@ func (r *RetrievalFlowConfig) AsRetrievalFlow() (*flows.RetrievalFlow, error) {
 				if err := mapstructure.Decode(qm.Options, &modifier); err != nil {
 					return nil, fmt.Errorf("failed to decode query modifier configuration: %w", err)
 				}
-				slog.Debug("Query Modifier custom configuration", "name", qm.Name, "config", RedactSensitive(modifier))
+				slog.Debug("Query Modifier custom configuration", "name", qm.Name, "config", output.RedactSensitive(modifier))
 			}
 			flow.QueryModifiers = append(flow.QueryModifiers, modifier)
 		}
@@ -250,7 +251,7 @@ func (r *RetrievalFlowConfig) AsRetrievalFlow() (*flows.RetrievalFlow, error) {
 			if err := mapstructure.Decode(r.Retriever.Options, &ret); err != nil {
 				return nil, fmt.Errorf("failed to decode retriever configuration: %w", err)
 			}
-			slog.Debug("Retriever custom configuration", "name", r.Retriever.Name, "config", RedactSensitive(ret))
+			slog.Debug("Retriever custom configuration", "name", r.Retriever.Name, "config", output.RedactSensitive(ret))
 		}
 		flow.Retriever = ret
 	}
@@ -265,7 +266,7 @@ func (r *RetrievalFlowConfig) AsRetrievalFlow() (*flows.RetrievalFlow, error) {
 				if err := mapstructure.Decode(pp.Options, &postprocessor); err != nil {
 					return nil, fmt.Errorf("failed to decode postprocessor configuration: %w", err)
 				}
-				slog.Debug("Postprocessor custom configuration", "name", pp.Name, "config", RedactSensitive(postprocessor))
+				slog.Debug("Postprocessor custom configuration", "name", pp.Name, "config", output.RedactSensitive(postprocessor))
 			}
 			flow.Postprocessors = append(flow.Postprocessors, postprocessor)
 		}

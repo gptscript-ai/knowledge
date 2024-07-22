@@ -45,5 +45,4 @@ func (s SpellcheckQueryModifier) ModifyQueries(queries []string) ([]string, erro
 		modifiedQueries[i] = resp.Result
 	}
 	return modifiedQueries, nil
-
 }

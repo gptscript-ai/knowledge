@@ -4,18 +4,17 @@ import (
 	"archive/zip"
 	"context"
 	"fmt"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
+	"github.com/gptscript-ai/knowledge/pkg/output"
 	"io"
 	"log/slog"
-	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
 
-	"github.com/acorn-io/z"
 	"github.com/adrg/xdg"
-	"github.com/gptscript-ai/knowledge/pkg/config"
 	"github.com/gptscript-ai/knowledge/pkg/index"
 	"github.com/gptscript-ai/knowledge/pkg/llm"
 	"github.com/gptscript-ai/knowledge/pkg/vectorstore"
@@ -65,7 +64,7 @@ func GetDatastorePaths(dsn, vectordbPath string) (string, string, bool, error) {
 	return dsn, vectordbPath, isArchive, nil
 }
 
-func NewDatastore(dsn string, automigrate bool, vectorDBPath string, openAIConfig config.OpenAIConfig) (*Datastore, error) {
+func NewDatastore(dsn string, automigrate bool, vectorDBPath string, embeddingProvider embeddings.EmbeddingModelProvider) (*Datastore, error) {
 	dsn, vectorDBPath, isArchive, err := GetDatastorePaths(dsn, vectorDBPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to determine datastore paths: %w", err)
@@ -94,45 +93,14 @@ func NewDatastore(dsn string, automigrate bool, vectorDBPath string, openAIConfi
 		}
 	}
 
-	var embeddingFunc cg.EmbeddingFunc
-	if openAIConfig.APIType == "Azure" {
-		// TODO: clean this up to support inputting the full deployment URL
-		deployment := openAIConfig.AzureOpenAIConfig.Deployment
-		if deployment == "" {
-			deployment = openAIConfig.EmbeddingModel
-		}
-
-		deploymentURL, err := url.Parse(openAIConfig.APIBase)
-		if err != nil || deploymentURL == nil {
-			return nil, fmt.Errorf("failed to parse OpenAI Base URL %q: %w", openAIConfig.APIBase, err)
-		}
-
-		deploymentURL = deploymentURL.JoinPath("openai", "deployments", deployment)
-
-		slog.Debug("Using Azure OpenAI API", "deploymentURL", deploymentURL.String(), "APIVersion", openAIConfig.APIVersion)
-
-		embeddingFunc = cg.NewEmbeddingFuncAzureOpenAI(
-			openAIConfig.APIKey,
-			deploymentURL.String(),
-			openAIConfig.APIVersion,
-			"",
-		)
-	} else {
-		embeddingFunc = cg.NewEmbeddingFuncOpenAICompat(
-			openAIConfig.APIBase,
-			openAIConfig.APIKey,
-			openAIConfig.EmbeddingModel,
-			z.Pointer(true),
-		)
-	}
-
-	model, err := llm.NewOpenAI(openAIConfig)
+	embeddingFunc, err := embeddingProvider.EmbeddingFunc()
 	if err != nil {
-		return nil, fmt.Errorf("failed to create LLM: %w", err)
+		return nil, fmt.Errorf("failed to create embedding function: %w", err)
 	}
+
+	slog.Info("Using embedding model provider", "provider", embeddingProvider.Name(), "config", output.RedactSensitive(embeddingProvider.Config()))
 
 	ds := &Datastore{
-		LLM:         *model,
 		Index:       idx,
 		Vectorstore: chromem.New(vsdb, embeddingFunc),
 	}
