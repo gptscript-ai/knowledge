@@ -33,7 +33,7 @@ func New(c EmbeddingModelProviderCohere) (*EmbeddingModelProviderCohere, error) 
 
 func (p *EmbeddingModelProviderCohere) fillDefaults() error {
 	defaultCfg := EmbeddingModelProviderCohere{
-		Model: "embed-english-v2.0",
+		Model: "embed-english-v3.0",
 	}
 
 	if err := mergo.Merge(&p, defaultCfg); err != nil {

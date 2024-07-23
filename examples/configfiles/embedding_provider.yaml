@@ -1,0 +1,8 @@
+embeddings:
+  provider: cohere # this selects one of the below
+  cohere:
+    apiKey: "${COHERE_API_KEY}" # environment variables are expanded when reading the config file
+    model: "embed-english-v2.0"
+  openai:
+    apiKey: "${OPENAI_API_KEY}"
+    embeddingEndpoint: "/some-custom-endpoint" # anything that's not the default /embeddings

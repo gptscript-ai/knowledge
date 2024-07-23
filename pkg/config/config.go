@@ -7,8 +7,9 @@ import (
 	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/vertex"
 	"github.com/knadh/koanf/parsers/json"
 	"github.com/knadh/koanf/parsers/yaml"
-	"github.com/knadh/koanf/providers/file"
+	"github.com/knadh/koanf/providers/rawbytes"
 	"github.com/knadh/koanf/v2"
+	"os"
 	"path"
 )
 
@@ -34,10 +35,17 @@ type VectorDBConfig struct {
 
 func LoadConfig(configFile string) (*Config, error) {
 	cfg := &Config{}
-
 	if configFile == "" {
 		return cfg, nil
 	}
+
+	content, err := os.ReadFile(configFile)
+	if err != nil {
+		return nil, err
+	}
+
+	// Expand environment variables in config
+	content = []byte(os.ExpandEnv(string(content)))
 
 	k := koanf.New(".")
 	var pa koanf.Parser
@@ -50,7 +58,7 @@ func LoadConfig(configFile string) (*Config, error) {
 		return nil, fmt.Errorf("unsupported config file format: %s", path.Ext(configFile))
 	}
 
-	if err := k.Load(file.Provider(configFile), pa); err != nil {
+	if err := k.Load(rawbytes.Provider(content), pa); err != nil {
 		return nil, fmt.Errorf("error loading config file %q: %w", configFile, err)
 	}
 
