@@ -32,8 +32,8 @@ func TestLoadConfOpenAI(t *testing.T) {
 
 	conf := p.Config().(openai.OpenAIConfig)
 
-	require.Equal(t, "https://foo.bar.com", conf.APIBase)
-	assert.Equal(t, "sk-1234567890abcdef", conf.APIKey)
+	assert.Equal(t, "https://foo.bar.spam", conf.APIBase) // this is in config and env, so env should take precedence
+	assert.Equal(t, "sk-1234567890abcdef", conf.APIKey)   // this should come from config
 }
 
 func TestLoadConfGoogleVertexAI(t *testing.T) {

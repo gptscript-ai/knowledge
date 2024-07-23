@@ -12,17 +12,17 @@ import (
 func GetEmbeddingsModelProvider(name string, embeddingsConfig config.EmbeddingsConfig) (types.EmbeddingModelProvider, error) {
 
 	if name == "" {
-		name = embeddingsConfig.EmbeddingModelProvider
+		name = embeddingsConfig.Provider
 	}
-	embeddingsConfig.EmbeddingModelProvider = name
+	embeddingsConfig.Provider = name
 
 	switch name {
 	case openai.EmbeddingModelProviderOpenAIName:
-		return openai.New(embeddingsConfig.EmbeddingModelProviderOpenAI)
+		return openai.New(openai.EmbeddingModelProviderOpenAI{OpenAIConfig: embeddingsConfig.OpenAI})
 	case cohere.EmbeddingModelProviderCohereName:
-		return cohere.New(embeddingsConfig.EmbeddingModelProviderCohere)
+		return cohere.New(embeddingsConfig.Cohere)
 	case vertex.EmbeddingProviderGoogleVertexAIName:
-		return vertex.New(embeddingsConfig.EmbeddingProviderGoogleVertexAI)
+		return vertex.New(embeddingsConfig.GoogleVertexAI)
 	default:
 		return nil, fmt.Errorf("unknown embedding model provider: %q", name)
 	}

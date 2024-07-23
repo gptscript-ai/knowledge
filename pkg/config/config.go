@@ -16,15 +16,11 @@ type Config struct {
 	EmbeddingsConfig EmbeddingsConfig `koanf:"embeddings" json:"embeddings,omitempty"`
 }
 
-type EmbeddingModelProviderConfig struct {
-	EmbeddingModelProvider string `usage:"Embedding model provider" default:"openai" env:"KNOW_EMBEDDING_MODEL_PROVIDER" name:"embedding-model-provider" koanf:"provider"`
-}
-
 type EmbeddingsConfig struct {
-	EmbeddingModelProviderConfig
-	openai.EmbeddingModelProviderOpenAI    `koanf:"openai" json:"openai,omitempty"`
-	cohere.EmbeddingModelProviderCohere    `koanf:"cohere" json:"cohere,omitempty"`
-	vertex.EmbeddingProviderGoogleVertexAI `koanf:"googleVertexAI" json:"googleVertexAI,omitempty"`
+	Provider       string
+	OpenAI         openai.OpenAIConfig                    `koanf:"openai" json:"openai,omitempty"`
+	Cohere         cohere.EmbeddingModelProviderCohere    `koanf:"cohere" json:"cohere,omitempty"`
+	GoogleVertexAI vertex.EmbeddingProviderGoogleVertexAI `koanf:"googleVertexAI" json:"googleVertexAI,omitempty"`
 }
 
 type DatabaseConfig struct {
