@@ -11,7 +11,7 @@ import (
 )
 
 func TestLoadConfOpenAI(t *testing.T) {
-	dotenv := "test_assets/openai.env"
+	dotenv := "test_assets/openai_env"
 	require.NoError(t, godotenv.Load(dotenv))
 
 	// Load the configuration
@@ -37,7 +37,7 @@ func TestLoadConfOpenAI(t *testing.T) {
 }
 
 func TestLoadConfGoogleVertexAI(t *testing.T) {
-	dotenv := "test_assets/google_vertex_ai.env"
+	dotenv := "test_assets/google_env"
 	require.NoError(t, godotenv.Load(dotenv))
 
 	cfg, err := config.LoadConfig("")
