@@ -4,7 +4,7 @@ import (
 	"archive/zip"
 	"context"
 	"fmt"
-	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings"
+	embeddings "github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/types"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
 	"github.com/gptscript-ai/knowledge/pkg/output"
 	"io"

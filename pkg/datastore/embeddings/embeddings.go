@@ -3,16 +3,11 @@ package embeddings
 import (
 	"fmt"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/openai"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/types"
 	cg "github.com/philippgille/chromem-go"
 )
 
-type EmbeddingModelProvider interface {
-	Name() string
-	EmbeddingFunc() (cg.EmbeddingFunc, error)
-	Config() any
-}
-
-func GetEmbeddingsModelProvider(name string, configFile string) (EmbeddingModelProvider, error) {
+func GetEmbeddingsModelProvider(name string, configFile string) (types.EmbeddingModelProvider, error) {
 	switch name {
 	case openai.EmbeddingModelProviderOpenAIName:
 		return openai.New(configFile)

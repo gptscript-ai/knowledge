@@ -14,7 +14,7 @@ import (
 const EmbeddingModelProviderOpenAIName string = "openai"
 
 type EmbeddingModelProviderOpenAI struct {
-	OpenAIConfig config.OpenAIConfig `json:"openai"`
+	config.OpenAIConfig `json:"openai"`
 }
 
 func (p *EmbeddingModelProviderOpenAI) Name() string {
