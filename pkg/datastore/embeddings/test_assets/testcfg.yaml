@@ -1,3 +1,4 @@
-openai:
-  apiKey: "sk-1234567890abcdef"
-  embeddingEndpoint: "/foobar"
+embeddings:
+  openai:
+    apiKey: "sk-1234567890abcdef"
+    embeddingEndpoint: "/foobar"

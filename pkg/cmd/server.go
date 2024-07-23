@@ -26,7 +26,13 @@ type Server struct {
 }
 
 func (s *Server) Run(cmd *cobra.Command, _ []string) error {
-	embeddingModelProvider, err := embeddings.GetEmbeddingsModelProvider(s.EmbeddingModelProviderConfig.EmbeddingModelProvider, s.ConfigFile)
+
+	cfg, err := config.LoadConfig(s.ConfigFile)
+	if err != nil {
+		return fmt.Errorf("failed to load config: %w", err)
+	}
+
+	embeddingModelProvider, err := embeddings.GetEmbeddingsModelProvider(s.EmbeddingModelProviderConfig.EmbeddingModelProvider, cfg.EmbeddingsConfig)
 	if err != nil {
 		return fmt.Errorf("failed to get embeddings model provider: %w", err)
 	}

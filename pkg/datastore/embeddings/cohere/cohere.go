@@ -18,19 +18,17 @@ func (p *EmbeddingModelProviderCohere) Name() string {
 	return EmbeddingModelProviderCohereName
 }
 
-func New(configFile string) (*EmbeddingModelProviderCohere, error) {
-	p := &EmbeddingModelProviderCohere{}
+func New(c EmbeddingModelProviderCohere) (*EmbeddingModelProviderCohere, error) {
 
-	err := load.FillConfig(configFile, "COHERE_", &p)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fill Cohere config")
+	if err := load.FillConfigEnv("COHERE_", &c); err != nil {
+		return nil, fmt.Errorf("failed to fill Cohere config from environment: %w", err)
 	}
 
-	if err := p.fillDefaults(); err != nil {
+	if err := c.fillDefaults(); err != nil {
 		return nil, fmt.Errorf("failed to fill Cohere defaults: %w", err)
 	}
 
-	return p, nil
+	return &c, nil
 }
 
 func (p *EmbeddingModelProviderCohere) fillDefaults() error {

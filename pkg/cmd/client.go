@@ -99,8 +99,13 @@ func (s *Client) getClient() (client.Client, error) {
 		return nil, err
 	}
 
+	cfg, err := config.LoadConfig(s.ConfigFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load config: %w", err)
+	}
+
 	if s.Server == "" || s.Server == "standalone" {
-		embeddingModelProvider, err := embeddings.GetEmbeddingsModelProvider(s.EmbeddingModelProviderConfig.EmbeddingModelProvider, s.ConfigFile)
+		embeddingModelProvider, err := embeddings.GetEmbeddingsModelProvider(s.EmbeddingModelProviderConfig.EmbeddingModelProvider, cfg.EmbeddingsConfig)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get embeddings model provider: %w", err)
 		}

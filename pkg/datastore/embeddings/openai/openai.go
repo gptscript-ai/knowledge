@@ -4,7 +4,6 @@ import (
 	"dario.cat/mergo"
 	"fmt"
 	"github.com/acorn-io/z"
-	"github.com/gptscript-ai/knowledge/pkg/config"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/load"
 	cg "github.com/philippgille/chromem-go"
 	"log/slog"
@@ -14,36 +13,47 @@ import (
 const EmbeddingModelProviderOpenAIName string = "openai"
 
 type EmbeddingModelProviderOpenAI struct {
-	config.OpenAIConfig `json:"openai"`
+	OpenAIConfig
+}
+
+type OpenAIConfig struct {
+	APIBase           string `usage:"OpenAI API base" default:"https://api.openai.com/v1" env:"OPENAI_BASE_URL" koanf:"baseURL"` // clicky-chats
+	APIKey            string `usage:"OpenAI API key (not required if used with clicky-chats)" default:"sk-foo" env:"OPENAI_API_KEY" koanf:"apiKey"`
+	Model             string `usage:"OpenAI model" default:"gpt-4" env:"OPENAI_MODEL" koanf:"openai-model"`
+	EmbeddingModel    string `usage:"OpenAI Embedding model" default:"text-embedding-ada-002" env:"OPENAI_EMBEDDING_MODEL" koanf:"embeddingModel"`
+	EmbeddingEndpoint string `usage:"OpenAI Embedding endpoint" default:"/embeddings" env:"OPENAI_EMBEDDING_ENDPOINT" koanf:"embeddingEndpoint"`
+	APIVersion        string `usage:"OpenAI API version (for Azure)" default:"2024-02-01" env:"OPENAI_API_VERSION" koanf:"apiVersion"`
+	APIType           string `usage:"OpenAI API type (OPEN_AI, AZURE, AZURE_AD)" default:"OPEN_AI" env:"OPENAI_API_TYPE" koanf:"apiType"`
+	AzureOpenAIConfig
+}
+
+type AzureOpenAIConfig struct {
+	Deployment string `usage:"Azure OpenAI deployment name (overrides openai-embedding-model, if set)" default:"" env:"OPENAI_AZURE_DEPLOYMENT" koanf:"azureDeployment"`
 }
 
 func (p *EmbeddingModelProviderOpenAI) Name() string {
 	return EmbeddingModelProviderOpenAIName
 }
 
-func New(configFile string) (*EmbeddingModelProviderOpenAI, error) {
-	p := &EmbeddingModelProviderOpenAI{}
+func New(c EmbeddingModelProviderOpenAI) (*EmbeddingModelProviderOpenAI, error) {
 
-	p.OpenAIConfig = config.OpenAIConfig{}
-
-	err := load.FillConfig(configFile, "OPENAI_", &p.OpenAIConfig)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fill OpenAI config: %w", err)
+	if err := load.FillConfigEnv("OPENAI_", &c.OpenAIConfig); err != nil {
+		return nil, fmt.Errorf("failed to fill OpenAI config from environment: %w", err)
 	}
 
-	if err := p.fillDefaults(); err != nil {
+	if err := c.fillDefaults(); err != nil {
 		return nil, fmt.Errorf("failed to fill OpenAI defaults: %w", err)
 	}
 
-	return p, nil
+	return &c, nil
 }
 
 func (p *EmbeddingModelProviderOpenAI) fillDefaults() error {
-	defaultAzureOpenAIConfig := config.AzureOpenAIConfig{
+	defaultAzureOpenAIConfig := AzureOpenAIConfig{
 		Deployment: "",
 	}
 
-	defaultConfig := config.OpenAIConfig{
+	defaultConfig := OpenAIConfig{
 		APIBase:           "https://api.openai.com/v1",
 		APIKey:            "sk-foo",
 		Model:             "gpt-4",

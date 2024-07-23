@@ -29,19 +29,17 @@ func (p *EmbeddingProviderGoogleVertexAI) Name() string {
 	return EmbeddingProviderGoogleVertexAIName
 }
 
-func New(configFile string) (*EmbeddingProviderGoogleVertexAI, error) {
-	p := &EmbeddingProviderGoogleVertexAI{}
+func New(c EmbeddingProviderGoogleVertexAI) (*EmbeddingProviderGoogleVertexAI, error) {
 
-	err := load.FillConfig(configFile, "GOOGLE_VERTEX_AI_", &p)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fill GoogleVertexAI config")
+	if err := load.FillConfigEnv("GOOGLE_VERTEX_AI", &c); err != nil {
+		return nil, fmt.Errorf("failed to fill Cohere config from environment: %w", err)
 	}
 
-	if err := p.fillDefaults(); err != nil {
+	if err := c.fillDefaults(); err != nil {
 		return nil, fmt.Errorf("failed to fill GoogleVertexAI defaults: %w", err)
 	}
 
-	return p, nil
+	return &c, nil
 }
 
 func (p *EmbeddingProviderGoogleVertexAI) fillDefaults() error {

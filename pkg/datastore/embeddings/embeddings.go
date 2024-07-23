@@ -2,31 +2,28 @@ package embeddings
 
 import (
 	"fmt"
+	"github.com/gptscript-ai/knowledge/pkg/config"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/cohere"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/openai"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/types"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/vertex"
-	cg "github.com/philippgille/chromem-go"
 )
 
-func GetEmbeddingsModelProvider(name string, configFile string) (types.EmbeddingModelProvider, error) {
+func GetEmbeddingsModelProvider(name string, embeddingsConfig config.EmbeddingsConfig) (types.EmbeddingModelProvider, error) {
+
+	if name == "" {
+		name = embeddingsConfig.EmbeddingModelProvider
+	}
+	embeddingsConfig.EmbeddingModelProvider = name
+
 	switch name {
 	case openai.EmbeddingModelProviderOpenAIName:
-		return openai.New(configFile)
+		return openai.New(embeddingsConfig.EmbeddingModelProviderOpenAI)
 	case cohere.EmbeddingModelProviderCohereName:
-		return cohere.New(configFile)
+		return cohere.New(embeddingsConfig.EmbeddingModelProviderCohere)
 	case vertex.EmbeddingProviderGoogleVertexAIName:
-		return vertex.New(configFile)
+		return vertex.New(embeddingsConfig.EmbeddingProviderGoogleVertexAI)
 	default:
-		return nil, fmt.Errorf("unknown embedding model provider: %s", name)
+		return nil, fmt.Errorf("unknown embedding model provider: %q", name)
 	}
-}
-
-func NewEmbeddingsFunc(providerName, configFile string) (cg.EmbeddingFunc, error) {
-	provider, err := GetEmbeddingsModelProvider(providerName, configFile)
-	if err != nil {
-		return nil, err
-	}
-
-	return provider.EmbeddingFunc()
 }

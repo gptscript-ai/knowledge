@@ -3,9 +3,9 @@ package llm
 import (
 	"context"
 	"fmt"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/openai"
 	"log/slog"
 
-	"github.com/gptscript-ai/knowledge/pkg/config"
 	golcmodel "github.com/hupe1980/golc/model"
 	"github.com/hupe1980/golc/model/chatmodel"
 	"github.com/hupe1980/golc/prompt"
@@ -17,7 +17,7 @@ type LLM struct {
 }
 
 type LLMConfig struct {
-	OpenAI config.OpenAIConfig
+	OpenAI openai.OpenAIConfig
 }
 
 func NewFromConfig(cfg LLMConfig) (*LLM, error) {
@@ -27,7 +27,7 @@ func NewFromConfig(cfg LLMConfig) (*LLM, error) {
 	return nil, fmt.Errorf("no LLM configuration found")
 }
 
-func NewOpenAI(cfg config.OpenAIConfig) (*LLM, error) {
+func NewOpenAI(cfg openai.OpenAIConfig) (*LLM, error) {
 	m, err := chatmodel.NewOpenAI(cfg.APIKey, func(o *chatmodel.OpenAIOptions) {
 		o.BaseURL = cfg.APIBase
 		o.ModelName = cfg.Model
