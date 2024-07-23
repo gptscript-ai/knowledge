@@ -2,7 +2,10 @@ package vertex
 
 import (
 	"context"
+	"dario.cat/mergo"
 	"fmt"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/load"
+	cg "github.com/philippgille/chromem-go"
 	"regexp"
 
 	aiplatform "cloud.google.com/go/aiplatform/apiv1"
@@ -12,6 +15,52 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
+type EmbeddingProviderGoogleVertexAI struct {
+	APIEndpoint          string `koanf:"apiEndpoint" env:"GOOGLE_VERTEX_AI_API_ENDPOINT"`
+	Project              string `koanf:"project" env:"GOOGLE_VERTEX_AI_PROJECT"`
+	Model                string `koanf:"model" env:"GOOGLE_VERTEX_AI_MODEL"`
+	Task                 string `koanf:"task" env:"GOOGLE_VERTEX_AI_TASK"`
+	OutputDimensionality *int   `koanf:"outputDimensionality" env:"GOOGLE_VERTEX_AI_OUTPUT_DIMENSIONALITY"`
+}
+
+const EmbeddingProviderGoogleVertexAIName = "google_vertex_ai"
+
+func (p *EmbeddingProviderGoogleVertexAI) Name() string {
+	return EmbeddingProviderGoogleVertexAIName
+}
+
+func New(configFile string) (*EmbeddingProviderGoogleVertexAI, error) {
+	p := &EmbeddingProviderGoogleVertexAI{}
+
+	err := load.FillConfig(configFile, "GOOGLE_VERTEX_AI_", &p)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fill GoogleVertexAI config")
+	}
+
+	if err := p.fillDefaults(); err != nil {
+		return nil, fmt.Errorf("failed to fill GoogleVertexAI defaults: %w", err)
+	}
+
+	return p, nil
+}
+
+func (p *EmbeddingProviderGoogleVertexAI) fillDefaults() error {
+	defaultCfg := EmbeddingProviderGoogleVertexAI{
+		APIEndpoint:          "",
+		Project:              "",
+		Task:                 "SEMANTIC_SIMILARITY",
+		Model:                "text-embedding-004",
+		OutputDimensionality: nil,
+	}
+
+	if err := mergo.Merge(p, defaultCfg); err != nil {
+		return fmt.Errorf("failed to merge GoogleVertexAI config: %w", err)
+	}
+
+	return nil
+}
+
+// embedTexts is mostly taken from the official Google Cloud AI Platform Vertex AI documentation
 func embedTexts(ctx context.Context,
 	apiEndpoint, project, model string, texts []string,
 	task string, customOutputDimensionality *int) ([]float32, error) {
@@ -71,4 +120,14 @@ func embedTexts(ctx context.Context,
 	}
 
 	return embeddings, nil
+}
+
+func (p *EmbeddingProviderGoogleVertexAI) EmbeddingFunc() (cg.EmbeddingFunc, error) {
+	return func(ctx context.Context, text string) ([]float32, error) {
+		return embedTexts(ctx, p.APIEndpoint, p.Project, p.Model, []string{text}, p.Task, p.OutputDimensionality)
+	}, nil
+}
+
+func (p *EmbeddingProviderGoogleVertexAI) Config() any {
+	return p
 }

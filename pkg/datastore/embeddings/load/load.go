@@ -2,14 +2,12 @@ package load
 
 import (
 	"fmt"
-	"path"
-	"strings"
-
 	"github.com/knadh/koanf/parsers/json"
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/env"
 	"github.com/knadh/koanf/providers/file"
 	koanf "github.com/knadh/koanf/v2"
+	"path"
 )
 
 var k = koanf.New(".")
@@ -31,21 +29,26 @@ func FillConfig(configFile string, envPrefix string, cfg interface{}) error {
 		}
 
 		if err := k.Load(file.Provider(configFile), pa); err != nil {
-			return fmt.Errorf("error loading config file: %w", err)
+			return fmt.Errorf("error loading config file %q: %w", configFile, err)
 		}
 	}
 
 	// Load environment variables and override config file values
-	envProvider := env.Provider(envPrefix, ".", func(s string) string {
-		return strings.Replace(strings.ToLower(s), "_", "-", -1)
-	})
-	if err := k.Load(envProvider, nil); err != nil {
+	if err := k.Load(env.Provider(envPrefix, ".", func(s string) string { return s }), nil); err != nil {
 		return fmt.Errorf("error loading environment variables: %w", err)
 	}
 
-	// Unmarshal the configuration into the provided struct
-	if err := k.Unmarshal("", cfg); err != nil {
-		return fmt.Errorf("error unmarshaling config: %w", err)
+	x := k.All()
+	fmt.Printf("Config: %#v\n", x)
+
+	// Unmarshal file config into the struct
+	if err := k.UnmarshalWithConf("", cfg, koanf.UnmarshalConf{Tag: "koanf"}); err != nil {
+		return fmt.Errorf("error unmarshalling file config: %w", err)
+	}
+
+	// Unmarshal environment variables into the struct, thus overriding file config values if present
+	if err := k.UnmarshalWithConf("", cfg, koanf.UnmarshalConf{Tag: "env", FlatPaths: true}); err != nil {
+		return fmt.Errorf("error unmarshalling environment variables: %w", err)
 	}
 
 	return nil

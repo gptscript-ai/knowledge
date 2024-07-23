@@ -10,8 +10,8 @@ import (
 const EmbeddingModelProviderCohereName string = "cohere"
 
 type EmbeddingModelProviderCohere struct {
-	APIKey string `env:"COHERE_API_KEY" koanf:"cohere-api-key"`
-	Model  string `env:"COHERE_EMBEDDING_MODEL" koanf:"cohere-embedding-model"`
+	APIKey string `env:"COHERE_API_KEY" koanf:"apiKey"`
+	Model  string `env:"COHERE_EMBEDDING_MODEL" koanf:"model"`
 }
 
 func (p *EmbeddingModelProviderCohere) Name() string {
@@ -47,4 +47,8 @@ func (p *EmbeddingModelProviderCohere) fillDefaults() error {
 
 func (p *EmbeddingModelProviderCohere) EmbeddingFunc() (cg.EmbeddingFunc, error) {
 	return cg.NewEmbeddingFuncCohere(p.APIKey, cg.EmbeddingModelCohere(p.Model)), nil
+}
+
+func (p *EmbeddingModelProviderCohere) Config() any {
+	return p
 }
