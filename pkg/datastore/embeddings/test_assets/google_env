@@ -1,2 +1,0 @@
-export GOOGLE_VERTEX_AI_PROJECT=foo-project
-export GOOGLE_VERTEX_AI_MODEL=foo-embedding-001

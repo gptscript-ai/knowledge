@@ -21,8 +21,8 @@ func GetEmbeddingsModelProvider(name string, embeddingsConfig config.EmbeddingsC
 		return openai.New(openai.EmbeddingModelProviderOpenAI{OpenAIConfig: embeddingsConfig.OpenAI})
 	case cohere.EmbeddingModelProviderCohereName:
 		return cohere.New(embeddingsConfig.Cohere)
-	case vertex.EmbeddingProviderGoogleVertexAIName:
-		return vertex.New(embeddingsConfig.GoogleVertexAI)
+	case vertex.EmbeddingProviderVertexName:
+		return vertex.New(embeddingsConfig.Vertex)
 	default:
 		return nil, fmt.Errorf("unknown embedding model provider: %q", name)
 	}

@@ -1,12 +1,12 @@
 embeddings:
-  provider: googleVertexAI # this selects one of the below
+  provider: vertex # this selects one of the below
   cohere:
     apiKey: "${COHERE_API_KEY}" # environment variables are expanded when reading the config file
     model: "embed-english-v2.0"
   openai:
     apiKey: "${OPENAI_API_KEY}"
     embeddingEndpoint: "/some-custom-endpoint" # anything that's not the default /embeddings
-  googleVertexAI:
+  vertex:
     apiKey: "${GOOGLE_API_KEY}"
     project: "acorn-io"
     # apiEndpoint: https://us-central1-aiplatform.googleapis.com

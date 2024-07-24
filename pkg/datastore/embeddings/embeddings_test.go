@@ -7,17 +7,19 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"os"
 	"testing"
 )
 
 func TestLoadConfOpenAI(t *testing.T) {
+
+	// Unset the OPENAI_API_KEY env var so test passes even if it's set in the system env
+	originalEnv := os.Getenv("OPENAI_API_KEY")
+	defer os.Setenv("OPENAI_API_KEY", originalEnv)
+	_ = os.Unsetenv("OPENAI_API_KEY")
+
 	dotenv := "test_assets/openai_env"
 	require.NoError(t, godotenv.Load(dotenv))
-
-	// Load the configuration
-	type Conf struct {
-		Embeddings map[string]any `yaml:"embeddings"`
-	}
 
 	configFile := "test_assets/testcfg.yaml"
 	cfg, err := config.LoadConfig(configFile)
@@ -36,21 +38,21 @@ func TestLoadConfOpenAI(t *testing.T) {
 	assert.Equal(t, "sk-1234567890abcdef", conf.APIKey)   // this should come from config
 }
 
-func TestLoadConfGoogleVertexAI(t *testing.T) {
-	dotenv := "test_assets/google_env"
+func TestLoadConfVertex(t *testing.T) {
+	dotenv := "test_assets/vertex_env"
 	require.NoError(t, godotenv.Load(dotenv))
 
 	cfg, err := config.LoadConfig("")
 	require.NoError(t, err)
 
 	// Load the configuration
-	p, err := GetEmbeddingsModelProvider("google_vertex_ai", cfg.EmbeddingsConfig)
+	p, err := GetEmbeddingsModelProvider("vertex", cfg.EmbeddingsConfig)
 	require.NoError(t, err)
-	require.Equal(t, "google_vertex_ai", p.Name())
+	require.Equal(t, "vertex", p.Name())
 
 	t.Logf("Config: %#v", p.Config())
 
-	conf := p.Config().(*vertex.EmbeddingProviderGoogleVertexAI)
+	conf := p.Config().(*vertex.EmbeddingProviderVertex)
 
 	require.Equal(t, "foo-embedding-001", conf.Model)
 	require.Equal(t, "foo-project", conf.Project)

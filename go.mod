@@ -5,7 +5,7 @@ go 1.22.3
 toolchain go1.22.4
 
 replace (
-	github.com/philippgille/chromem-go => github.com/iwilltry42/chromem-go v0.0.0-20240723203441-a84a182f610f
+	github.com/philippgille/chromem-go => github.com/iwilltry42/chromem-go v0.0.0-20240724093558-0405b8fe49d3 // Vertex Provider
 	github.com/tmc/langchaingo => github.com/StrongMonkey/langchaingo v0.0.0-20240617180437-9af4bee04c8b // Context-Aware Markdown Splitting
 )
 
