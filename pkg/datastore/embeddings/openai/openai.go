@@ -17,7 +17,7 @@ type EmbeddingModelProviderOpenAI struct {
 }
 
 type OpenAIConfig struct {
-	APIBase           string            `usage:"OpenAI API base" default:"https://api.openai.com/v1" env:"OPENAI_BASE_URL" koanf:"baseURL"` // clicky-chats
+	BaseURL           string            `usage:"OpenAI API base" default:"https://api.openai.com/v1" env:"OPENAI_BASE_URL" koanf:"baseURL"`
 	APIKey            string            `usage:"OpenAI API key (not required if used with clicky-chats)" default:"sk-foo" env:"OPENAI_API_KEY" koanf:"apiKey"`
 	Model             string            `usage:"OpenAI model" default:"gpt-4" env:"OPENAI_MODEL" koanf:"openai-model"`
 	EmbeddingModel    string            `usage:"OpenAI Embedding model" default:"text-embedding-ada-002" env:"OPENAI_EMBEDDING_MODEL" koanf:"embeddingModel"`
@@ -54,7 +54,7 @@ func (p *EmbeddingModelProviderOpenAI) fillDefaults() error {
 	}
 
 	defaultConfig := OpenAIConfig{
-		APIBase:           "https://api.openai.com/v1",
+		BaseURL:           "https://api.openai.com/v1",
 		APIKey:            "sk-foo",
 		Model:             "gpt-4",
 		EmbeddingModel:    "text-embedding-ada-002",
@@ -87,9 +87,9 @@ func (p *EmbeddingModelProviderOpenAI) EmbeddingFunc() (cg.EmbeddingFunc, error)
 			deployment = p.OpenAIConfig.EmbeddingModel
 		}
 
-		deploymentURL, err := url.Parse(p.OpenAIConfig.APIBase)
+		deploymentURL, err := url.Parse(p.OpenAIConfig.BaseURL)
 		if err != nil || deploymentURL == nil {
-			return nil, fmt.Errorf("failed to parse OpenAI Base URL %q: %w", p.OpenAIConfig.APIBase, err)
+			return nil, fmt.Errorf("failed to parse OpenAI Base URL %q: %w", p.OpenAIConfig.BaseURL, err)
 		}
 
 		deploymentURL = deploymentURL.JoinPath("openai", "deployments", deployment)
@@ -104,7 +104,7 @@ func (p *EmbeddingModelProviderOpenAI) EmbeddingFunc() (cg.EmbeddingFunc, error)
 		)
 	case "open_ai":
 		cfg := cg.NewOpenAICompatConfig(
-			p.OpenAIConfig.APIBase,
+			p.OpenAIConfig.BaseURL,
 			p.OpenAIConfig.APIKey,
 			p.OpenAIConfig.EmbeddingModel,
 		).

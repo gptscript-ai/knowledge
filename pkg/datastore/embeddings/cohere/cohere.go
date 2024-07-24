@@ -11,7 +11,7 @@ const EmbeddingModelProviderCohereName string = "cohere"
 
 type EmbeddingModelProviderCohere struct {
 	APIKey string `env:"COHERE_API_KEY" koanf:"apiKey"`
-	Model  string `env:"COHERE_EMBEDDING_MODEL" koanf:"model"`
+	Model  string `env:"COHERE_MODEL" koanf:"model"`
 }
 
 func (p *EmbeddingModelProviderCohere) Name() string {

@@ -29,7 +29,7 @@ func NewFromConfig(cfg LLMConfig) (*LLM, error) {
 
 func NewOpenAI(cfg openai.OpenAIConfig) (*LLM, error) {
 	m, err := chatmodel.NewOpenAI(cfg.APIKey, func(o *chatmodel.OpenAIOptions) {
-		o.BaseURL = cfg.APIBase
+		o.BaseURL = cfg.BaseURL
 		o.ModelName = cfg.Model
 	})
 	if err != nil {
