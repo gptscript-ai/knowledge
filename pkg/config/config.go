@@ -3,6 +3,11 @@ package config
 import (
 	"fmt"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/cohere"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/jina"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/localai"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/mistral"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/mixedbread"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/ollama"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/openai"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/vertex"
 	"github.com/knadh/koanf/parsers/json"
@@ -18,10 +23,15 @@ type Config struct {
 }
 
 type EmbeddingsConfig struct {
-	Provider string
-	OpenAI   openai.OpenAIConfig                 `koanf:"openai" json:"openai,omitempty"`
-	Cohere   cohere.EmbeddingModelProviderCohere `koanf:"cohere" json:"cohere,omitempty"`
-	Vertex   vertex.EmbeddingProviderVertex      `koanf:"vertex" json:"vertex,omitempty"`
+	Provider   string
+	OpenAI     openai.OpenAIConfig                    `koanf:"openai" json:"openai,omitempty"`
+	Cohere     cohere.EmbeddingModelProviderCohere    `koanf:"cohere" json:"cohere,omitempty"`
+	Vertex     vertex.EmbeddingProviderVertex         `koanf:"vertex" json:"vertex,omitempty"`
+	Jina       jina.EmbeddingProviderJina             `koanf:"jina" json:"jina,omitempty"`
+	Mistral    mistral.EmbeddingProviderMistral       `koanf:"mistral" json:"mistral,omitempty"`
+	Mixedbread mixedbread.EmbeddingProviderMixedbread `koanf:"mixedbread" json:"mixedbread,omitempty"`
+	LocalAI    localai.EmbeddingProviderLocalAI       `koanf:"localai" json:"localai,omitempty"`
+	Ollama     ollama.EmbeddingProviderOllama         `koanf:"ollama" json:"ollama,omitempty"`
 }
 
 type DatabaseConfig struct {

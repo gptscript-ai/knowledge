@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/load"
 	cg "github.com/philippgille/chromem-go"
+	"strings"
 )
 
 type EmbeddingProviderVertex struct {
@@ -22,8 +23,8 @@ func (p *EmbeddingProviderVertex) Name() string {
 
 func New(c EmbeddingProviderVertex) (*EmbeddingProviderVertex, error) {
 
-	if err := load.FillConfigEnv("VERTEX", &c); err != nil {
-		return nil, fmt.Errorf("failed to fill Cohere config from environment: %w", err)
+	if err := load.FillConfigEnv(strings.ToUpper(EmbeddingProviderVertexName), &c); err != nil {
+		return nil, fmt.Errorf("failed to fill Vertex config from environment: %w", err)
 	}
 
 	if err := c.fillDefaults(); err != nil {

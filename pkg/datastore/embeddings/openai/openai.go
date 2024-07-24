@@ -3,11 +3,11 @@ package openai
 import (
 	"dario.cat/mergo"
 	"fmt"
-	"github.com/acorn-io/z"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/load"
 	cg "github.com/philippgille/chromem-go"
 	"log/slog"
 	"net/url"
+	"strings"
 )
 
 const EmbeddingModelProviderOpenAIName string = "openai"
@@ -23,7 +23,7 @@ type OpenAIConfig struct {
 	EmbeddingModel    string            `usage:"OpenAI Embedding model" default:"text-embedding-ada-002" env:"OPENAI_EMBEDDING_MODEL" koanf:"embeddingModel"`
 	EmbeddingEndpoint string            `usage:"OpenAI Embedding endpoint" default:"/embeddings" env:"OPENAI_EMBEDDING_ENDPOINT" koanf:"embeddingEndpoint"`
 	APIVersion        string            `usage:"OpenAI API version (for Azure)" default:"2024-02-01" env:"OPENAI_API_VERSION" koanf:"apiVersion"`
-	APIType           string            `usage:"OpenAI API type (OPEN_AI, AZURE, AZURE_AD)" default:"OPEN_AI" env:"OPENAI_API_TYPE" koanf:"apiType"`
+	APIType           string            `usage:"OpenAI API type (OPEN_AI, AZURE, AZURE_AD, ...)" default:"OPEN_AI" env:"OPENAI_API_TYPE" koanf:"apiType"`
 	AzureOpenAIConfig AzureOpenAIConfig `koanf:"azure"`
 }
 
@@ -77,7 +77,10 @@ func (p *EmbeddingModelProviderOpenAI) fillDefaults() error {
 func (p *EmbeddingModelProviderOpenAI) EmbeddingFunc() (cg.EmbeddingFunc, error) {
 	var embeddingFunc cg.EmbeddingFunc
 
-	if p.OpenAIConfig.APIType == "Azure" {
+	switch strings.ToLower(p.OpenAIConfig.APIType) {
+
+	// except for Azure, most other OpenAI API compatible providers only differ in the normalization of output vectors (apart from the obvious API endpoint, etc.)
+	case "azure", "azure_ad":
 		// TODO: clean this up to support inputting the full deployment URL
 		deployment := p.OpenAIConfig.AzureOpenAIConfig.Deployment
 		if deployment == "" {
@@ -99,14 +102,17 @@ func (p *EmbeddingModelProviderOpenAI) EmbeddingFunc() (cg.EmbeddingFunc, error)
 			p.OpenAIConfig.APIVersion,
 			"",
 		)
-	} else {
-		embeddingFunc = cg.NewEmbeddingFuncOpenAICompat(
+	case "open_ai":
+		cfg := cg.NewOpenAICompatConfig(
 			p.OpenAIConfig.APIBase,
 			p.OpenAIConfig.APIKey,
 			p.OpenAIConfig.EmbeddingModel,
-			z.Pointer(true),
-			cg.WithOpenAICompatEmbeddingsEndpointOverride(p.OpenAIConfig.EmbeddingEndpoint),
-		)
+		).
+			WithNormalized(true).
+			WithEmbeddingsEndpoint(p.OpenAIConfig.EmbeddingEndpoint)
+		embeddingFunc = cg.NewEmbeddingFuncOpenAICompat(cfg)
+	default:
+		return nil, fmt.Errorf("unknown OpenAI API type: %q", p.OpenAIConfig.APIType)
 	}
 
 	return embeddingFunc, nil
