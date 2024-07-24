@@ -4,13 +4,13 @@ title: Config File
 
 # Config File
 
-::: warning
+:::warning
 
     The config file format is subject to change as it's still in development.
 
 :::
 
-::: note
+:::note
 
     This global configuration file is independent from the [flow configuration files](11-flows/01-overview.md#flow-config-file---flows-file).
 
@@ -25,7 +25,7 @@ You may as well use the `KNOW_CONFIG_FILE` environment variable to set the path 
 
 Here we try to capture all supported configuration items in one example.
 
-::: note
+:::note
 
     You can write the config in YAML or JSON format. 
     You can find some example config files in the [GitHub repository](https://github.com/gptscript-ai/knowledge/blob/main/examples/configfiles).    

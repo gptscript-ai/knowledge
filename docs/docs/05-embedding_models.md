@@ -15,7 +15,7 @@ Currently, this is part of the job of the vector store implementation ([chromem-
 The knowledge tool supports multiple embedding model providers, which you can configure via the [global config file](04-configfile.md#configuration-overview) or via environment variables.
 You can choose which of your configured providers to use by setting the `KNOW_EMBEDDING_MODEL_PROVIDER` environment variable or using the `--embedding-model-provider` flag.
 
-::: note
+:::note
 
     The default selected provider is **OpenAI**
 
@@ -54,7 +54,7 @@ export OPENAI_EMBEDDING_MODEL="CompendiumLabs/bge-large-en-v1.5-gguf"
 export VS_CHROMEM_EMBEDDING_PARALLEL_THREAD="1"
 ```
 
-::: note
+:::note
 
     Running with VS_CHROMEM_EMBEDDING_PARALLEL_THREAD="1" may be really really slow for a large amount of files (or just really large files).
 
