@@ -1,17 +1,37 @@
 package config
 
-type OpenAIConfig struct {
-	APIBase        string `usage:"OpenAI API base" default:"https://api.openai.com/v1" env:"OPENAI_BASE_URL" name:"openai-api-base"` // clicky-chats
-	APIKey         string `usage:"OpenAI API key (not required if used with clicky-chats)" default:"sk-foo" env:"OPENAI_API_KEY" name:"openai-api-key"`
-	Model          string `usage:"OpenAI model" default:"gpt-4" env:"OPENAI_MODEL" name:"openai-model"`
-	EmbeddingModel string `usage:"OpenAI Embedding model" default:"text-embedding-ada-002" env:"OPENAI_EMBEDDING_MODEL" name:"openai-embedding-model"`
-	APIVersion     string `usage:"OpenAI API version (for Azure)" default:"2024-02-01" env:"OPENAI_API_VERSION" name:"openai-api-version"`
-	APIType        string `usage:"OpenAI API type (OPEN_AI, AZURE, AZURE_AD)" default:"OPEN_AI" env:"OPENAI_API_TYPE" name:"openai-api-type"`
-	AzureOpenAIConfig
+import (
+	"fmt"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/cohere"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/jina"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/localai"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/mistral"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/mixedbread"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/ollama"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/openai"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/vertex"
+	"github.com/knadh/koanf/parsers/json"
+	"github.com/knadh/koanf/parsers/yaml"
+	"github.com/knadh/koanf/providers/rawbytes"
+	"github.com/knadh/koanf/v2"
+	"os"
+	"path"
+)
+
+type Config struct {
+	EmbeddingsConfig EmbeddingsConfig `koanf:"embeddings" json:"embeddings,omitempty"`
 }
 
-type AzureOpenAIConfig struct {
-	Deployment string `usage:"Azure OpenAI deployment name (overrides openai-embedding-model, if set)" default:"" env:"OPENAI_AZURE_DEPLOYMENT" name:"openai-azure-deployment"`
+type EmbeddingsConfig struct {
+	Provider   string
+	OpenAI     openai.OpenAIConfig                    `koanf:"openai" json:"openai,omitempty"`
+	Cohere     cohere.EmbeddingModelProviderCohere    `koanf:"cohere" json:"cohere,omitempty"`
+	Vertex     vertex.EmbeddingProviderVertex         `koanf:"vertex" json:"vertex,omitempty"`
+	Jina       jina.EmbeddingProviderJina             `koanf:"jina" json:"jina,omitempty"`
+	Mistral    mistral.EmbeddingProviderMistral       `koanf:"mistral" json:"mistral,omitempty"`
+	Mixedbread mixedbread.EmbeddingProviderMixedbread `koanf:"mixedbread" json:"mixedbread,omitempty"`
+	LocalAI    localai.EmbeddingProviderLocalAI       `koanf:"localai" json:"localai,omitempty"`
+	Ollama     ollama.EmbeddingProviderOllama         `koanf:"ollama" json:"ollama,omitempty"`
 }
 
 type DatabaseConfig struct {
@@ -21,4 +41,40 @@ type DatabaseConfig struct {
 
 type VectorDBConfig struct {
 	VectorDBPath string `usage:"VectorDBPath to the vector database (default \"$XDG_DATA_HOME/gptscript/knowledge/vector.db\")" default:"" env:"KNOW_VECTOR_DB_PATH"`
+}
+
+func LoadConfig(configFile string) (*Config, error) {
+	cfg := &Config{}
+	if configFile == "" {
+		return cfg, nil
+	}
+
+	content, err := os.ReadFile(configFile)
+	if err != nil {
+		return nil, err
+	}
+
+	// Expand environment variables in config
+	content = []byte(os.ExpandEnv(string(content)))
+
+	k := koanf.New(".")
+	var pa koanf.Parser
+	switch path.Ext(configFile) {
+	case ".json":
+		pa = json.Parser()
+	case ".yaml", ".yml":
+		pa = yaml.Parser()
+	default:
+		return nil, fmt.Errorf("unsupported config file format: %s", path.Ext(configFile))
+	}
+
+	if err := k.Load(rawbytes.Provider(content), pa); err != nil {
+		return nil, fmt.Errorf("error loading config file %q: %w", configFile, err)
+	}
+
+	if err := k.UnmarshalWithConf("", cfg, koanf.UnmarshalConf{Tag: "koanf"}); err != nil {
+		return nil, fmt.Errorf("error unmarshalling config file %q: %w", configFile, err)
+	}
+
+	return cfg, nil
 }

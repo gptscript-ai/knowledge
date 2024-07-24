@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gptscript-ai/knowledge/pkg/config"
 	"github.com/gptscript-ai/knowledge/pkg/datastore"
 	"github.com/gptscript-ai/knowledge/pkg/docs"
 	swaggerFiles "github.com/swaggo/files"
@@ -19,11 +18,10 @@ type Config struct {
 
 type Server struct {
 	*datastore.Datastore
-	openAIConfig config.OpenAIConfig
 }
 
-func NewServer(d *datastore.Datastore, oaiconfig config.OpenAIConfig) *Server {
-	return &Server{Datastore: d, openAIConfig: oaiconfig}
+func NewServer(d *datastore.Datastore) *Server {
+	return &Server{Datastore: d}
 }
 
 // Start starts the server with the given configuration.

@@ -2,14 +2,14 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/acorn-io/z"
+	"github.com/spf13/cobra"
 	"log/slog"
 	"strings"
 
-	"github.com/acorn-io/z"
 	"github.com/gptscript-ai/knowledge/pkg/client"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/textsplitter"
 	flowconfig "github.com/gptscript-ai/knowledge/pkg/flows/config"
-	"github.com/spf13/cobra"
 )
 
 type ClientIngest struct {
@@ -22,7 +22,7 @@ type ClientIngest struct {
 
 type ClientIngestOpts struct {
 	IgnoreExtensions string `usage:"Comma-separated list of file extensions to ignore" env:"KNOW_INGEST_IGNORE_EXTENSIONS"`
-	Concurrency      int    `usage:"Number of concurrent ingestion processes" short:"c" default:"10" env:"KNOW_INGEST_CONCURRENCY"`
+	Concurrency      int    `usage:"Number of concurrent ingestion processes" default:"10" env:"KNOW_INGEST_CONCURRENCY"`
 	NoRecursive      bool   `usage:"Don't recursively ingest directories" default:"false" env:"KNOW_NO_INGEST_RECURSIVE"`
 }
 

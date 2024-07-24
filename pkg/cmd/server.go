@@ -2,13 +2,14 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings"
+	"github.com/spf13/cobra"
 	"os/signal"
 	"syscall"
 
 	"github.com/gptscript-ai/knowledge/pkg/config"
 	"github.com/gptscript-ai/knowledge/pkg/datastore"
 	"github.com/gptscript-ai/knowledge/pkg/server"
-	"github.com/spf13/cobra"
 )
 
 // Server is the Server CLI command
@@ -17,20 +18,33 @@ type Server struct {
 	ServerPort    string `usage:"Server port" default:"8000" env:"KNOW_SERVER_PORT"`
 	ServerAPIBase string `usage:"Server API base" default:"/v1" env:"KNOW_SERVER_API_BASE"`
 
-	config.OpenAIConfig
+	EmbeddingModelProvider string `usage:"Embedding model provider" default:"openai" env:"KNOW_EMBEDDING_MODEL_PROVIDER" name:"embedding-model-provider" koanf:"provider"`
+	ConfigFile             string `usage:"Path to the configuration file" env:"KNOW_CONFIG_FILE" default:"" short:"c"`
+
 	config.DatabaseConfig
 	config.VectorDBConfig
 }
 
 func (s *Server) Run(cmd *cobra.Command, _ []string) error {
-	ds, err := datastore.NewDatastore(s.DSN, s.AutoMigrate == "true", s.VectorDBConfig.VectorDBPath, s.OpenAIConfig)
+
+	cfg, err := config.LoadConfig(s.ConfigFile)
+	if err != nil {
+		return fmt.Errorf("failed to load config: %w", err)
+	}
+
+	embeddingModelProvider, err := embeddings.GetEmbeddingsModelProvider(s.EmbeddingModelProvider, cfg.EmbeddingsConfig)
+	if err != nil {
+		return fmt.Errorf("failed to get embeddings model provider: %w", err)
+	}
+
+	ds, err := datastore.NewDatastore(s.DSN, s.AutoMigrate == "true", s.VectorDBConfig.VectorDBPath, embeddingModelProvider)
 	if err != nil {
 		return fmt.Errorf("failed to initialize datastore: %w", err)
 	}
 
 	ctx, cancel := signal.NotifyContext(cmd.Context(), syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGKILL)
 	defer cancel()
-	return server.NewServer(ds, s.OpenAIConfig).Start(ctx, server.Config{
+	return server.NewServer(ds).Start(ctx, server.Config{
 		ServerURL: s.ServerURL,
 		Port:      s.ServerPort,
 		APIBase:   s.ServerAPIBase,
