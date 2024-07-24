@@ -45,7 +45,7 @@ ci-setup:
 	curl -sfL $(PKG_GOLANGCI_LINT_SCRIPT) | sh -s -- -b $(GOENVPATH)/bin v$(PKG_GOLANGCI_LINT_VERSION)
 
 cli-docs:
-	go run docs/gendocs/main.go
+	go run -mod=mod docs/gendocs/main.go
 
 serve-docs:
 	(cd docs && yarn install && yarn start)
