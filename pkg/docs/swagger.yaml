@@ -4,10 +4,6 @@ definitions:
     type: object
   types.Dataset:
     properties:
-      embed_dim:
-        default: 1536
-        example: 1536
-        type: integer
       id:
         description: Dataset ID - must be a valid RFC 1123 hostname
         example: asst-12345

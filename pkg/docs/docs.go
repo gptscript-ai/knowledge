@@ -287,11 +287,6 @@ const docTemplate = `{
                 "id"
             ],
             "properties": {
-                "embed_dim": {
-                    "type": "integer",
-                    "default": 1536,
-                    "example": 1536
-                },
                 "id": {
                     "description": "Dataset ID - must be a valid RFC 1123 hostname",
                     "type": "string",

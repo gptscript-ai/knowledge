@@ -31,8 +31,7 @@ func NewDefaultClient(serverURL string) *DefaultClient {
 
 func (c *DefaultClient) CreateDataset(_ context.Context, datasetID string) (types.Dataset, error) {
 	ds := types.Dataset{
-		ID:             datasetID,
-		EmbedDimension: nil,
+		ID: datasetID,
 	}
 
 	payload, err := json.Marshal(ds)

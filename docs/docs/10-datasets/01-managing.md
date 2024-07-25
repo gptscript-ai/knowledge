@@ -32,7 +32,6 @@ Created dataset "my-dataset"
 
 </details>
 
-The only relevant flag here is `--embed-dim` which defines the dimensionality of the embeddings for this dataset (default: `1536`).
 
 ### Ingest a file into a specific Dataset
 
@@ -64,7 +63,7 @@ knowledge list-datasets
 
 ```bash
 $ knowledge list-datasets                                          
-[{"id":"default","embed_dim":1536},{"id":"my-dataset","embed_dim":1536}]
+[{"id":"default"},{"id":"my-dataset"}]
 ```
 
 </details>
@@ -80,7 +79,7 @@ knowledge get-dataset my-dataset
 
 ```bash
 $ knowledge get-dataset my-dataset                                          
-{"id":"my-dataset","embed_dim":1536,"Files":[{"id":"4c107370-3f5a-11ef-8438-8cf8c5751845","dataset":"my-dataset","Documents":[{"id":"0ee6aa14-3b60-4f76-9a1d-55b5f6d105a5","dataset":"my-dataset","file_id":"4c107370-3f5a-11ef-8438-8cf8c5751845"},{"id":"f993e6c6-c122-426c-900a-589cf3037993","dataset":"my-dataset","file_id":"4c107370-3f5a-11ef-8438-8cf8c5751845"},{"id":"3142d3ec-4548-42b4-950c-a272002fbe60","dataset":"my-dataset","file_id":"4c107370-3f5a-11ef-8438-8cf8c5751845"},{"id":"e3ea75df-f3a2-4daf-9ce8-2f7ba16ad130","dataset":"my-dataset","file_id":"4c107370-3f5a-11ef-8438-8cf8c5751845"},{"id":"37d71728-a78c-4c82-8e51-654c5e224d9a","dataset":"my-dataset","file_id":"4c107370-3f5a-11ef-8438-8cf8c5751845"},{"id":"159bdf1f-697c-4e0d-bffe-f7472b03c5b5","dataset":"my-dataset","file_id":"4c107370-3f5a-11ef-8438-8cf8c5751845"}],"name":"01-managing.md","absolute_path":"<path>/docs/docs/10-datasets/01-managing.md","size":2006,"modified_at":"2024-07-11T09:50:31.981617707+02:00"}]}
+{"id":"my-dataset","Files":[{"id":"4c107370-3f5a-11ef-8438-8cf8c5751845","dataset":"my-dataset","Documents":[{"id":"0ee6aa14-3b60-4f76-9a1d-55b5f6d105a5","dataset":"my-dataset","file_id":"4c107370-3f5a-11ef-8438-8cf8c5751845"},{"id":"f993e6c6-c122-426c-900a-589cf3037993","dataset":"my-dataset","file_id":"4c107370-3f5a-11ef-8438-8cf8c5751845"},{"id":"3142d3ec-4548-42b4-950c-a272002fbe60","dataset":"my-dataset","file_id":"4c107370-3f5a-11ef-8438-8cf8c5751845"},{"id":"e3ea75df-f3a2-4daf-9ce8-2f7ba16ad130","dataset":"my-dataset","file_id":"4c107370-3f5a-11ef-8438-8cf8c5751845"},{"id":"37d71728-a78c-4c82-8e51-654c5e224d9a","dataset":"my-dataset","file_id":"4c107370-3f5a-11ef-8438-8cf8c5751845"},{"id":"159bdf1f-697c-4e0d-bffe-f7472b03c5b5","dataset":"my-dataset","file_id":"4c107370-3f5a-11ef-8438-8cf8c5751845"}],"name":"01-managing.md","absolute_path":"<path>/docs/docs/10-datasets/01-managing.md","size":2006,"modified_at":"2024-07-11T09:50:31.981617707+02:00"}]}
 ```
 
 </details>
@@ -106,7 +105,7 @@ knowledge edit-dataset my-dataset --update-metadata description="Technical Docum
 ```bash
 $ knowledge edit-dataset my-dataset --update-metadata description="Technical Documentation about the GPTScript Knowledge Tool"
 Updated dataset:
- {"id":"my-dataset","embed_dim":1536,"Files":null,"metadata":{"description":"Technical Documentation about the GPTScript Knowledge Tool"}}
+ {"id":"my-dataset","Files":null,"metadata":{"description":"Technical Documentation about the GPTScript Knowledge Tool"}}
 ```
 
 </details>

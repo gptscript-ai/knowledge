@@ -7,10 +7,9 @@ import (
 // Dataset refers to a VectorDB data space.
 // @Description Dataset refers to a VectorDB data space.
 type Dataset struct {
-	ID             string         `gorm:"primaryKey" json:"id"`
-	EmbedDimension int            `json:"embed_dim,omitempty"`
-	Files          []File         `gorm:"foreignKey:Dataset;references:ID;constraint:OnDelete:CASCADE;"`
-	Metadata       map[string]any `json:"metadata,omitempty" gorm:"serializer:json"`
+	ID       string         `gorm:"primaryKey" json:"id"`
+	Files    []File         `gorm:"foreignKey:Dataset;references:ID;constraint:OnDelete:CASCADE;"`
+	Metadata map[string]any `json:"metadata,omitempty" gorm:"serializer:json"`
 }
 
 type File struct {
