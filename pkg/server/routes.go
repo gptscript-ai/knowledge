@@ -31,7 +31,7 @@ func (s *Server) CreateDS(c *gin.Context) {
 	}
 
 	// Create Dataset
-	if err := s.NewDataset(c, index.Dataset{ID: dataset.ID, EmbedDimension: z.Dereference(dataset.EmbedDimension)}); err != nil {
+	if err := s.NewDataset(c, index.Dataset{ID: dataset.ID}); err != nil {
 		slog.Error("Failed to create dataset", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -215,8 +215,7 @@ func (s *Server) ListDS(c *gin.Context) {
 	datasetsResponse := make([]types.Dataset, len(datasets))
 	for i, dataset := range datasets {
 		datasetsResponse[i] = types.Dataset{
-			ID:             dataset.ID,
-			EmbedDimension: z.Pointer(dataset.EmbedDimension),
+			ID: dataset.ID,
 		}
 	}
 

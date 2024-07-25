@@ -15,7 +15,6 @@ knowledge create-dataset <dataset-id> [flags]
       --auto-migrate string               Auto migrate database ($KNOW_DB_AUTO_MIGRATE) (default "true")
   -c, --config-file string                Path to the configuration file ($KNOW_CONFIG_FILE)
       --dsn string                        Server database connection string (default "sqlite://$XDG_DATA_HOME/gptscript/knowledge/knowledge.db") ($KNOW_DB_DSN)
-      --embed-dim int                     Embedding dimension ($KNOWLEDGE_CLIENT_CREATE_DATASET_EMBED_DIM) (default 1536)
       --embedding-model-provider string   Embedding model provider ($KNOW_EMBEDDING_MODEL_PROVIDER) (default "openai")
   -h, --help                              help for create-dataset
       --server string                     URL of the Knowledge API Server ($KNOW_SERVER_URL)

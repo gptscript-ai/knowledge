@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/gptscript-ai/knowledge/pkg/datastore/defaults"
 	"github.com/gptscript-ai/knowledge/pkg/index"
 	"gorm.io/gorm"
 )
@@ -16,10 +15,6 @@ type UpdateDatasetOpts struct {
 }
 
 func (s *Datastore) NewDataset(ctx context.Context, dataset index.Dataset) error {
-	// Set defaults
-	if dataset.EmbedDimension <= 0 {
-		dataset.EmbedDimension = defaults.EmbeddingDimension
-	}
 
 	// Create dataset
 	tx := s.Index.WithContext(ctx).Create(&dataset)
@@ -108,9 +103,6 @@ func (s *Datastore) UpdateDataset(ctx context.Context, updatedDataset index.Data
 	}
 
 	// Check if there is any other non-null field in the updatedDataset
-	if updatedDataset.EmbedDimension > 0 {
-		return origDS, fmt.Errorf("embedding dimension cannot be updated")
-	}
 
 	if updatedDataset.Files != nil {
 		return origDS, fmt.Errorf("files cannot be updated")

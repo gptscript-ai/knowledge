@@ -8,7 +8,6 @@ import (
 
 type ClientCreateDataset struct {
 	Client
-	EmbedDim int `usage:"Embedding dimension" default:"1536"`
 }
 
 func (s *ClientCreateDataset) Customize(cmd *cobra.Command) {

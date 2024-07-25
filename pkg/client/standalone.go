@@ -25,12 +25,10 @@ func NewStandaloneClient(ds *datastore.Datastore) (*StandaloneClient, error) {
 
 func (c *StandaloneClient) CreateDataset(ctx context.Context, datasetID string) (types.Dataset, error) {
 	ds := index.Dataset{
-		ID:             datasetID,
-		EmbedDimension: 0,
+		ID: datasetID,
 	}
 	r := types.Dataset{
-		ID:             ds.ID,
-		EmbedDimension: z.Pointer(ds.EmbedDimension),
+		ID: ds.ID,
 	}
 	err := c.Datastore.NewDataset(ctx, ds)
 	if err != nil {
@@ -55,8 +53,7 @@ func (c *StandaloneClient) ListDatasets(ctx context.Context) ([]types.Dataset, e
 	r := make([]types.Dataset, len(ds))
 	for i, d := range ds {
 		r[i] = types.Dataset{
-			ID:             d.ID,
-			EmbedDimension: z.Pointer(d.EmbedDimension),
+			ID: d.ID,
 		}
 	}
 	return r, nil

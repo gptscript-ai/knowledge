@@ -8,8 +8,7 @@ import (
 // Dataset represents a new knowledge vector space
 type Dataset struct {
 	// Dataset ID - must be a valid RFC 1123 hostname
-	ID             string `json:"id" format:"hostname_rfc1123" binding:"required" example:"asst-12345"`
-	EmbedDimension *int   `json:"embed_dim" example:"1536" default:"1536" swaggertype:"integer"`
+	ID string `json:"id" format:"hostname_rfc1123" binding:"required" example:"asst-12345"`
 }
 
 // Query represents an incoming user query
