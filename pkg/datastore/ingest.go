@@ -74,6 +74,8 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 		if err != nil {
 			return nil, fmt.Errorf("failed to get embeddings model provider: %w", err)
 		}
+
+		// TODO: Use the dataset-provided config (merge with override)
 		err = embeddings.CompareRequiredFields(s.EmbeddingModelProvider.Config(), dsEmbeddingProvider.Config())
 		if err != nil {
 			slog.Info("Dataset has attached embeddings provider config", "config", ds.EmbeddingsProviderConfig)

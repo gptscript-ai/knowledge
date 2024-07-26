@@ -1,5 +1,4 @@
 embeddings:
-  provider: foobar # this selects one of the below
   providers:
   - name: my-cohere
     type: cohere
