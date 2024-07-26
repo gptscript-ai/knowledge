@@ -9,7 +9,7 @@ import (
 )
 
 type EmbeddingProviderLocalAI struct {
-	Model string `koanf:"model" env:"LOCALAI_MODEL"`
+	Model string `koanf:"model" env:"LOCALAI_MODEL" export:"required"`
 }
 
 const EmbeddingProviderLocalAIName = "localai"
@@ -18,17 +18,16 @@ func (p *EmbeddingProviderLocalAI) Name() string {
 	return EmbeddingProviderLocalAIName
 }
 
-func New(c EmbeddingProviderLocalAI) (*EmbeddingProviderLocalAI, error) {
-
-	if err := load.FillConfigEnv(strings.ToUpper(EmbeddingProviderLocalAIName), &c); err != nil {
-		return nil, fmt.Errorf("failed to fill LocalAI config from environment: %w", err)
+func (p *EmbeddingProviderLocalAI) Configure() error {
+	if err := load.FillConfigEnv(strings.ToUpper(EmbeddingProviderLocalAIName), &p); err != nil {
+		return fmt.Errorf("failed to fill LocalAI config from environment: %w", err)
 	}
 
-	if err := c.fillDefaults(); err != nil {
-		return nil, fmt.Errorf("failed to fill LocalAI defaults: %w", err)
+	if err := p.fillDefaults(); err != nil {
+		return fmt.Errorf("failed to fill LocalAI defaults: %w", err)
 	}
 
-	return &c, nil
+	return nil
 }
 
 func (p *EmbeddingProviderLocalAI) fillDefaults() error {

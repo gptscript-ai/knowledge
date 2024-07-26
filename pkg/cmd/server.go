@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings"
 	"github.com/spf13/cobra"
+	"log/slog"
 	"os/signal"
 	"syscall"
 
@@ -25,19 +26,29 @@ type Server struct {
 	config.VectorDBConfig
 }
 
+func (s *Server) Customize(cmd *cobra.Command) {
+	cmd.Use = "server"
+	cmd.Short = "Run the Knowledge API Server"
+	cmd.Long = `Run the Knowledge API Server.`
+
+	cmd.Hidden = true
+}
+
 func (s *Server) Run(cmd *cobra.Command, _ []string) error {
+
+	slog.Warn("The knowledge server is underdeveloped and lacking behind the standalone client right now, use at your own risk!") // FIXME: Bring the server on par with the standalone client and drop this warning
 
 	cfg, err := config.LoadConfig(s.ConfigFile)
 	if err != nil {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
-	embeddingModelProvider, err := embeddings.GetEmbeddingsModelProvider(s.EmbeddingModelProvider, cfg.EmbeddingsConfig)
+	provider, err := embeddings.GetSelectedEmbeddingsModelProvider(s.EmbeddingModelProvider, cfg.EmbeddingsConfig)
 	if err != nil {
-		return fmt.Errorf("failed to get embeddings model provider: %w", err)
+		return err
 	}
 
-	ds, err := datastore.NewDatastore(s.DSN, s.AutoMigrate == "true", s.VectorDBConfig.VectorDBPath, embeddingModelProvider)
+	ds, err := datastore.NewDatastore(s.DSN, s.AutoMigrate == "true", s.VectorDBConfig.VectorDBPath, provider)
 	if err != nil {
 		return fmt.Errorf("failed to initialize datastore: %w", err)
 	}

@@ -17,7 +17,7 @@ type Client struct {
 	Server           string `usage:"URL of the Knowledge API Server" default:"" env:"KNOW_SERVER_URL"`
 	datastoreArchive string
 
-	EmbeddingModelProvider string `usage:"Embedding model provider" default:"openai" env:"KNOW_EMBEDDING_MODEL_PROVIDER" name:"embedding-model-provider" koanf:"provider"`
+	EmbeddingModelProvider string `usage:"Embedding model provider" default:"openai" env:"KNOW_EMBEDDING_MODEL_PROVIDER" name:"embedding-model-provider" default:"openai" koanf:"provider"`
 	ConfigFile             string `usage:"Path to the configuration file" env:"KNOW_CONFIG_FILE" default:"" short:"c"`
 
 	config.DatabaseConfig
@@ -105,11 +105,13 @@ func (s *Client) getClient() (client.Client, error) {
 	}
 
 	if s.Server == "" || s.Server == "standalone" {
-		embeddingModelProvider, err := embeddings.GetEmbeddingsModelProvider(s.EmbeddingModelProvider, cfg.EmbeddingsConfig)
+
+		provider, err := embeddings.GetSelectedEmbeddingsModelProvider(s.EmbeddingModelProvider, cfg.EmbeddingsConfig)
 		if err != nil {
-			return nil, fmt.Errorf("failed to get embeddings model provider: %w", err)
+			return nil, err
 		}
-		ds, err := datastore.NewDatastore(s.DSN, s.AutoMigrate == "true", s.VectorDBConfig.VectorDBPath, embeddingModelProvider)
+
+		ds, err := datastore.NewDatastore(s.DSN, s.AutoMigrate == "true", s.VectorDBConfig.VectorDBPath, provider)
 		if err != nil {
 			return nil, err
 		}

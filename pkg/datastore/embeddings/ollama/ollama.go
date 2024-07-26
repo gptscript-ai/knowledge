@@ -10,7 +10,7 @@ import (
 
 type EmbeddingProviderOllama struct {
 	BaseURL string `koanf:"baseURL" env:"OLLAMA_BASE_URL"`
-	Model   string `koanf:"model" env:"OLLAMA_MODEL"`
+	Model   string `koanf:"model" env:"OLLAMA_MODEL" export:"required"`
 }
 
 const EmbeddingProviderOllamaName = "ollama"
@@ -19,17 +19,16 @@ func (p *EmbeddingProviderOllama) Name() string {
 	return EmbeddingProviderOllamaName
 }
 
-func New(c EmbeddingProviderOllama) (*EmbeddingProviderOllama, error) {
-
-	if err := load.FillConfigEnv(strings.ToUpper(EmbeddingProviderOllamaName), &c); err != nil {
-		return nil, fmt.Errorf("failed to fill Ollama config from environment: %w", err)
+func (p *EmbeddingProviderOllama) Configure() error {
+	if err := load.FillConfigEnv(strings.ToUpper(EmbeddingProviderOllamaName), &p); err != nil {
+		return fmt.Errorf("failed to fill Ollama config from environment: %w", err)
 	}
 
-	if err := c.fillDefaults(); err != nil {
-		return nil, fmt.Errorf("failed to fill Ollama defaults: %w", err)
+	if err := p.fillDefaults(); err != nil {
+		return fmt.Errorf("failed to fill Ollama defaults: %w", err)
 	}
 
-	return &c, nil
+	return nil
 }
 
 func (p *EmbeddingProviderOllama) fillDefaults() error {

@@ -42,7 +42,8 @@ knowledge export my-dataset --output my-dataset.zip
 
 Importing a Dataset works just fine, but there's a culprit when you want to **ingest additional content into an imported dataset**: You'll have to use the exact same embedding function as the original dataset.
 The Embedding function is part of the Vector Database implementation and defines how the content is transformed into a vector representation.
-Currently, this is defined solely based on the model provider configuration, so it's fairly simple to replicate - you just have to use the same model (`$OPENAI_EMBEDDING_MODEL`) for it to work.
+Currently, this is defined solely based on the model provider configuration, so it's fairly simple to replicate - you just have to use the exact same model usually.
+When you try ingesting into an imported dataset with a differing embedding model provider config, the tool will error out if there is a mismatch in a required config field, so you can adjust.
 
 :::
 

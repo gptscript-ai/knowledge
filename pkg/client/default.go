@@ -142,6 +142,7 @@ func (c *DefaultClient) IngestPaths(ctx context.Context, datasetID string, opts 
 				ModifiedAt:   finfo.ModTime(),
 			},
 			IsDuplicateFuncName: "file_metadata",
+			CreateDataset:       opts.CreateDataset,
 		}
 		if opts != nil {
 			payload.TextSplitterOpts = opts.TextSplitterOpts

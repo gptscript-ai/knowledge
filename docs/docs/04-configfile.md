@@ -34,20 +34,29 @@ Here we try to capture all supported configuration items in one example.
 
 ```yaml
 embeddings:
-  provider: vertex # this selects one of the below providers
-  cohere:
-    apiKey: "${COHERE_API_KEY}" # environment variables are expanded when reading the config file
-    model: "embed-english-v2.0"
-  openai:
-    apiKey: "${OPENAI_API_KEY}"
-    embeddingEndpoint: "/some-custom-endpoint" # anything that's not the default /embeddings
-  vertex:
-    apiKey: "${GOOGLE_API_KEY}"
-    project: "acorn-io"
-    model: "text-embedding-004"
+  providers:
+  - name: my-cohere
+    type: cohere
+    config:
+      apiKey: "${COHERE_API_KEY}" # environment variables are expanded when reading the config file
+      model: "embed-english-v2.0"
+  - name: myopenai
+    type: openai
+    config:
+      apiKey: "${OPENAI_API_KEY}"
+      embeddingEndpoint: "/some-custom-endpoint" # anything that's not the default /embeddings
+  - name: foobar
+    type: vertex
+    config:
+      apiKey: "${GOOGLE_API_KEY}"
+      project: "acorn-io"
+      # apiEndpoint: https://us-central1-aiplatform.googleapis.com
+      model: "text-embedding-004"
 ```
 
 ### Sections
 
 - `embeddings`: See [Embedding Models](05-embedding_models.md) for more details.
-  - `provider`: May as well be set using the command line flag `--embedding-model-provider` or the environment variable `KNOW_EMBEDDING_MODEL_PROVIDER` (default: `openai`).
+  - Select a provider using the command line flag `--embedding-model-provider` or the environment variable `KNOW_EMBEDDING_MODEL_PROVIDER` (default: `openai`).
+  - **Note**: If a provider is selected but not specified in the config file, we'll assume that it's a standard provider configured via standard environment variables.
+    - E.g. you select `vertex`, but that name is not configured, so we default to `type=vertex` and use the `VERTEX_*` environment variables to configure a standard Google Vertex AI provider.

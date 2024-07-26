@@ -4,7 +4,8 @@ import (
 	"archive/zip"
 	"context"
 	"fmt"
-	embeddings "github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/types"
+	"github.com/gptscript-ai/knowledge/pkg/config"
+	etypes "github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/types"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
 	"github.com/gptscript-ai/knowledge/pkg/output"
 	"io"
@@ -23,9 +24,11 @@ import (
 )
 
 type Datastore struct {
-	LLM         llm.LLM
-	Index       *index.DB
-	Vectorstore vectorstore.VectorStore
+	LLM                    llm.LLM
+	Index                  *index.DB
+	Vectorstore            vectorstore.VectorStore
+	EmbeddingConfig        config.EmbeddingsConfig
+	EmbeddingModelProvider etypes.EmbeddingModelProvider
 }
 
 // GetDatastorePaths returns the paths for the datastore and vectorstore databases.
@@ -64,7 +67,8 @@ func GetDatastorePaths(dsn, vectordbPath string) (string, string, bool, error) {
 	return dsn, vectordbPath, isArchive, nil
 }
 
-func NewDatastore(dsn string, automigrate bool, vectorDBPath string, embeddingProvider embeddings.EmbeddingModelProvider) (*Datastore, error) {
+func NewDatastore(dsn string, automigrate bool, vectorDBPath string, embeddingProvider etypes.EmbeddingModelProvider) (*Datastore, error) {
+
 	dsn, vectorDBPath, isArchive, err := GetDatastorePaths(dsn, vectorDBPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to determine datastore paths: %w", err)
@@ -101,8 +105,9 @@ func NewDatastore(dsn string, automigrate bool, vectorDBPath string, embeddingPr
 	slog.Info("Using embedding model provider", "provider", embeddingProvider.Name(), "config", output.RedactSensitive(embeddingProvider.Config()))
 
 	ds := &Datastore{
-		Index:       idx,
-		Vectorstore: chromem.New(vsdb, embeddingFunc),
+		Index:                  idx,
+		Vectorstore:            chromem.New(vsdb, embeddingFunc),
+		EmbeddingModelProvider: embeddingProvider,
 	}
 
 	if isArchive {

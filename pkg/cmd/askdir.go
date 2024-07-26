@@ -41,6 +41,7 @@ func (s *ClientAskDir) Run(cmd *cobra.Command, args []string) error {
 		IgnoreExtensions: strings.Split(s.IgnoreExtensions, ","),
 		Concurrency:      s.Concurrency,
 		Recursive:        !s.NoRecursive,
+		CreateDataset:    true,
 	}
 
 	retrieveOpts := &datastore.RetrieveOpts{

@@ -11,7 +11,6 @@ var k = koanf.New(".")
 // FillConfigEnv fills the given struct with values from a config file and environment variables.
 // The envPrefix parameter is used to prefix environment variables.
 func FillConfigEnv(envPrefix string, cfg interface{}) error {
-
 	// Load environment variables and override config file values
 	if err := k.Load(env.Provider(envPrefix, ".", func(s string) string { return s }), nil); err != nil {
 		return fmt.Errorf("error loading environment variables: %w", err)

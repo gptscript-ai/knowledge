@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings"
 	"log/slog"
 
 	"github.com/acorn-io/z"
@@ -22,10 +23,67 @@ type IngestOpts struct {
 	IsDuplicateFunc     IsDuplicateFunc
 	TextSplitterOpts    *textsplitter.TextSplitterOpts
 	IngestionFlows      []flows.IngestionFlow
+	CreateDataset       bool
 }
 
 // Ingest loads a document from a reader and adds it to the dataset.
 func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte, opts IngestOpts) ([]string, error) {
+
+	// Get dataset
+	ds, err := s.GetDataset(ctx, datasetID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Dataset does not exist - create it if requested, else error out
+	if ds == nil {
+		// Create dataset if it doesn't exist
+		if opts.CreateDataset {
+			ds = &index.Dataset{ID: datasetID}
+			if err := s.NewDataset(ctx, *ds); err != nil {
+				return nil, fmt.Errorf("failed to create dataset %q: %w", datasetID, err)
+			}
+		} else {
+			return nil, fmt.Errorf("dataset %q not found", datasetID)
+		}
+
+	}
+
+	// Check if Dataset has an embedding config attached
+	if ds.EmbeddingsProviderConfig == nil {
+		slog.Info("Embeddingsconfig", "config", s.EmbeddingConfig)
+		ncfg, err := embeddings.AsEmbeddingModelProviderConfig(s.EmbeddingModelProvider, true)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get embedding model provider config: %w", err)
+		}
+		nds := index.Dataset{
+			ID:                       datasetID,
+			EmbeddingsProviderConfig: &ncfg,
+		}
+		ds, err = s.UpdateDataset(ctx, nds, nil)
+		if err != nil {
+			return nil, fmt.Errorf("failed to update dataset: %w", err)
+		}
+	}
+	if ds.EmbeddingsProviderConfig != nil {
+		if s.EmbeddingModelProvider.Name() != ds.EmbeddingsProviderConfig.Type {
+			slog.Warn("Embeddings provider mismatch", "dataset", datasetID, "attached", ds.EmbeddingsProviderConfig.Type, "configured", s.EmbeddingModelProvider.Name())
+		}
+
+		dsEmbeddingProvider, err := embeddings.ProviderFromConfig(*ds.EmbeddingsProviderConfig)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get embeddings model provider: %w", err)
+		}
+
+		// TODO: Use the dataset-provided config (merge with override)
+		err = embeddings.CompareRequiredFields(s.EmbeddingModelProvider.Config(), dsEmbeddingProvider.Config())
+		if err != nil {
+			slog.Info("Dataset has attached embeddings provider config", "config", ds.EmbeddingsProviderConfig)
+			return nil, fmt.Errorf("mismatching embedding provider configs: %w", err)
+		}
+	}
+
+	// File Deduplication
 	isDuplicate := DummyDedupe // default: no deduplication
 	if opts.IsDuplicateFuncName != "" {
 		df, ok := IsDuplicateFuncs[opts.IsDuplicateFuncName]

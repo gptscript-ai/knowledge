@@ -1,15 +1,17 @@
 package index
 
 import (
+	"github.com/gptscript-ai/knowledge/pkg/config"
 	"time"
 )
 
 // Dataset refers to a VectorDB data space.
 // @Description Dataset refers to a VectorDB data space.
 type Dataset struct {
-	ID       string         `gorm:"primaryKey" json:"id"`
-	Files    []File         `gorm:"foreignKey:Dataset;references:ID;constraint:OnDelete:CASCADE;"`
-	Metadata map[string]any `json:"metadata,omitempty" gorm:"serializer:json"`
+	ID                       string                           `gorm:"primaryKey" json:"id"`
+	EmbeddingsProviderConfig *config.EmbeddingsProviderConfig `json:"embeddingsProviderConfig,omitempty" gorm:"serializer:json"`
+	Files                    []File                           `gorm:"foreignKey:Dataset;references:ID;constraint:OnDelete:CASCADE;"`
+	Metadata                 map[string]any                   `json:"metadata,omitempty" gorm:"serializer:json"`
 }
 
 type File struct {
