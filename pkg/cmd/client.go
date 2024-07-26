@@ -6,6 +6,7 @@ import (
 	"github.com/gptscript-ai/knowledge/pkg/client"
 	"github.com/gptscript-ai/knowledge/pkg/config"
 	"github.com/gptscript-ai/knowledge/pkg/datastore"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
 	"io"
 	"os"
@@ -16,7 +17,7 @@ type Client struct {
 	Server           string `usage:"URL of the Knowledge API Server" default:"" env:"KNOW_SERVER_URL"`
 	datastoreArchive string
 
-	EmbeddingModelProvider string `usage:"Embedding model provider" default:"openai" env:"KNOW_EMBEDDING_MODEL_PROVIDER" name:"embedding-model-provider" koanf:"provider"`
+	EmbeddingModelProvider string `usage:"Embedding model provider" default:"openai" env:"KNOW_EMBEDDING_MODEL_PROVIDER" name:"embedding-model-provider" default:"openai" koanf:"provider"`
 	ConfigFile             string `usage:"Path to the configuration file" env:"KNOW_CONFIG_FILE" default:"" short:"c"`
 
 	config.DatabaseConfig
@@ -104,11 +105,13 @@ func (s *Client) getClient() (client.Client, error) {
 	}
 
 	if s.Server == "" || s.Server == "standalone" {
-		if s.EmbeddingModelProvider != "" {
-			cfg.EmbeddingsConfig.Provider = s.EmbeddingModelProvider
+
+		provider, err := embeddings.GetSelectedEmbeddingsModelProvider(s.EmbeddingModelProvider, cfg.EmbeddingsConfig)
+		if err != nil {
+			return nil, err
 		}
 
-		ds, err := datastore.NewDatastore(s.DSN, s.AutoMigrate == "true", s.VectorDBConfig.VectorDBPath, cfg.EmbeddingsConfig)
+		ds, err := datastore.NewDatastore(s.DSN, s.AutoMigrate == "true", s.VectorDBConfig.VectorDBPath, provider)
 		if err != nil {
 			return nil, err
 		}

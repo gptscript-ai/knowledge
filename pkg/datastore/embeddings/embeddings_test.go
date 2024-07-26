@@ -24,8 +24,7 @@ func TestLoadConfOpenAI(t *testing.T) {
 	cfg, err := config.LoadConfig(configFile)
 	require.NoError(t, err)
 
-	cfg.EmbeddingsConfig.Provider = "openai"
-	p, err := GetSelectedEmbeddingsModelProvider(cfg.EmbeddingsConfig)
+	p, err := GetSelectedEmbeddingsModelProvider("openai", cfg.EmbeddingsConfig)
 	require.NoError(t, err)
 	require.Equal(t, "openai", p.Name())
 
@@ -46,8 +45,7 @@ func TestLoadConfVertex(t *testing.T) {
 	require.NoError(t, err)
 
 	// Load the configuration
-	cfg.EmbeddingsConfig.Provider = "vertex"
-	p, err := GetSelectedEmbeddingsModelProvider(cfg.EmbeddingsConfig)
+	p, err := GetSelectedEmbeddingsModelProvider("vertex", cfg.EmbeddingsConfig)
 	require.NoError(t, err)
 	require.Equal(t, "vertex", p.Name())
 

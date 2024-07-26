@@ -18,11 +18,27 @@ import (
 	"strings"
 )
 
-func GetSelectedEmbeddingsModelProvider(embeddingsConfig config.EmbeddingsConfig) (types.EmbeddingModelProvider, error) {
-	provider, providerCfg, err := GetEmbeddingsModelProviderStruct(embeddingsConfig)
+func GetSelectedEmbeddingsModelProvider(selected string, embeddingsConfig config.EmbeddingsConfig) (types.EmbeddingModelProvider, error) {
+	providerCfg, err := GetProviderCfg(selected, embeddingsConfig)
 	if err != nil {
 		return nil, err
 	}
+
+	provider, err := ProviderFromConfig(*providerCfg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create provider: %w", err)
+	}
+
+	return provider, nil
+
+}
+
+func ProviderFromConfig(providerConfig config.EmbeddingsProviderConfig) (types.EmbeddingModelProvider, error) {
+	provider, err := GetProviderConfig(providerConfig.Type)
+	if err != nil {
+		return nil, err
+	}
+
 	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
 		TagName: "koanf",
 		Result:  provider,
@@ -30,7 +46,7 @@ func GetSelectedEmbeddingsModelProvider(embeddingsConfig config.EmbeddingsConfig
 	if err != nil {
 		return nil, fmt.Errorf("failed to create decoder: %w", err)
 	}
-	if err := decoder.Decode(providerCfg.Config); err != nil {
+	if err := decoder.Decode(providerConfig.Config); err != nil {
 		return nil, fmt.Errorf("failed to decode provider config: %w", err)
 	}
 
@@ -39,7 +55,6 @@ func GetSelectedEmbeddingsModelProvider(embeddingsConfig config.EmbeddingsConfig
 	}
 
 	return provider, nil
-
 }
 
 func GetProviderConfig(providerType string) (types.EmbeddingModelProvider, error) {
@@ -74,23 +89,18 @@ func FindProviderConfig(name string, providers []config.EmbeddingsProviderConfig
 	return nil
 }
 
-func GetEmbeddingsModelProviderStruct(embeddingsConfig config.EmbeddingsConfig) (types.EmbeddingModelProvider, *config.EmbeddingsProviderConfig, error) {
+func GetProviderCfg(name string, embeddingsConfig config.EmbeddingsConfig) (*config.EmbeddingsProviderConfig, error) {
 
-	providerCfg := FindProviderConfig(embeddingsConfig.Provider, embeddingsConfig.Providers)
+	providerCfg := FindProviderConfig(name, embeddingsConfig.Providers)
 	if providerCfg == nil {
 		// no config with that name exists, so we assume the name is the type
 		providerCfg = &config.EmbeddingsProviderConfig{
-			Name: embeddingsConfig.Provider,
-			Type: embeddingsConfig.Provider,
+			Name: name,
+			Type: name,
 		}
 	}
 
-	provider, err := GetProviderConfig(providerCfg.Type)
-	if err != nil {
-		return nil, providerCfg, err
-	}
-
-	return provider, providerCfg, nil
+	return providerCfg, nil
 }
 
 func ExportConfig(c any) (any, error) {

@@ -15,7 +15,6 @@ type Config struct {
 }
 
 type EmbeddingsConfig struct {
-	Provider  string                     `koanf:"provider" json:"provider,omitempty" mapstructure:"provider"`
 	Providers []EmbeddingsProviderConfig `koanf:"providers" json:"providers,omitempty" mapstructure:"providers"`
 }
 
@@ -70,10 +69,10 @@ func LoadConfig(configFile string) (*Config, error) {
 	return cfg, nil
 }
 
-func (ec *EmbeddingsConfig) RemoveUnselected() {
+func (ec *EmbeddingsConfig) RemoveUnselected(selected string) {
 	keep := make([]EmbeddingsProviderConfig, 1)
 	for _, p := range ec.Providers {
-		if p.Name == ec.Provider {
+		if p.Name == selected {
 			keep[0] = p
 		}
 	}

@@ -7,7 +7,6 @@ import (
 
 func TestEmbeddingsConfig_ClearUnselected(t *testing.T) {
 	ec := &EmbeddingsConfig{
-		Provider: "openai",
 		Providers: []EmbeddingsProviderConfig{
 			{
 				Name: "openai",
@@ -29,7 +28,7 @@ func TestEmbeddingsConfig_ClearUnselected(t *testing.T) {
 
 	require.Len(t, ec.Providers, 2)
 
-	ec.RemoveUnselected()
+	ec.RemoveUnselected("openai")
 
 	require.Len(t, ec.Providers, 1)
 	require.Equal(t, "openai", ec.Providers[0].Name)
@@ -41,11 +40,10 @@ func TestEmbeddingsConfig_ClearUnselected(t *testing.T) {
 			"model": "some-model",
 		},
 	})
-	ec.Provider = "cohere"
 
 	require.Len(t, ec.Providers, 2)
 
-	ec.RemoveUnselected()
+	ec.RemoveUnselected("cohere")
 
 	require.Len(t, ec.Providers, 1)
 	require.Equal(t, "cohere", ec.Providers[0].Name)

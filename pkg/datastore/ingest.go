@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings"
+	etypes "github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/types"
 	"log/slog"
 
 	"github.com/acorn-io/z"
@@ -50,23 +51,27 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 	}
 
 	// Check if Dataset has an embedding config attached
-	if ds.EmbeddingsConfig == nil {
+	if ds.EmbeddingsProviderConfig == nil {
 		slog.Info("Embeddingsconfig", "config", s.EmbeddingConfig)
+		ncfg, err := etypes.AsEmbeddingModelProviderConfig(s.EmbeddingModelProvider)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get embedding model provider config: %w", err)
+		}
 		nds := index.Dataset{
-			ID:               datasetID,
-			EmbeddingsConfig: &s.EmbeddingConfig,
+			ID:                       datasetID,
+			EmbeddingsProviderConfig: &ncfg,
 		}
 		ds, err = s.UpdateDataset(ctx, nds, nil)
 		if err != nil {
 			return nil, fmt.Errorf("failed to update dataset: %w", err)
 		}
 	}
-	if ds.EmbeddingsConfig != nil {
-		if s.EmbeddingConfig.Provider != ds.EmbeddingsConfig.Provider {
-			slog.Warn("Embeddings provider mismatch", "dataset", datasetID, "attached", ds.EmbeddingsConfig.Provider, "configured", s.EmbeddingConfig.Provider)
+	if ds.EmbeddingsProviderConfig != nil {
+		if s.EmbeddingModelProvider.Name() != ds.EmbeddingsProviderConfig.Type {
+			slog.Warn("Embeddings provider mismatch", "dataset", datasetID, "attached", ds.EmbeddingsProviderConfig.Type, "configured", s.EmbeddingModelProvider.Name())
 		}
 
-		dsEmbeddingProvider, err := embeddings.GetSelectedEmbeddingsModelProvider(*ds.EmbeddingsConfig)
+		dsEmbeddingProvider, err := embeddings.ProviderFromConfig(*ds.EmbeddingsProviderConfig)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get embeddings model provider: %w", err)
 		}

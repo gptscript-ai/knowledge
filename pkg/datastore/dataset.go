@@ -102,8 +102,8 @@ func (s *Datastore) UpdateDataset(ctx context.Context, updatedDataset index.Data
 		origDS.UpdateMetadata(updatedDataset.Metadata)
 	}
 
-	if updatedDataset.EmbeddingsConfig != nil {
-		origDS.EmbeddingsConfig = updatedDataset.EmbeddingsConfig
+	if updatedDataset.EmbeddingsProviderConfig != nil {
+		origDS.EmbeddingsProviderConfig = updatedDataset.EmbeddingsProviderConfig
 	}
 
 	// Check if there is any other non-null field in the updatedDataset
@@ -111,7 +111,7 @@ func (s *Datastore) UpdateDataset(ctx context.Context, updatedDataset index.Data
 		return origDS, fmt.Errorf("files cannot be updated")
 	}
 
-	slog.Debug("Updating dataset", "id", updatedDataset.ID, "metadata", updatedDataset.Metadata, "embeddingsConfig", updatedDataset.EmbeddingsConfig)
+	slog.Debug("Updating dataset", "id", updatedDataset.ID, "metadata", updatedDataset.Metadata, "embeddingsConfig", updatedDataset.EmbeddingsProviderConfig)
 
 	return origDS, s.Index.UpdateDataset(ctx, *origDS)
 }

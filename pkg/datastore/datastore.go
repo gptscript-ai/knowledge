@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/gptscript-ai/knowledge/pkg/config"
-	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings"
 	etypes "github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/types"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
 	"github.com/gptscript-ai/knowledge/pkg/output"
@@ -68,13 +67,7 @@ func GetDatastorePaths(dsn, vectordbPath string) (string, string, bool, error) {
 	return dsn, vectordbPath, isArchive, nil
 }
 
-func NewDatastore(dsn string, automigrate bool, vectorDBPath string, embeddingsConfig config.EmbeddingsConfig) (*Datastore, error) {
-
-	embeddingsConfig.RemoveUnselected()
-	embeddingProvider, err := embeddings.GetSelectedEmbeddingsModelProvider(embeddingsConfig)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get embeddings model provider: %w", err)
-	}
+func NewDatastore(dsn string, automigrate bool, vectorDBPath string, embeddingProvider etypes.EmbeddingModelProvider) (*Datastore, error) {
 
 	dsn, vectorDBPath, isArchive, err := GetDatastorePaths(dsn, vectorDBPath)
 	if err != nil {
@@ -114,7 +107,6 @@ func NewDatastore(dsn string, automigrate bool, vectorDBPath string, embeddingsC
 	ds := &Datastore{
 		Index:                  idx,
 		Vectorstore:            chromem.New(vsdb, embeddingFunc),
-		EmbeddingConfig:        embeddingsConfig,
 		EmbeddingModelProvider: embeddingProvider,
 	}
 
