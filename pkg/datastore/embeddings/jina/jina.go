@@ -9,8 +9,8 @@ import (
 )
 
 type EmbeddingProviderJina struct {
-	APIKey string `koanf:"apiKey" env:"JINA_API_KEY"`
-	Model  string `koanf:"model" env:"JINA_MODEL"`
+	APIKey string `koanf:"apiKey" env:"JINA_API_KEY" export:"false"`
+	Model  string `koanf:"model" env:"JINA_MODEL" export:"required"`
 }
 
 const EmbeddingProviderJinaName = "jina"
@@ -19,17 +19,16 @@ func (p *EmbeddingProviderJina) Name() string {
 	return EmbeddingProviderJinaName
 }
 
-func New(c EmbeddingProviderJina) (*EmbeddingProviderJina, error) {
-
-	if err := load.FillConfigEnv(strings.ToUpper(EmbeddingProviderJinaName), &c); err != nil {
-		return nil, fmt.Errorf("failed to fill Jina config from environment: %w", err)
+func (p *EmbeddingProviderJina) Configure() error {
+	if err := load.FillConfigEnv(strings.ToUpper(EmbeddingProviderJinaName), &p); err != nil {
+		return fmt.Errorf("failed to fill Jina config from environment: %w", err)
 	}
 
-	if err := c.fillDefaults(); err != nil {
-		return nil, fmt.Errorf("failed to fill Jina defaults: %w", err)
+	if err := p.fillDefaults(); err != nil {
+		return fmt.Errorf("failed to fill Jina defaults: %w", err)
 	}
 
-	return &c, nil
+	return nil
 }
 
 func (p *EmbeddingProviderJina) fillDefaults() error {

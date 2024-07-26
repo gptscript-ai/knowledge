@@ -9,8 +9,8 @@ import (
 )
 
 type EmbeddingProviderMixedbread struct {
-	APIKey string `koanf:"apiKey" env:"MIXEDBREAD_API_KEY"`
-	Model  string `koanf:"model" env:"MIXEDBREAD_MODEL"`
+	APIKey string `koanf:"apiKey" env:"MIXEDBREAD_API_KEY" export:"false"`
+	Model  string `koanf:"model" env:"MIXEDBREAD_MODEL" export:"required"`
 }
 
 const EmbeddingProviderMixedbreadName = "mixedbread"
@@ -19,17 +19,16 @@ func (p *EmbeddingProviderMixedbread) Name() string {
 	return EmbeddingProviderMixedbreadName
 }
 
-func New(c EmbeddingProviderMixedbread) (*EmbeddingProviderMixedbread, error) {
-
-	if err := load.FillConfigEnv(strings.ToUpper(EmbeddingProviderMixedbreadName), &c); err != nil {
-		return nil, fmt.Errorf("failed to fill Mixedbread config from environment: %w", err)
+func (p *EmbeddingProviderMixedbread) Configure() error {
+	if err := load.FillConfigEnv(strings.ToUpper(EmbeddingProviderMixedbreadName), &p); err != nil {
+		return fmt.Errorf("failed to fill Mixedbread config from environment: %w", err)
 	}
 
-	if err := c.fillDefaults(); err != nil {
-		return nil, fmt.Errorf("failed to fill Mixedbread defaults: %w", err)
+	if err := p.fillDefaults(); err != nil {
+		return fmt.Errorf("failed to fill Mixedbread defaults: %w", err)
 	}
 
-	return &c, nil
+	return nil
 }
 
 func (p *EmbeddingProviderMixedbread) fillDefaults() error {

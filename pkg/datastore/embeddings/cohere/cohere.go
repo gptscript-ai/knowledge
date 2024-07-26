@@ -10,25 +10,24 @@ import (
 const EmbeddingModelProviderCohereName string = "cohere"
 
 type EmbeddingModelProviderCohere struct {
-	APIKey string `env:"COHERE_API_KEY" koanf:"apiKey"`
-	Model  string `env:"COHERE_MODEL" koanf:"model"`
+	APIKey string `env:"COHERE_API_KEY" koanf:"apiKey" export:"false"`
+	Model  string `env:"COHERE_MODEL" koanf:"model" export:"required"`
 }
 
 func (p *EmbeddingModelProviderCohere) Name() string {
 	return EmbeddingModelProviderCohereName
 }
 
-func New(c EmbeddingModelProviderCohere) (*EmbeddingModelProviderCohere, error) {
-
-	if err := load.FillConfigEnv("COHERE_", &c); err != nil {
-		return nil, fmt.Errorf("failed to fill Cohere config from environment: %w", err)
+func (p *EmbeddingModelProviderCohere) Configure() error {
+	if err := load.FillConfigEnv("COHERE_", p); err != nil {
+		return fmt.Errorf("failed to fill Cohere config from environment: %w", err)
 	}
 
-	if err := c.fillDefaults(); err != nil {
-		return nil, fmt.Errorf("failed to fill Cohere defaults: %w", err)
+	if err := p.fillDefaults(); err != nil {
+		return fmt.Errorf("failed to fill Cohere defaults: %w", err)
 	}
 
-	return &c, nil
+	return nil
 }
 
 func (p *EmbeddingModelProviderCohere) fillDefaults() error {

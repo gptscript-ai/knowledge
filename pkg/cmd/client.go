@@ -6,7 +6,6 @@ import (
 	"github.com/gptscript-ai/knowledge/pkg/client"
 	"github.com/gptscript-ai/knowledge/pkg/config"
 	"github.com/gptscript-ai/knowledge/pkg/datastore"
-	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
 	"io"
 	"os"
@@ -105,11 +104,11 @@ func (s *Client) getClient() (client.Client, error) {
 	}
 
 	if s.Server == "" || s.Server == "standalone" {
-		embeddingModelProvider, err := embeddings.GetEmbeddingsModelProvider(s.EmbeddingModelProvider, cfg.EmbeddingsConfig)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get embeddings model provider: %w", err)
+		if s.EmbeddingModelProvider != "" {
+			cfg.EmbeddingsConfig.Provider = s.EmbeddingModelProvider
 		}
-		ds, err := datastore.NewDatastore(s.DSN, s.AutoMigrate == "true", s.VectorDBConfig.VectorDBPath, embeddingModelProvider)
+
+		ds, err := datastore.NewDatastore(s.DSN, s.AutoMigrate == "true", s.VectorDBConfig.VectorDBPath, cfg.EmbeddingsConfig)
 		if err != nil {
 			return nil, err
 		}

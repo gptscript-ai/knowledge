@@ -9,7 +9,8 @@ import (
 )
 
 type EmbeddingProviderMistral struct {
-	APIKey string `koanf:"apiKey" env:"MISTRAL_API_KEY"`
+	APIKey string `koanf:"apiKey" env:"MISTRAL_API_KEY" export:"false"`
+	Model  string `koanf:"model" env:"MISTRAL_MODEL" export:"required"`
 }
 
 const EmbeddingProviderMistralName = "mistral"
@@ -18,21 +19,22 @@ func (p *EmbeddingProviderMistral) Name() string {
 	return EmbeddingProviderMistralName
 }
 
-func New(c EmbeddingProviderMistral) (*EmbeddingProviderMistral, error) {
-
-	if err := load.FillConfigEnv(strings.ToUpper(EmbeddingProviderMistralName), &c); err != nil {
-		return nil, fmt.Errorf("failed to fill Mistral config from environment: %w", err)
+func (p *EmbeddingProviderMistral) Configure() error {
+	if err := load.FillConfigEnv(strings.ToUpper(EmbeddingProviderMistralName), &p); err != nil {
+		return fmt.Errorf("failed to fill Mistral config from environment: %w", err)
 	}
 
-	if err := c.fillDefaults(); err != nil {
-		return nil, fmt.Errorf("failed to fill Mistral defaults: %w", err)
+	if err := p.fillDefaults(); err != nil {
+		return fmt.Errorf("failed to fill Mistral defaults: %w", err)
 	}
 
-	return &c, nil
+	return nil
 }
 
 func (p *EmbeddingProviderMistral) fillDefaults() error {
-	defaultCfg := EmbeddingProviderMistral{}
+	defaultCfg := EmbeddingProviderMistral{
+		Model: "mistral-embed",
+	}
 
 	if err := mergo.Merge(p, defaultCfg); err != nil {
 		return fmt.Errorf("failed to merge Mistral config: %w", err)

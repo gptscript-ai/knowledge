@@ -9,10 +9,10 @@ import (
 )
 
 type EmbeddingProviderVertex struct {
-	APIKey      string `koanf:"apiKey" env:"VERTEX_API_KEY"`
-	APIEndpoint string `koanf:"apiEndpoint" env:"VERTEX_API_ENDPOINT"`
-	Project     string `koanf:"project" env:"VERTEX_PROJECT"`
-	Model       string `koanf:"model" env:"VERTEX_MODEL"`
+	APIKey      string `koanf:"apiKey" env:"VERTEX_API_KEY" export:"false"`
+	APIEndpoint string `koanf:"apiEndpoint" env:"VERTEX_API_ENDPOINT" export:"true"`
+	Project     string `koanf:"project" env:"VERTEX_PROJECT" export:"true"`
+	Model       string `koanf:"model" env:"VERTEX_MODEL" export:"required"`
 }
 
 const EmbeddingProviderVertexName = "vertex"
@@ -21,17 +21,16 @@ func (p *EmbeddingProviderVertex) Name() string {
 	return EmbeddingProviderVertexName
 }
 
-func New(c EmbeddingProviderVertex) (*EmbeddingProviderVertex, error) {
-
-	if err := load.FillConfigEnv(strings.ToUpper(EmbeddingProviderVertexName), &c); err != nil {
-		return nil, fmt.Errorf("failed to fill Vertex config from environment: %w", err)
+func (p *EmbeddingProviderVertex) Configure() error {
+	if err := load.FillConfigEnv(strings.ToUpper(EmbeddingProviderVertexName), &p); err != nil {
+		return fmt.Errorf("failed to fill Vertex config from environment: %w", err)
 	}
 
-	if err := c.fillDefaults(); err != nil {
-		return nil, fmt.Errorf("failed to fill Vertex defaults: %w", err)
+	if err := p.fillDefaults(); err != nil {
+		return fmt.Errorf("failed to fill Vertex defaults: %w", err)
 	}
 
-	return &c, nil
+	return nil
 }
 
 func (p *EmbeddingProviderVertex) fillDefaults() error {

@@ -4,7 +4,9 @@ import (
 	"archive/zip"
 	"context"
 	"fmt"
-	embeddings "github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/types"
+	"github.com/gptscript-ai/knowledge/pkg/config"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings"
+	etypes "github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/types"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
 	"github.com/gptscript-ai/knowledge/pkg/output"
 	"io"
@@ -23,9 +25,11 @@ import (
 )
 
 type Datastore struct {
-	LLM         llm.LLM
-	Index       *index.DB
-	Vectorstore vectorstore.VectorStore
+	LLM                    llm.LLM
+	Index                  *index.DB
+	Vectorstore            vectorstore.VectorStore
+	EmbeddingConfig        config.EmbeddingsConfig
+	EmbeddingModelProvider etypes.EmbeddingModelProvider
 }
 
 // GetDatastorePaths returns the paths for the datastore and vectorstore databases.
@@ -64,7 +68,14 @@ func GetDatastorePaths(dsn, vectordbPath string) (string, string, bool, error) {
 	return dsn, vectordbPath, isArchive, nil
 }
 
-func NewDatastore(dsn string, automigrate bool, vectorDBPath string, embeddingProvider embeddings.EmbeddingModelProvider) (*Datastore, error) {
+func NewDatastore(dsn string, automigrate bool, vectorDBPath string, embeddingsConfig config.EmbeddingsConfig) (*Datastore, error) {
+
+	embeddingsConfig.RemoveUnselected()
+	embeddingProvider, err := embeddings.GetSelectedEmbeddingsModelProvider(embeddingsConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get embeddings model provider: %w", err)
+	}
+
 	dsn, vectorDBPath, isArchive, err := GetDatastorePaths(dsn, vectorDBPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to determine datastore paths: %w", err)
@@ -101,8 +112,10 @@ func NewDatastore(dsn string, automigrate bool, vectorDBPath string, embeddingPr
 	slog.Info("Using embedding model provider", "provider", embeddingProvider.Name(), "config", output.RedactSensitive(embeddingProvider.Config()))
 
 	ds := &Datastore{
-		Index:       idx,
-		Vectorstore: chromem.New(vsdb, embeddingFunc),
+		Index:                  idx,
+		Vectorstore:            chromem.New(vsdb, embeddingFunc),
+		EmbeddingConfig:        embeddingsConfig,
+		EmbeddingModelProvider: embeddingProvider,
 	}
 
 	if isArchive {

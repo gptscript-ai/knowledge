@@ -1,13 +1,20 @@
 embeddings:
-  provider: vertex # this selects one of the below
-  cohere:
-    apiKey: "${COHERE_API_KEY}" # environment variables are expanded when reading the config file
-    model: "embed-english-v2.0"
-  openai:
-    apiKey: "${OPENAI_API_KEY}"
-    embeddingEndpoint: "/some-custom-endpoint" # anything that's not the default /embeddings
-  vertex:
-    apiKey: "${GOOGLE_API_KEY}"
-    project: "acorn-io"
-    # apiEndpoint: https://us-central1-aiplatform.googleapis.com
-    model: "text-embedding-004"
+  provider: foobar # this selects one of the below
+  providers:
+  - name: my-cohere
+    type: cohere
+    config:
+      apiKey: "${COHERE_API_KEY}" # environment variables are expanded when reading the config file
+      model: "embed-english-v2.0"
+  - name: myopenai
+    type: openai
+    config:
+      apiKey: "${OPENAI_API_KEY}"
+      embeddingEndpoint: "/some-custom-endpoint" # anything that's not the default /embeddings
+  - name: foobar
+    type: vertex
+    config:
+      apiKey: "${GOOGLE_API_KEY}"
+      project: "acorn-io"
+      # apiEndpoint: https://us-central1-aiplatform.googleapis.com
+      model: "text-embedding-004"

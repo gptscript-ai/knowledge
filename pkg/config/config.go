@@ -2,14 +2,6 @@ package config
 
 import (
 	"fmt"
-	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/cohere"
-	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/jina"
-	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/localai"
-	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/mistral"
-	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/mixedbread"
-	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/ollama"
-	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/openai"
-	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/vertex"
 	"github.com/knadh/koanf/parsers/json"
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/rawbytes"
@@ -23,15 +15,14 @@ type Config struct {
 }
 
 type EmbeddingsConfig struct {
-	Provider   string
-	OpenAI     openai.OpenAIConfig                    `koanf:"openai" json:"openai,omitempty"`
-	Cohere     cohere.EmbeddingModelProviderCohere    `koanf:"cohere" json:"cohere,omitempty"`
-	Vertex     vertex.EmbeddingProviderVertex         `koanf:"vertex" json:"vertex,omitempty"`
-	Jina       jina.EmbeddingProviderJina             `koanf:"jina" json:"jina,omitempty"`
-	Mistral    mistral.EmbeddingProviderMistral       `koanf:"mistral" json:"mistral,omitempty"`
-	Mixedbread mixedbread.EmbeddingProviderMixedbread `koanf:"mixedbread" json:"mixedbread,omitempty"`
-	LocalAI    localai.EmbeddingProviderLocalAI       `koanf:"localai" json:"localai,omitempty"`
-	Ollama     ollama.EmbeddingProviderOllama         `koanf:"ollama" json:"ollama,omitempty"`
+	Provider  string                     `koanf:"provider" json:"provider,omitempty" mapstructure:"provider"`
+	Providers []EmbeddingsProviderConfig `koanf:"providers" json:"providers,omitempty" mapstructure:"providers"`
+}
+
+type EmbeddingsProviderConfig struct {
+	Name   string         `koanf:"name" json:"name,omitempty" mapstructure:"name"`
+	Type   string         `koanf:"type" json:"type,omitempty" mapstructure:"type"`
+	Config map[string]any `koanf:"config" json:"config,omitempty" mapstructure:"config"`
 }
 
 type DatabaseConfig struct {
@@ -77,4 +68,14 @@ func LoadConfig(configFile string) (*Config, error) {
 	}
 
 	return cfg, nil
+}
+
+func (ec *EmbeddingsConfig) RemoveUnselected() {
+	keep := make([]EmbeddingsProviderConfig, 1)
+	for _, p := range ec.Providers {
+		if p.Name == ec.Provider {
+			keep[0] = p
+		}
+	}
+	ec.Providers = keep
 }

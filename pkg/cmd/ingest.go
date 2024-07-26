@@ -29,6 +29,14 @@ type ClientIngestOpts struct {
 func (s *ClientIngest) Customize(cmd *cobra.Command) {
 	cmd.Use = "ingest [--dataset <dataset-id>] <path>"
 	cmd.Short = "Ingest a file/directory into a dataset"
+	cmd.Long = `Ingest a file or directory into a dataset.
+
+## Important Note
+
+The first time you ingest something into a dataset, the embedding function (model provider) you chose will be attached to that dataset.
+After that, the client must always use that same embedding function to ingest into this dataset.
+This is a constraint of the Vector Database and Similarity Search, as different models yield differently sized embedding vectors and also represent the semantics differently.
+`
 	cmd.Args = cobra.ExactArgs(1)
 }
 
