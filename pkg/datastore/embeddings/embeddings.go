@@ -29,6 +29,10 @@ func GetSelectedEmbeddingsModelProvider(selected string, embeddingsConfig config
 		return nil, fmt.Errorf("failed to create provider: %w", err)
 	}
 
+	if err := provider.Configure(); err != nil {
+		return nil, fmt.Errorf("failed to configure provider: %w", err)
+	}
+
 	return provider, nil
 
 }
@@ -48,10 +52,6 @@ func ProviderFromConfig(providerConfig config.EmbeddingsProviderConfig) (types.E
 	}
 	if err := decoder.Decode(providerConfig.Config); err != nil {
 		return nil, fmt.Errorf("failed to decode provider config: %w", err)
-	}
-
-	if err := provider.Configure(); err != nil {
-		return nil, fmt.Errorf("failed to configure provider: %w", err)
 	}
 
 	return provider, nil
@@ -198,12 +198,46 @@ func CompareRequiredFields(a, b any) error {
 				return fmt.Errorf("field %q is missing in the second struct", fieldTypeA.Name)
 			}
 
+			x := fieldA.Interface()
+			y := fieldB.Interface()
+
 			// Check for equality
-			if !reflect.DeepEqual(fieldA.Interface(), fieldB.Interface()) {
-				return fmt.Errorf("field %q does not match: %v != %v", fieldTypeA.Name, fieldA.Interface(), fieldB.Interface())
+			if !reflect.DeepEqual(x, y) {
+				return fmt.Errorf("field %q does not match: %v != %v", fieldTypeA.Name, x, y)
 			}
 		}
 	}
 
 	return nil
+}
+
+func AsEmbeddingModelProviderConfig(emp types.EmbeddingModelProvider, export bool) (config.EmbeddingsProviderConfig, error) {
+
+	var cfg map[string]any
+
+	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		TagName: "koanf",
+		Result:  &cfg,
+	})
+
+	if err != nil {
+		return config.EmbeddingsProviderConfig{}, err
+	}
+
+	conf := emp.Config()
+	if export {
+		conf, err = ExportConfig(conf)
+		if err != nil {
+			return config.EmbeddingsProviderConfig{}, err
+		}
+	}
+
+	if err := decoder.Decode(conf); err != nil {
+		return config.EmbeddingsProviderConfig{}, err
+	}
+
+	return config.EmbeddingsProviderConfig{
+		Type:   emp.Name(),
+		Config: cfg,
+	}, nil
 }

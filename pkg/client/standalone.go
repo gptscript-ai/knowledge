@@ -90,6 +90,7 @@ func (c *StandaloneClient) IngestPaths(ctx context.Context, datasetID string, op
 				ModifiedAt:   finfo.ModTime(),
 			},
 			IsDuplicateFunc: datastore.DedupeByFileMetadata,
+			CreateDataset:   true,
 		}
 
 		if opts != nil {

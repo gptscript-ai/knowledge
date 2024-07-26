@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings"
-	etypes "github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/types"
 	"log/slog"
 
 	"github.com/acorn-io/z"
@@ -53,7 +52,7 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 	// Check if Dataset has an embedding config attached
 	if ds.EmbeddingsProviderConfig == nil {
 		slog.Info("Embeddingsconfig", "config", s.EmbeddingConfig)
-		ncfg, err := etypes.AsEmbeddingModelProviderConfig(s.EmbeddingModelProvider)
+		ncfg, err := embeddings.AsEmbeddingModelProviderConfig(s.EmbeddingModelProvider, true)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get embedding model provider config: %w", err)
 		}
@@ -77,6 +76,7 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 		}
 		err = embeddings.CompareRequiredFields(s.EmbeddingModelProvider.Config(), dsEmbeddingProvider.Config())
 		if err != nil {
+			slog.Info("Dataset has attached embeddings provider config", "config", ds.EmbeddingsProviderConfig)
 			return nil, fmt.Errorf("mismatching embedding provider configs: %w", err)
 		}
 	}

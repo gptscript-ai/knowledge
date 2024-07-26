@@ -16,6 +16,7 @@ type IngestPathsOpts struct {
 	Recursive        bool
 	TextSplitterOpts *textsplitter.TextSplitterOpts
 	IngestionFlows   []flows.IngestionFlow
+	CreateDataset    bool
 }
 
 type Client interface {
