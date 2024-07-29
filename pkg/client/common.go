@@ -1,20 +1,27 @@
 package client
 
 import (
+	"bufio"
 	"context"
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
+	"github.com/go-git/go-git/v5/plumbing/format/gitignore"
+	"github.com/gptscript-ai/knowledge/pkg/datastore"
+	remotes "github.com/gptscript-ai/knowledge/pkg/datastore/documentloader/remote"
 	dstypes "github.com/gptscript-ai/knowledge/pkg/datastore/types"
+	"golang.org/x/sync/errgroup"
+	"golang.org/x/sync/semaphore"
 	"log/slog"
 	"os"
 	"path/filepath"
 	"slices"
-
-	"github.com/gptscript-ai/knowledge/pkg/datastore"
-	"golang.org/x/sync/errgroup"
-	"golang.org/x/sync/semaphore"
+	"strings"
 )
+
+func isIgnored(ignore gitignore.Matcher, path string) bool {
+	return ignore.Match(strings.Split(path, string(filepath.Separator)), false)
+}
 
 func checkIgnored(path string, ignoreExtensions []string) bool {
 	ext := filepath.Ext(path)
@@ -22,8 +29,55 @@ func checkIgnored(path string, ignoreExtensions []string) bool {
 	return slices.Contains(ignoreExtensions, ext)
 }
 
+func readIgnoreFile(path string) ([]gitignore.Pattern, error) {
+	stat, err := os.Stat(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to checkout ignore file %q: %w", path, err)
+	}
+
+	if stat.IsDir() {
+		return nil, fmt.Errorf("ignore file %q is a directory", path)
+	}
+
+	var ps []gitignore.Pattern
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open ignore file %q: %w", path, err)
+	}
+
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		s := scanner.Text()
+		if !strings.HasPrefix(s, "#") && len(strings.TrimSpace(s)) > 0 {
+			ps = append(ps, gitignore.ParsePattern(s, []string{path}))
+		}
+	}
+
+	return ps, nil
+}
+
 func ingestPaths(ctx context.Context, opts *IngestPathsOpts, ingestionFunc func(path string) error, paths ...string) (int, error) {
 	ingestedFilesCount := 0
+
+	var ignorePatterns []gitignore.Pattern
+	var err error
+	if opts.IgnoreFile != "" {
+		ignorePatterns, err = readIgnoreFile(opts.IgnoreFile)
+		if err != nil {
+			return ingestedFilesCount, fmt.Errorf("failed to read ignore file %q: %w", opts.IgnoreFile, err)
+		}
+	}
+
+	if len(opts.IgnoreExtensions) > 0 {
+		for _, ext := range opts.IgnoreExtensions {
+			p := "*." + strings.TrimPrefix(ext, ".")
+			ignorePatterns = append(ignorePatterns, gitignore.ParsePattern(p, nil))
+		}
+	}
+
+	slog.Debug("Ignore patterns", "patterns", ignorePatterns)
+
+	ignore := gitignore.NewMatcher(ignorePatterns)
 
 	if opts.Concurrency < 1 {
 		opts.Concurrency = 10
@@ -34,6 +88,22 @@ func ingestPaths(ctx context.Context, opts *IngestPathsOpts, ingestionFunc func(
 
 	for _, p := range paths {
 		path := p
+
+		if strings.HasPrefix(path, ".") {
+			if !opts.IncludeHidden {
+				slog.Debug("Ignoring hidden path", "path", path)
+				continue
+			}
+		}
+
+		if remotes.IsRemote(path) {
+			// Load remote files
+			remotePath, err := remotes.LoadRemote(path)
+			if err != nil {
+				return ingestedFilesCount, fmt.Errorf("failed to load from remote %q: %w", path, err)
+			}
+			path = remotePath
+		}
 
 		fileInfo, err := os.Stat(path)
 		if err != nil {
@@ -55,9 +125,11 @@ func ingestPaths(ctx context.Context, opts *IngestPathsOpts, ingestionFunc func(
 					}
 					return nil
 				}
-				if checkIgnored(subPath, opts.IgnoreExtensions) {
-					slog.Debug("Skipping ingestion of file", "path", subPath, "reason", "extension ignored")
+				if isIgnored(ignore, subPath) {
+					slog.Debug("Ignoring file", "path", subPath, "ignorefile", opts.IgnoreFile, "ignoreExtensions", opts.IgnoreExtensions)
 					return nil
+				} else {
+					slog.Debug("NOT IGNORED file", "path", subPath)
 				}
 
 				sp := subPath
@@ -68,6 +140,7 @@ func ingestPaths(ctx context.Context, opts *IngestPathsOpts, ingestionFunc func(
 					defer sem.Release(1)
 
 					ingestedFilesCount++
+					slog.Debug("Ingesting file", "path", sp)
 					return ingestionFunc(sp)
 				})
 				return nil
@@ -76,8 +149,8 @@ func ingestPaths(ctx context.Context, opts *IngestPathsOpts, ingestionFunc func(
 				return ingestedFilesCount, err
 			}
 		} else {
-			if checkIgnored(path, opts.IgnoreExtensions) {
-				slog.Debug("Skipping ingestion of file", "path", path, "reason", "extension ignored")
+			if isIgnored(ignore, path) {
+				slog.Debug("Ignoring file", "path", path, "ignorefile", opts.IgnoreFile, "ignoreExtensions", opts.IgnoreExtensions)
 				continue
 			}
 			// Process a file directly

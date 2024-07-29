@@ -17,6 +17,8 @@ type IngestPathsOpts struct {
 	TextSplitterOpts *textsplitter.TextSplitterOpts
 	IngestionFlows   []flows.IngestionFlow
 	CreateDataset    bool
+	IgnoreFile       string
+	IncludeHidden    bool
 }
 
 type Client interface {

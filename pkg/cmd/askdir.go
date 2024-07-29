@@ -42,6 +42,8 @@ func (s *ClientAskDir) Run(cmd *cobra.Command, args []string) error {
 		Concurrency:      s.Concurrency,
 		Recursive:        !s.NoRecursive,
 		CreateDataset:    true,
+		IgnoreFile:       s.IgnoreFile,
+		IncludeHidden:    s.IncludeHidden,
 	}
 
 	retrieveOpts := &datastore.RetrieveOpts{

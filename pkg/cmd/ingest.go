@@ -22,6 +22,8 @@ type ClientIngest struct {
 
 type ClientIngestOpts struct {
 	IgnoreExtensions string `usage:"Comma-separated list of file extensions to ignore" env:"KNOW_INGEST_IGNORE_EXTENSIONS"`
+	IgnoreFile       string `usage:"Path to a .gitignore style file" env:"KNOW_INGEST_IGNORE_FILE"`
+	IncludeHidden    bool   `usage:"Include hidden files and directories" default:"false" env:"KNOW_INGEST_INCLUDE_HIDDEN"`
 	Concurrency      int    `usage:"Number of concurrent ingestion processes" default:"10" env:"KNOW_INGEST_CONCURRENCY"`
 	NoRecursive      bool   `usage:"Don't recursively ingest directories" default:"false" env:"KNOW_NO_INGEST_RECURSIVE"`
 	CreateDataset    bool   `usage:"Create the dataset if it doesn't exist" default:"true" env:"KNOW_INGEST_CREATE_DATASET"`
@@ -57,6 +59,8 @@ func (s *ClientIngest) Run(cmd *cobra.Command, args []string) error {
 		Recursive:        !s.NoRecursive,
 		TextSplitterOpts: &s.TextSplitterOpts,
 		CreateDataset:    s.CreateDataset,
+		IgnoreFile:       s.IgnoreFile,
+		IncludeHidden:    s.IncludeHidden,
 	}
 
 	if s.FlowsFile != "" {
