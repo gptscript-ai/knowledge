@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
+	"log/slog"
 	"os"
 	"strings"
 )
@@ -17,6 +18,8 @@ func CloneRepo(repo, target string) error {
 	if len(atSplit) > 2 {
 		return fmt.Errorf("invalid repository URL format %q", repo)
 	}
+
+	slog.Info("Cloning repository", "repo", repo)
 
 	opts := &git.CloneOptions{
 		URL:      atSplit[0],
@@ -46,13 +49,16 @@ func CloneRepo(repo, target string) error {
 	// Check out the specific branch, tag, or commit
 	if len(atSplit[1]) == 40 && isHex(atSplit[1]) {
 		checkoutOpts.Hash = plumbing.NewHash(atSplit[1])
+		slog.Info("Checking out commit", "commit", atSplit[1])
 	} else {
 		checkoutOpts.Branch = plumbing.NewTagReferenceName(atSplit[1])
 		if err := w.Checkout(checkoutOpts); err == nil {
+			slog.Info("Checked out tag", "tag", atSplit[1])
 			return nil
 		}
 		// failed as tag - try as branch
 		checkoutOpts.Branch = plumbing.NewBranchReferenceName(atSplit[1])
+		slog.Info("Checking out branch", "branch", atSplit[1])
 	}
 
 	if err := w.Checkout(checkoutOpts); err != nil {

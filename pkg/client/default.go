@@ -29,25 +29,25 @@ func NewDefaultClient(serverURL string) *DefaultClient {
 	}
 }
 
-func (c *DefaultClient) CreateDataset(_ context.Context, datasetID string) (types.Dataset, error) {
+func (c *DefaultClient) CreateDataset(_ context.Context, datasetID string) (*index.Dataset, error) {
 	ds := types.Dataset{
 		ID: datasetID,
 	}
 
 	payload, err := json.Marshal(ds)
 	if err != nil {
-		return types.Dataset{}, err
+		return nil, err
 	}
 
 	resp, err := c.request(http.MethodPost, "/datasets/create", bytes.NewReader(payload))
 	if err != nil {
-		return types.Dataset{}, err
+		return nil, err
 	}
 
-	var dataset types.Dataset
-	err = json.Unmarshal(resp, &dataset)
+	var dataset *index.Dataset
+	err = json.Unmarshal(resp, dataset)
 	if err != nil {
-		return types.Dataset{}, err
+		return nil, err
 	}
 
 	return dataset, nil
@@ -116,6 +116,12 @@ func (c *DefaultClient) Ingest(_ context.Context, datasetID string, data []byte,
 }
 
 func (c *DefaultClient) IngestPaths(ctx context.Context, datasetID string, opts *IngestPathsOpts, paths ...string) (int, error) {
+
+	_, err := getOrCreateDataset(ctx, c, datasetID, !opts.NoCreateDataset)
+	if err != nil {
+		return 0, err
+	}
+
 	ingestFile := func(path string) error {
 		content, err := os.ReadFile(path)
 		if err != nil {
@@ -142,7 +148,6 @@ func (c *DefaultClient) IngestPaths(ctx context.Context, datasetID string, opts 
 				ModifiedAt:   finfo.ModTime(),
 			},
 			IsDuplicateFuncName: "file_metadata",
-			CreateDataset:       opts.CreateDataset,
 		}
 		if opts != nil {
 			payload.TextSplitterOpts = opts.TextSplitterOpts

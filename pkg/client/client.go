@@ -16,13 +16,13 @@ type IngestPathsOpts struct {
 	Recursive        bool
 	TextSplitterOpts *textsplitter.TextSplitterOpts
 	IngestionFlows   []flows.IngestionFlow
-	CreateDataset    bool
 	IgnoreFile       string
 	IncludeHidden    bool
+	NoCreateDataset  bool
 }
 
 type Client interface {
-	CreateDataset(ctx context.Context, datasetID string) (types.Dataset, error)
+	CreateDataset(ctx context.Context, datasetID string) (*index.Dataset, error)
 	DeleteDataset(ctx context.Context, datasetID string) error
 	GetDataset(ctx context.Context, datasetID string) (*index.Dataset, error)
 	ListDatasets(ctx context.Context) ([]types.Dataset, error)

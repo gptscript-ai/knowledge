@@ -26,7 +26,7 @@ type ClientIngestOpts struct {
 	IncludeHidden    bool   `usage:"Include hidden files and directories" default:"false" env:"KNOW_INGEST_INCLUDE_HIDDEN"`
 	Concurrency      int    `usage:"Number of concurrent ingestion processes" default:"10" env:"KNOW_INGEST_CONCURRENCY"`
 	NoRecursive      bool   `usage:"Don't recursively ingest directories" default:"false" env:"KNOW_NO_INGEST_RECURSIVE"`
-	CreateDataset    bool   `usage:"Create the dataset if it doesn't exist" default:"true" env:"KNOW_INGEST_CREATE_DATASET"`
+	NoCreateDataset  bool   `usage:"Do NOT create the dataset if it doesn't exist" default:"true" env:"KNOW_INGEST_NO_CREATE_DATASET"`
 }
 
 func (s *ClientIngest) Customize(cmd *cobra.Command) {
@@ -58,7 +58,6 @@ func (s *ClientIngest) Run(cmd *cobra.Command, args []string) error {
 		Concurrency:      s.Concurrency,
 		Recursive:        !s.NoRecursive,
 		TextSplitterOpts: &s.TextSplitterOpts,
-		CreateDataset:    s.CreateDataset,
 		IgnoreFile:       s.IgnoreFile,
 		IncludeHidden:    s.IncludeHidden,
 	}

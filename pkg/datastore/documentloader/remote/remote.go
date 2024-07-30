@@ -2,6 +2,7 @@ package documentloader
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 	"strings"
 )
@@ -14,6 +15,7 @@ func IsRemote(path string) bool {
 }
 
 func LoadRemote(path string) (string, error) {
+	slog.Debug("Loading remote path", "path", path)
 	tmpDir, err := os.MkdirTemp(os.TempDir(), "remote")
 	if err != nil {
 		return "", err

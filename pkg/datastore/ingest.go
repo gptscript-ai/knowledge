@@ -23,7 +23,6 @@ type IngestOpts struct {
 	IsDuplicateFunc     IsDuplicateFunc
 	TextSplitterOpts    *textsplitter.TextSplitterOpts
 	IngestionFlows      []flows.IngestionFlow
-	CreateDataset       bool
 }
 
 // Ingest loads a document from a reader and adds it to the dataset.
@@ -37,21 +36,13 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 
 	// Dataset does not exist - create it if requested, else error out
 	if ds == nil {
-		// Create dataset if it doesn't exist
-		if opts.CreateDataset {
-			ds = &index.Dataset{ID: datasetID}
-			if err := s.NewDataset(ctx, *ds); err != nil {
-				return nil, fmt.Errorf("failed to create dataset %q: %w", datasetID, err)
-			}
-		} else {
-			return nil, fmt.Errorf("dataset %q not found", datasetID)
-		}
+		return nil, fmt.Errorf("dataset %q not found", datasetID)
 
 	}
 
 	// Check if Dataset has an embedding config attached
 	if ds.EmbeddingsProviderConfig == nil {
-		slog.Info("Embeddingsconfig", "config", s.EmbeddingConfig)
+		slog.Debug("Embeddingsconfig", "config", s.EmbeddingConfig)
 		ncfg, err := embeddings.AsEmbeddingModelProviderConfig(s.EmbeddingModelProvider, true)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get embedding model provider config: %w", err)
