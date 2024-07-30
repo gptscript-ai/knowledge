@@ -21,6 +21,9 @@ knowledge askdir [--path <path>] <query> [flags]
       --flows-file string                 Path to a YAML/JSON file containing ingestion/retrieval flows ($KNOW_FLOWS_FILE)
   -h, --help                              help for askdir
       --ignore-extensions string          Comma-separated list of file extensions to ignore ($KNOW_INGEST_IGNORE_EXTENSIONS)
+      --ignore-file string                Path to a .gitignore style file ($KNOW_INGEST_IGNORE_FILE)
+      --include-hidden                    Include hidden files and directories ($KNOW_INGEST_INCLUDE_HIDDEN)
+      --no-create-dataset                 Do NOT create the dataset if it doesn't exist ($KNOW_INGEST_NO_CREATE_DATASET)
       --no-recursive                      Don't recursively ingest directories ($KNOW_NO_INGEST_RECURSIVE)
   -p, --path string                       Path to the directory to query ($KNOWLEDGE_CLIENT_ASK_DIR_PATH) (default ".")
       --server string                     URL of the Knowledge API Server ($KNOW_SERVER_URL)

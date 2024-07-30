@@ -27,6 +27,5 @@ knowledge [flags]
 * [knowledge ingest](knowledge_ingest.md)	 - Ingest a file/directory into a dataset
 * [knowledge list-datasets](knowledge_list-datasets.md)	 - List existing datasets
 * [knowledge retrieve](knowledge_retrieve.md)	 - Retrieve sources for a query from a dataset
-* [knowledge server](knowledge_server.md)	 - 
 * [knowledge version](knowledge_version.md)	 - 
 

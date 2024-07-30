@@ -5,6 +5,18 @@ title: "knowledge ingest"
 
 Ingest a file/directory into a dataset
 
+### Synopsis
+
+Ingest a file or directory into a dataset.
+
+## Important Note
+
+The first time you ingest something into a dataset, the embedding function (model provider) you chose will be attached to that dataset.
+After that, the client must always use that same embedding function to ingest into this dataset.
+Usually, this only concerns the choice of the model, as that commonly defines the embedding dimensionality.
+This is a constraint of the Vector Database and Similarity Search, as different models yield differently sized embedding vectors and also represent the semantics differently.
+
+
 ```
 knowledge ingest [--dataset <dataset-id>] <path> [flags]
 ```
@@ -22,6 +34,9 @@ knowledge ingest [--dataset <dataset-id>] <path> [flags]
       --flows-file string                   Path to a YAML/JSON file containing ingestion/retrieval flows ($KNOW_FLOWS_FILE)
   -h, --help                                help for ingest
       --ignore-extensions string            Comma-separated list of file extensions to ignore ($KNOW_INGEST_IGNORE_EXTENSIONS)
+      --ignore-file string                  Path to a .gitignore style file ($KNOW_INGEST_IGNORE_FILE)
+      --include-hidden                      Include hidden files and directories ($KNOW_INGEST_INCLUDE_HIDDEN)
+      --no-create-dataset                   Do NOT create the dataset if it doesn't exist ($KNOW_INGEST_NO_CREATE_DATASET)
       --no-recursive                        Don't recursively ingest directories ($KNOW_NO_INGEST_RECURSIVE)
       --server string                       URL of the Knowledge API Server ($KNOW_SERVER_URL)
       --textsplitter-chunk-overlap int      Textsplitter Chunk Overlap ($KNOW_TEXTSPLITTER_CHUNK_OVERLAP) (default 256)
