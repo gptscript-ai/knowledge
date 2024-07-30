@@ -19,8 +19,12 @@ func (s *Datastore) NewDataset(ctx context.Context, dataset index.Dataset) error
 	// Create dataset
 	tx := s.Index.WithContext(ctx).Create(&dataset)
 	if tx.Error != nil {
+		if errors.Is(tx.Error, gorm.ErrDuplicatedKey) {
+			return fmt.Errorf("dataset already exists: %w", tx.Error)
+		}
 		return tx.Error
 	}
+	tx.Commit()
 
 	// Create collection
 	err := s.Vectorstore.CreateCollection(ctx, dataset.ID)
@@ -38,6 +42,7 @@ func (s *Datastore) DeleteDataset(ctx context.Context, datasetID string) error {
 	if tx.Error != nil {
 		return tx.Error
 	}
+	tx.Commit()
 
 	// Delete collection
 	err := s.Vectorstore.RemoveCollection(ctx, datasetID)

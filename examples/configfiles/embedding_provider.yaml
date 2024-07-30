@@ -17,3 +17,7 @@ embeddings:
       project: "acorn-io"
       # apiEndpoint: https://us-central1-aiplatform.googleapis.com
       model: "text-embedding-004"
+  - name: local
+    type: ollama
+    config:
+      model: mxbai-embed-large

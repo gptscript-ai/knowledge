@@ -23,18 +23,15 @@ func NewStandaloneClient(ds *datastore.Datastore) (*StandaloneClient, error) {
 	}, nil
 }
 
-func (c *StandaloneClient) CreateDataset(ctx context.Context, datasetID string) (types.Dataset, error) {
+func (c *StandaloneClient) CreateDataset(ctx context.Context, datasetID string) (*index.Dataset, error) {
 	ds := index.Dataset{
 		ID: datasetID,
 	}
-	r := types.Dataset{
-		ID: ds.ID,
-	}
 	err := c.Datastore.NewDataset(ctx, ds)
 	if err != nil {
-		return r, err
+		return &ds, err
 	}
-	return r, nil
+	return &ds, nil
 }
 
 func (c *StandaloneClient) DeleteDataset(ctx context.Context, datasetID string) error {
@@ -60,10 +57,16 @@ func (c *StandaloneClient) ListDatasets(ctx context.Context) ([]types.Dataset, e
 }
 
 func (c *StandaloneClient) Ingest(ctx context.Context, datasetID string, data []byte, opts datastore.IngestOpts) ([]string, error) {
+
 	return c.Datastore.Ingest(ctx, datasetID, data, opts)
 }
 
 func (c *StandaloneClient) IngestPaths(ctx context.Context, datasetID string, opts *IngestPathsOpts, paths ...string) (int, error) {
+	_, err := getOrCreateDataset(ctx, c, datasetID, !opts.NoCreateDataset)
+	if err != nil {
+		return 0, err
+	}
+
 	ingestFile := func(path string) error {
 		// Gather metadata
 		finfo, err := os.Stat(path)
@@ -90,7 +93,6 @@ func (c *StandaloneClient) IngestPaths(ctx context.Context, datasetID string, op
 				ModifiedAt:   finfo.ModTime(),
 			},
 			IsDuplicateFunc: datastore.DedupeByFileMetadata,
-			CreateDataset:   true,
 		}
 
 		if opts != nil {
@@ -98,7 +100,7 @@ func (c *StandaloneClient) IngestPaths(ctx context.Context, datasetID string, op
 			iopts.IngestionFlows = opts.IngestionFlows
 		}
 
-		_, err = c.Datastore.Ingest(ctx, datasetID, file, iopts)
+		_, err = c.Ingest(ctx, datasetID, file, iopts)
 		return err
 	}
 

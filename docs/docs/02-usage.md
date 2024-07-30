@@ -46,3 +46,67 @@ This mode is useful when you want to share the data with multiple clients or whe
 ```bash
 knowledge server
 ```
+
+## Ingestion
+
+To ingest a document, you can use the `knowledge ingest` command:
+
+```bash
+knowledge ingest --dataset my-dataset ./path/to/my-document.txt
+```
+
+:::note
+
+    By default, the dataset will be created if it doesn't exist.
+    If you don't want that, you can use the `--no-create-dataset` flag.
+
+:::
+
+### Ignoring Files
+
+You can ignore files by providing an ignore file, similar to `.gitignore`:
+
+```bash
+knowledge ingest --dataset my-dataset --ignore-file .knowledgeignore ./path/to/my-documents
+```
+
+Here's an example ignore file which basically tells knowledge to only consider Markdown files and nothing else:
+
+```gitignore
+# Ignore everything
+*
+
+# Except Markdown files in any directory
+!**/*.md   
+```
+
+:::note
+
+    Alternatively, you can use the `--ignore-extensions` flag to ignore files with specific extensions.
+
+    ```bash
+    knowledge ingest --dataset my-dataset --ignore-extensions=.txt ./path/to/my-documents
+    ```
+
+:::
+
+
+### Remote Files
+
+You can ingest remote files by providing a URL - Currently only Git Repositories are supported:
+
+```bash
+knowledge ingest --dataset my-dataset https://github.com/gptscript-ai/knowledge
+```
+
+You may also specify a Commit Hash, Tag or Branch that you want to check out:
+
+```bash
+knowledge ingest --dataset my-dataset https://github.com/gptscript-ai/knowledge@v0.3.0
+```
+
+:::note
+
+    Here, it's advisable to use a [ignore file](#ignoring-files) to avoid ingesting all the git metadata and potentially present vendor files.
+
+:::
