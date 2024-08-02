@@ -72,12 +72,14 @@ func ingestPaths(ctx context.Context, opts *IngestPathsOpts, ingestionFunc func(
 
 	if len(opts.IgnoreExtensions) > 0 {
 		for _, ext := range opts.IgnoreExtensions {
-			p := "*." + strings.TrimPrefix(ext, ".")
-			ignorePatterns = append(ignorePatterns, gitignore.ParsePattern(p, nil))
+			if ext != "" {
+				p := "*." + strings.TrimPrefix(ext, ".")
+				ignorePatterns = append(ignorePatterns, gitignore.ParsePattern(p, nil))
+			}
 		}
 	}
 
-	slog.Debug("Ignore patterns", "patterns", ignorePatterns)
+	slog.Debug("Ignore patterns", "patterns", ignorePatterns, "len", len(ignorePatterns))
 
 	ignore := gitignore.NewMatcher(ignorePatterns)
 
@@ -91,7 +93,7 @@ func ingestPaths(ctx context.Context, opts *IngestPathsOpts, ingestionFunc func(
 	for _, p := range paths {
 		path := p
 
-		if strings.HasPrefix(path, ".") {
+		if strings.HasPrefix(filepath.Base(filepath.Clean(path)), ".") {
 			if !opts.IncludeHidden {
 				slog.Debug("Ignoring hidden path", "path", path)
 				continue
