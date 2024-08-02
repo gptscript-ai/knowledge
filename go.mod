@@ -5,6 +5,7 @@ go 1.22.3
 toolchain go1.22.4
 
 replace (
+	github.com/hupe1980/golc => github.com/iwilltry42/golc v0.0.113-0.20240802113826-d065a3c5b0c7 // nbformat extension
 	github.com/philippgille/chromem-go => github.com/iwilltry42/chromem-go v0.0.0-20240724101255-75d217fcc704 // Vertex Provider
 	github.com/tmc/langchaingo => github.com/StrongMonkey/langchaingo v0.0.0-20240617180437-9af4bee04c8b // Context-Aware Markdown Splitting
 )
