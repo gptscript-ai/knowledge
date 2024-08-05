@@ -34,7 +34,6 @@ func GetSelectedEmbeddingsModelProvider(selected string, embeddingsConfig config
 	}
 
 	return provider, nil
-
 }
 
 func ProviderFromConfig(providerConfig config.EmbeddingsProviderConfig) (types.EmbeddingModelProvider, error) {
@@ -90,7 +89,6 @@ func FindProviderConfig(name string, providers []config.EmbeddingsProviderConfig
 }
 
 func GetProviderCfg(name string, embeddingsConfig config.EmbeddingsConfig) (*config.EmbeddingsProviderConfig, error) {
-
 	providerCfg := FindProviderConfig(name, embeddingsConfig.Providers)
 	if providerCfg == nil {
 		// no config with that name exists, so we assume the name is the type
@@ -212,7 +210,6 @@ func CompareRequiredFields(a, b any) error {
 }
 
 func AsEmbeddingModelProviderConfig(emp types.EmbeddingModelProvider, export bool) (config.EmbeddingsProviderConfig, error) {
-
 	var cfg map[string]any
 
 	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{

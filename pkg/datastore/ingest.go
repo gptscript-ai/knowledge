@@ -27,7 +27,6 @@ type IngestOpts struct {
 
 // Ingest loads a document from a reader and adds it to the dataset.
 func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte, opts IngestOpts) ([]string, error) {
-
 	// Get dataset
 	ds, err := s.GetDataset(ctx, datasetID)
 	if err != nil {
@@ -37,7 +36,6 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 	// Dataset does not exist - create it if requested, else error out
 	if ds == nil {
 		return nil, fmt.Errorf("dataset %q not found", datasetID)
-
 	}
 
 	// Check if Dataset has an embedding config attached
@@ -75,7 +73,7 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 	}
 
 	// File Deduplication
-	isDuplicate := DummyDedupe // default: no deduplication
+	isDuplicate := DedupeUpsert // default: no deduplication
 	if opts.IsDuplicateFuncName != "" {
 		df, ok := IsDuplicateFuncs[opts.IsDuplicateFuncName]
 		if !ok {

@@ -12,7 +12,6 @@ import (
 // CloneRepo clones a git repository to a target directory
 // repo is the repository to clone - may contain an @ symbol to specify a commit, tag or branch (prioritized in that order)
 func CloneRepo(repo, target string) error {
-
 	atSplit := strings.Split(repo, "@")
 
 	if len(atSplit) > 2 {

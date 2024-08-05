@@ -11,14 +11,15 @@ import (
 )
 
 type IngestPathsOpts struct {
-	IgnoreExtensions []string
-	Concurrency      int
-	Recursive        bool
-	TextSplitterOpts *textsplitter.TextSplitterOpts
-	IngestionFlows   []flows.IngestionFlow
-	IgnoreFile       string
-	IncludeHidden    bool
-	NoCreateDataset  bool
+	IgnoreExtensions    []string
+	Concurrency         int
+	Recursive           bool
+	TextSplitterOpts    *textsplitter.TextSplitterOpts
+	IngestionFlows      []flows.IngestionFlow
+	IgnoreFile          string
+	IncludeHidden       bool
+	NoCreateDataset     bool
+	IsDuplicateFuncName string
 }
 
 type Client interface {

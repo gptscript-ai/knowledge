@@ -57,7 +57,6 @@ func (c *StandaloneClient) ListDatasets(ctx context.Context) ([]types.Dataset, e
 }
 
 func (c *StandaloneClient) Ingest(ctx context.Context, datasetID string, data []byte, opts datastore.IngestOpts) ([]string, error) {
-
 	return c.Datastore.Ingest(ctx, datasetID, data, opts)
 }
 
@@ -92,7 +91,7 @@ func (c *StandaloneClient) IngestPaths(ctx context.Context, datasetID string, op
 				Size:         finfo.Size(),
 				ModifiedAt:   finfo.ModTime(),
 			},
-			IsDuplicateFunc: datastore.DedupeByFileMetadata,
+			IsDuplicateFuncName: opts.IsDuplicateFuncName,
 		}
 
 		if opts != nil {
