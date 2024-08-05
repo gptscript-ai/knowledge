@@ -2,6 +2,8 @@ package datastore
 
 import (
 	"context"
+	"errors"
+	"gorm.io/gorm"
 	"log/slog"
 
 	"github.com/gptscript-ai/knowledge/pkg/index"
@@ -43,7 +45,7 @@ func DedupeUpsert(ctx context.Context, d *Datastore, datasetID string, content [
 		Where("absolute_path = ?", opts.FileMetadata.AbsolutePath).
 		First(&res).Error
 
-	if err != nil {
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return false, err
 	}
 
