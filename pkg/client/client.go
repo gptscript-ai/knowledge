@@ -20,6 +20,7 @@ type IngestPathsOpts struct {
 	IncludeHidden       bool
 	NoCreateDataset     bool
 	IsDuplicateFuncName string
+	Prune               bool // Prune deleted files
 }
 
 type Client interface {
@@ -30,6 +31,7 @@ type Client interface {
 	Ingest(ctx context.Context, datasetID string, data []byte, opts datastore.IngestOpts) ([]string, error)
 	IngestPaths(ctx context.Context, datasetID string, opts *IngestPathsOpts, paths ...string) (int, error) // returns number of files ingested
 	AskDirectory(ctx context.Context, path string, query string, opts *IngestPathsOpts, ropts *datastore.RetrieveOpts) (*dstypes.RetrievalResponse, error)
+	PrunePath(ctx context.Context, datasetID string, path string, keep []string) ([]index.File, error)
 	DeleteDocuments(ctx context.Context, datasetID string, documentIDs ...string) error
 	Retrieve(ctx context.Context, datasetID string, query string, opts datastore.RetrieveOpts) (*dstypes.RetrievalResponse, error)
 	ExportDatasets(ctx context.Context, path string, datasets ...string) error

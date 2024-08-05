@@ -57,7 +57,7 @@ func readIgnoreFile(path string) ([]gitignore.Pattern, error) {
 	return ps, nil
 }
 
-func ingestPaths(ctx context.Context, opts *IngestPathsOpts, ingestionFunc func(path string) error, paths ...string) (int, error) {
+func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID string, ingestionFunc func(path string) error, paths ...string) (int, error) {
 	ingestedFilesCount := 0
 
 	var ignorePatterns []gitignore.Pattern
@@ -91,6 +91,7 @@ func ingestPaths(ctx context.Context, opts *IngestPathsOpts, ingestionFunc func(
 
 	for _, p := range paths {
 		path := p
+		var touchedFilePaths []string
 
 		if strings.HasPrefix(filepath.Base(filepath.Clean(path)), ".") {
 			if !opts.IncludeHidden {
@@ -134,6 +135,11 @@ func ingestPaths(ctx context.Context, opts *IngestPathsOpts, ingestionFunc func(
 				}
 
 				sp := subPath
+				absPath, err := filepath.Abs(sp)
+				if err != nil {
+					return fmt.Errorf("failed to get absolute path for %s: %w", sp, err)
+				}
+				touchedFilePaths = append(touchedFilePaths, absPath)
 				g.Go(func() error {
 					if err := sem.Acquire(ctx, 1); err != nil {
 						return err
@@ -141,7 +147,7 @@ func ingestPaths(ctx context.Context, opts *IngestPathsOpts, ingestionFunc func(
 					defer sem.Release(1)
 
 					ingestedFilesCount++
-					slog.Debug("Ingesting file", "path", sp)
+					slog.Debug("Ingesting file", "path", absPath)
 					return ingestionFunc(sp)
 				})
 				return nil
@@ -154,6 +160,12 @@ func ingestPaths(ctx context.Context, opts *IngestPathsOpts, ingestionFunc func(
 				slog.Debug("Ignoring file", "path", path, "ignorefile", opts.IgnoreFile, "ignoreExtensions", opts.IgnoreExtensions)
 				continue
 			}
+			absPath, err := filepath.Abs(path)
+			if err != nil {
+				return ingestedFilesCount, fmt.Errorf("failed to get absolute path for %s: %w", path, err)
+			}
+			touchedFilePaths = append(touchedFilePaths, absPath)
+
 			// Process a file directly
 			g.Go(func() error {
 				if err := sem.Acquire(ctx, 1); err != nil {
@@ -163,6 +175,18 @@ func ingestPaths(ctx context.Context, opts *IngestPathsOpts, ingestionFunc func(
 
 				ingestedFilesCount++
 				return ingestionFunc(path)
+			})
+		}
+
+		// Prune files for this basePath
+		if opts.Prune && fileInfo.IsDir() {
+			g.Go(func() error {
+				pruned, err := c.PrunePath(ctx, datasetID, path, touchedFilePaths)
+				if err != nil {
+					return fmt.Errorf("failed to prune files: %w", err)
+				}
+				slog.Info("Pruned files", "count", len(pruned), "basePath", path)
+				return nil
 			})
 		}
 	}
@@ -205,7 +229,9 @@ func AskDir(ctx context.Context, c Client, path string, query string, opts *Inge
 
 	// ingest files
 	if opts == nil {
-		opts = &IngestPathsOpts{}
+		opts = &IngestPathsOpts{
+			Prune: true,
+		}
 	}
 
 	ingested, err := c.IngestPaths(ctx, datasetID, opts, path)

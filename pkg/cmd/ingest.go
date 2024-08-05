@@ -15,6 +15,7 @@ import (
 type ClientIngest struct {
 	Client
 	Dataset string `usage:"Target Dataset ID" short:"d" default:"default" env:"KNOW_TARGET_DATASET"`
+	Prune   bool   `usage:"Prune deleted files" env:"KNOW_INGEST_PRUNE"`
 	ClientIngestOpts
 	textsplitter.TextSplitterOpts
 	ClientFlowsConfig
@@ -62,6 +63,7 @@ func (s *ClientIngest) Run(cmd *cobra.Command, args []string) error {
 		IgnoreFile:          s.IgnoreFile,
 		IncludeHidden:       s.IncludeHidden,
 		IsDuplicateFuncName: s.DeduplicationFuncName,
+		Prune:               s.Prune,
 	}
 
 	if s.FlowsFile != "" {

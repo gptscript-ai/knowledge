@@ -103,7 +103,15 @@ func (c *StandaloneClient) IngestPaths(ctx context.Context, datasetID string, op
 		return err
 	}
 
-	return ingestPaths(ctx, opts, ingestFile, paths...)
+	return ingestPaths(ctx, c, opts, datasetID, ingestFile, paths...)
+}
+
+func (c *StandaloneClient) PrunePath(ctx context.Context, datasetID string, path string, keep []string) ([]index.File, error) {
+	abs, err := filepath.Abs(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get absolute path for %s: %w", path, err)
+	}
+	return c.Datastore.PruneFiles(ctx, datasetID, abs, keep)
 }
 
 func (c *StandaloneClient) DeleteDocuments(ctx context.Context, datasetID string, documentIDs ...string) error {

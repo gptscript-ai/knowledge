@@ -16,7 +16,8 @@ import (
 
 type ClientAskDir struct {
 	Client
-	Path string `usage:"Path to the directory to query" short:"p" default:"."`
+	Path    string `usage:"Path to the directory to query" short:"p" default:"."`
+	NoPrune bool   `usage:"Do not prune deleted files" env:"KNOW_ASKDIR_NO_PRUNE"`
 	ClientIngestOpts
 	ClientRetrieveOpts
 	ClientFlowsConfig
@@ -44,6 +45,7 @@ func (s *ClientAskDir) Run(cmd *cobra.Command, args []string) error {
 		IgnoreFile:          s.IgnoreFile,
 		IncludeHidden:       s.IncludeHidden,
 		IsDuplicateFuncName: s.DeduplicationFuncName,
+		Prune:               !s.NoPrune,
 	}
 
 	retrieveOpts := &datastore.RetrieveOpts{

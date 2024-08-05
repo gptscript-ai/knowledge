@@ -155,7 +155,12 @@ func (c *DefaultClient) IngestPaths(ctx context.Context, datasetID string, opts 
 		return err
 	}
 
-	return ingestPaths(ctx, opts, ingestFile, paths...)
+	return ingestPaths(ctx, c, opts, datasetID, ingestFile, paths...)
+}
+
+func (c *DefaultClient) PrunePath(ctx context.Context, datasetID string, path string, keep []string) ([]index.File, error) {
+	// TODO: implement
+	return nil, fmt.Errorf("not implemented")
 }
 
 func (c *DefaultClient) DeleteDocuments(_ context.Context, datasetID string, documentIDs ...string) error {

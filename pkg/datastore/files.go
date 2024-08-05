@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 
 	"github.com/gptscript-ai/knowledge/pkg/index"
 )
@@ -38,4 +39,26 @@ func (s *Datastore) DeleteFile(ctx context.Context, datasetID, fileID string) er
 	}
 
 	return nil
+}
+
+func (s *Datastore) PruneFiles(ctx context.Context, datasetID string, pathPrefix string, keep []string) ([]index.File, error) {
+	var files []index.File
+	tx := s.Index.WithContext(ctx).
+		Where("dataset = ?", datasetID).
+		Where("absolute_path LIKE ?", pathPrefix+"%").
+		Not("absolute_path IN ?", keep).
+		Find(&files)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+
+	slog.Debug("Pruning files", "count", len(files), "dataset", datasetID, "path_prefix", pathPrefix, "keep", keep)
+
+	for _, file := range files {
+		if err := s.DeleteFile(ctx, datasetID, file.ID); err != nil {
+			return nil, err
+		}
+	}
+
+	return files, nil
 }
