@@ -47,5 +47,4 @@ func TestEmbeddingsConfig_ClearUnselected(t *testing.T) {
 
 	require.Len(t, ec.Providers, 1)
 	require.Equal(t, "cohere", ec.Providers[0].Name)
-
 }

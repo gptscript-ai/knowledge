@@ -116,7 +116,6 @@ func (c *DefaultClient) Ingest(_ context.Context, datasetID string, data []byte,
 }
 
 func (c *DefaultClient) IngestPaths(ctx context.Context, datasetID string, opts *IngestPathsOpts, paths ...string) (int, error) {
-
 	_, err := getOrCreateDataset(ctx, c, datasetID, !opts.NoCreateDataset)
 	if err != nil {
 		return 0, err

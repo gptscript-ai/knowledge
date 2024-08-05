@@ -35,7 +35,6 @@ func (s *Server) Customize(cmd *cobra.Command) {
 }
 
 func (s *Server) Run(cmd *cobra.Command, _ []string) error {
-
 	slog.Warn("The knowledge server is underdeveloped and lacking behind the standalone client right now, use at your own risk!") // FIXME: Bring the server on par with the standalone client and drop this warning
 
 	cfg, err := config.LoadConfig(s.ConfigFile)

@@ -15,7 +15,6 @@ type UpdateDatasetOpts struct {
 }
 
 func (s *Datastore) NewDataset(ctx context.Context, dataset index.Dataset) error {
-
 	// Create dataset
 	tx := s.Index.WithContext(ctx).Create(&dataset)
 	if tx.Error != nil {

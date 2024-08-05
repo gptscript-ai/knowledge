@@ -68,7 +68,6 @@ func GetDatastorePaths(dsn, vectordbPath string) (string, string, bool, error) {
 }
 
 func NewDatastore(dsn string, automigrate bool, vectorDBPath string, embeddingProvider etypes.EmbeddingModelProvider) (*Datastore, error) {
-
 	dsn, vectorDBPath, isArchive, err := GetDatastorePaths(dsn, vectorDBPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to determine datastore paths: %w", err)

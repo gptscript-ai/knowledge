@@ -105,7 +105,6 @@ func (s *Client) getClient() (client.Client, error) {
 	}
 
 	if s.Server == "" || s.Server == "standalone" {
-
 		provider, err := embeddings.GetSelectedEmbeddingsModelProvider(s.EmbeddingModelProvider, cfg.EmbeddingsConfig)
 		if err != nil {
 			return nil, err

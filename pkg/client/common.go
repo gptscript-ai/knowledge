@@ -58,7 +58,6 @@ func readIgnoreFile(path string) ([]gitignore.Pattern, error) {
 }
 
 func ingestPaths(ctx context.Context, opts *IngestPathsOpts, ingestionFunc func(path string) error, paths ...string) (int, error) {
-
 	ingestedFilesCount := 0
 
 	var ignorePatterns []gitignore.Pattern
