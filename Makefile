@@ -69,5 +69,4 @@ validate-docs:
 	;fi
 
 gen-checksum:
-	$(eval ARTIFACTS_TO_PUBLISH := $(shell ls dist/*))
-	$$(sha256sum $(ARTIFACTS_TO_PUBLISH) > dist/checksums.txt)
+	$$(cd dist && sha256sum knowledge-* > checksums.txt)
