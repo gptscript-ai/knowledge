@@ -9,7 +9,6 @@ export CGO_ENABLED=1
 if [ "$(go env GOOS)" = "linux" ]; then
   # Linux: amd64, arm64
   GOARCH=amd64 go build -o dist/knowledge-linux-amd64 -tags "${GO_TAGS}" -ldflags "${LD_FLAGS}\" -extldflags \"-static\" " .
-  GOARCH=arm64 go build -o dist/knowledge-linux-arm64 -tags "${GO_TAGS}" -ldflags "${LD_FLAGS}\" -extldflags \"-static\" " .
 else
 
   # Windows: amd64
