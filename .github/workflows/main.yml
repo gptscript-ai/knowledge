@@ -35,7 +35,7 @@ jobs:
           brew install mingw-w64
       # Go Build
       - name: Build Binary
-        run: make build-cross
+        run: make build-cross gen-checksum
       # Create Git Release
       - name: Extract Tag from Ref
         if: startsWith(github.ref, 'refs/tags/')

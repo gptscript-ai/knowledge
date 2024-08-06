@@ -67,3 +67,7 @@ validate-docs:
 		git diff; \
 		exit 1 \
 	;fi
+
+gen-checksum:
+	$(eval ARTIFACTS_TO_PUBLISH := $(shell ls dist/*))
+	$$(sha256sum $(ARTIFACTS_TO_PUBLISH) > dist/checksums.txt)
