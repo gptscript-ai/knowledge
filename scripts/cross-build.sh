@@ -6,9 +6,15 @@ LD_FLAGS="-s -w -X github.com/gptscript-ai/knowledge/version.Version=${GIT_TAG}"
 
 export CGO_ENABLED=1
 
+mkdir -p dist/
+touch dist/checksums.txt
+
 if [ "$(go env GOOS)" = "linux" ]; then
   # Linux: amd64, arm64
   GOARCH=amd64 go build -o dist/knowledge-linux-amd64 -tags "${GO_TAGS}" -ldflags "${LD_FLAGS}\" -extldflags \"-static\" " .
+
+  # Checksum
+  sha256sum dist/knowledge-linux-amd64 >> dist/checksums.txt
 else
 
   # Windows: amd64
@@ -17,4 +23,7 @@ else
   # Darwin: amd64, arm64
   GOARCH=amd64 go build -o dist/knowledge-darwin-amd64 -tags "${GO_TAGS}" -ldflags "${LD_FLAGS}" .
   GOARCH=arm64 go build -o dist/knowledge-darwin-arm64 -tags "${GO_TAGS}" -ldflags "${LD_FLAGS}" .
+
+  # Checksum
+  shasum -a 256 dist/knowledge-windows-amd64 dist/knowledge-darwin-amd64 dist/knowledge-darwin-arm64 >> dist/checksums.txt
 fi
