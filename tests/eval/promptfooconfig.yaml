@@ -1,0 +1,62 @@
+# Learn more about building a configuration: https://promptfoo.dev/docs/configuration/guide
+description: "My eval"
+
+prompts:
+  - "Answer the query '{{query}}' from the provided documents. Cite your sources."
+  
+
+providers:
+  - "python:provider.py"
+
+
+tests:
+  - vars:
+      query: "What is 'Trading in a matched principal trading capacity'?"
+      file: "assets/2016-1452_guidelines_mifid_ii_transaction_reporting.pdf"
+    assert:
+      - type: icontains
+        value: "2016-1452_guidelines_mifid_ii_transaction_reporting.pdf"
+      - type: icontains-any
+        value:
+          - "page 18"
+          - "p. 18"
+      - type: answer-relevance
+        threshold: 0.75
+
+  - vars:
+      query: "What was Heineken's net revenue increase in 2022?"
+      file: "assets/Heineken-NV-Full-Year-press-release-02_15_2023.pdf"
+    assert:
+      - type: icontains
+        value: "Heineken-NV-Full-Year-press-release-02_15_2023.pdf"
+      - type: answer-relevance
+        threshold: 0.75
+      - type: factuality
+        value: the revenue increase was 21.2%
+
+
+#  - vars:
+#      inquiry: "I want to return my widget"
+#      # See how to use dynamic context to e.g. use a vector store https://promptfoo.dev/docs/guides/evaluate-rag/#using-dynamic-context
+#      context: file://context.py
+#    assert:
+#      # For more information on assertions, see https://promptfoo.dev/docs/configuration/expected-outputs
+#
+#      # Make sure output contains the phrase "return label"
+#      - type: icontains
+#        value: "return label"
+#
+#      # Prefer shorter outputs
+#      - type: python
+#        value: 1 / (len(output) + 1)
+#
+#  - vars:
+#      inquiry: "I need help with my account"
+#      context: |
+#        You can also hardcode context directly in the configuration.
+#        Username: Foobar
+#        Account ID: 123456
+#    assert:
+#      # For more information on model-graded evals, see https://promptfoo.dev/docs/configuration/expected-outputs/model-graded
+#      - type: llm-rubric
+#        value: ensure that the output is friendly and empathetic

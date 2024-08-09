@@ -1,0 +1,6 @@
+Tools: github.com/gptscript-ai/knowledge
+Param: prompt: The input prompt
+
+Answer the following user query using the knowledge tool. Provide citations if possible. If the sources don't contain the answer, say so and don't make up an answer.
+Here's the input query:
+${prompt}
