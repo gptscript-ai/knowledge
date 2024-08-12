@@ -6,6 +6,7 @@ toolchain go1.22.4
 
 replace (
 	github.com/hupe1980/golc => github.com/iwilltry42/golc v0.0.113-0.20240802113826-d065a3c5b0c7 // nbformat extension
+	github.com/ledongthuc/pdf => github.com/iwilltry42/pdf v0.0.0-20240517145113-99fbaebc5dd3 // fix for reading some PDFs: https://github.com/ledongthuc/pdf/pull/36 + https://github.com/iwilltry42/pdf/pull/2
 	github.com/philippgille/chromem-go => github.com/iwilltry42/chromem-go v0.0.0-20240724101255-75d217fcc704 // Vertex Provider
 	github.com/tmc/langchaingo => github.com/StrongMonkey/langchaingo v0.0.0-20240617180437-9af4bee04c8b // Context-Aware Markdown Splitting
 )
@@ -32,6 +33,7 @@ require (
 	github.com/knadh/koanf/providers/env v0.1.0
 	github.com/knadh/koanf/providers/rawbytes v0.1.0
 	github.com/knadh/koanf/v2 v2.1.1
+	github.com/ledongthuc/pdf v0.0.0-20240201131950-da5b75280b06
 	github.com/lu4p/cat v0.1.5
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/philippgille/chromem-go v0.6.1-0.20240703185604-935ec301a0a4
@@ -115,7 +117,6 @@ require (
 	github.com/klauspost/compress v1.17.6 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.7 // indirect
 	github.com/knadh/koanf/maps v0.1.1 // indirect
-	github.com/ledongthuc/pdf v0.0.0-20240201131950-da5b75280b06 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/levigross/exp-html v0.0.0-20120902181939-8df60c69a8f5 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect

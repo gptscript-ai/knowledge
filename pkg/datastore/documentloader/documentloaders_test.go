@@ -2,6 +2,7 @@ package documentloader
 
 import (
 	"context"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader/pdf/gopdf"
 	"strings"
 	"testing"
 
@@ -11,7 +12,7 @@ import (
 func TestGetDocumentLoaderConfig_ValidLoader(t *testing.T) {
 	cfg, err := GetDocumentLoaderConfig("pdf")
 	assert.NoError(t, err)
-	assert.IsTypef(t, PDFOptions{}, cfg, "cfg is not of type PDFOptions")
+	assert.IsTypef(t, gopdf.PDFOptions{}, cfg, "cfg is not of type PDFOptions")
 }
 
 func TestGetDocumentLoaderConfig_InvalidLoader(t *testing.T) {
@@ -30,7 +31,7 @@ func TestGetDocumentLoaderFunc_ValidLoaderWithInvalidConfig(t *testing.T) {
 }
 
 func TestGetDocumentLoaderFunc_ValidLoaderWithValidConfig(t *testing.T) {
-	_, err := GetDocumentLoaderFunc("pdf", PDFOptions{})
+	_, err := GetDocumentLoaderFunc("pdf", gopdf.PDFOptions{})
 	assert.NoError(t, err)
 }
 
@@ -48,7 +49,7 @@ func TestGetDocumentLoaderFunc_LoadPlainText(t *testing.T) {
 }
 
 func TestGetDocumentLoaderFunc_LoadPDF(t *testing.T) {
-	loaderFunc, _ := GetDocumentLoaderFunc("pdf", PDFOptions{})
+	loaderFunc, _ := GetDocumentLoaderFunc("pdf", gopdf.PDFOptions{})
 	content := `
 %PDF-1.4
 1 0 obj
