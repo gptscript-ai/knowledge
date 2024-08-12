@@ -1,4 +1,6 @@
-package documentloader
+//go:build mupdf
+
+package mupdf
 
 import (
 	"context"

@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"errors"
 	"fmt"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader/pdf/gopdf"
 	"io"
 	"log/slog"
 	"strings"
@@ -24,8 +25,10 @@ func GetDocumentLoaderConfig(name string) (any, error) {
 		return nil, nil
 	case "html":
 		return nil, nil
-	case "pdf":
-		return PDFOptions{}, nil
+	case "pdf", "gopdf":
+		return gopdf.PDFOptions{}, nil
+	case "mupdf":
+		return MuPDFConfig, nil
 	case "csv":
 		return golcdocloaders.CSVOptions{}, nil
 	case "notebook":
@@ -36,6 +39,9 @@ func GetDocumentLoaderConfig(name string) (any, error) {
 }
 
 type LoaderFunc func(ctx context.Context, reader io.Reader) ([]vs.Document, error)
+
+var MuPDFGetter func(config any) (LoaderFunc, error) = nil
+var MuPDFConfig any
 
 func GetDocumentLoaderFunc(name string, config any) (LoaderFunc, error) {
 	switch name {
@@ -53,8 +59,13 @@ func GetDocumentLoaderFunc(name string, config any) (LoaderFunc, error) {
 		return func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
 			return FromLangchain(lcgodocloaders.NewHTML(reader)).Load(ctx)
 		}, nil
-	case "pdf":
-		var pdfConfig PDFOptions
+	case "mupdf":
+		if MuPDFGetter == nil {
+			return nil, fmt.Errorf("MuPDF is not available")
+		}
+		return MuPDFGetter(config)
+	case "pdf", "gopdf":
+		var pdfConfig gopdf.PDFOptions
 		if config != nil {
 			slog.Debug("PDF custom config", "config", config)
 			if err := mapstructure.Decode(config, &pdfConfig); err != nil {
@@ -63,13 +74,14 @@ func GetDocumentLoaderFunc(name string, config any) (LoaderFunc, error) {
 			slog.Debug("PDF custom config (decoded)", "pdfConfig", pdfConfig)
 		}
 		return func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
-			r, err := NewPDF(reader, WithConfig(pdfConfig))
+			r, err := gopdf.NewPDFFromReader(reader, gopdf.WithConfig(pdfConfig))
 			if err != nil {
 				slog.Error("Failed to create PDF loader", "error", err)
 				return nil, err
 			}
 			return r.Load(ctx)
 		}, nil
+
 	case "csv":
 		var csvConfig golcdocloaders.CSVOptions
 		if config != nil {

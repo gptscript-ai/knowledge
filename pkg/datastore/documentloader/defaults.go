@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"code.sajari.com/docconv/v2"
+	pdfdefaults "github.com/gptscript-ai/knowledge/pkg/datastore/documentloader/pdf/defaults"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/filetypes"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 	golcdocloaders "github.com/hupe1980/golc/documentloader"
@@ -24,12 +25,7 @@ func DefaultDocLoaderFunc(filetype string) func(ctx context.Context, reader io.R
 	switch filetype {
 	case ".pdf", "application/pdf":
 		return func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
-			r, nerr := NewPDF(reader)
-			if nerr != nil {
-				slog.Error("Failed to create PDF loader", "error", nerr)
-				return nil, nerr
-			}
-			return r.Load(ctx)
+			return pdfdefaults.DefaultPDFReaderFunc(ctx, reader)
 		}
 	case ".html", "text/html":
 		return func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
