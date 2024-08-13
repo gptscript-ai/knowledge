@@ -7,7 +7,7 @@ toolchain go1.22.4
 replace (
 	github.com/hupe1980/golc => github.com/iwilltry42/golc v0.0.113-0.20240802113826-d065a3c5b0c7 // nbformat extension
 	github.com/ledongthuc/pdf => github.com/iwilltry42/pdf v0.0.0-20240517145113-99fbaebc5dd3 // fix for reading some PDFs: https://github.com/ledongthuc/pdf/pull/36 + https://github.com/iwilltry42/pdf/pull/2
-	github.com/philippgille/chromem-go => github.com/iwilltry42/chromem-go v0.0.0-20240724101255-75d217fcc704 // Vertex Provider
+	github.com/philippgille/chromem-go => github.com/iwilltry42/chromem-go v0.0.0-20240813194839-d838df05b583 // OpenAI Compat Fixes
 	github.com/tmc/langchaingo => github.com/StrongMonkey/langchaingo v0.0.0-20240617180437-9af4bee04c8b // Context-Aware Markdown Splitting
 )
 
@@ -36,7 +36,7 @@ require (
 	github.com/ledongthuc/pdf v0.0.0-20240201131950-da5b75280b06
 	github.com/lu4p/cat v0.1.5
 	github.com/mitchellh/mapstructure v1.5.0
-	github.com/philippgille/chromem-go v0.6.1-0.20240703185604-935ec301a0a4
+	github.com/philippgille/chromem-go v0.6.1-0.20240811154507-a1944285b284
 	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.9.0
 	github.com/swaggo/files v1.0.1
