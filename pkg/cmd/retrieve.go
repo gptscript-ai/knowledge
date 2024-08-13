@@ -13,7 +13,7 @@ import (
 
 type ClientRetrieve struct {
 	Client
-	Datasets []string `usage:"Target Dataset IDs" short:"d" default:"default" env:"KNOW_TARGET_DATASETS"`
+	Datasets []string `usage:"Target Dataset IDs" short:"d" default:"default" env:"KNOW_TARGET_DATASETS" name:"dataset"`
 	Archive  string   `usage:"Path to the archive file"`
 	ClientRetrieveOpts
 	ClientFlowsConfig
@@ -21,7 +21,7 @@ type ClientRetrieve struct {
 
 type ClientRetrieveOpts struct {
 	TopK     int      `usage:"Number of sources to retrieve" short:"k" default:"10"`
-	Keywords []string `usage:"Keywords that retrieved documents must contain" short:"w"`
+	Keywords []string `usage:"Keywords that retrieved documents must contain" short:"w" name:"keyword" env:"KNOW_RETRIEVE_KEYWORDS"`
 }
 
 func (s *ClientRetrieve) Customize(cmd *cobra.Command) {
