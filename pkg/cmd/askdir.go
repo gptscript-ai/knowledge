@@ -49,7 +49,8 @@ func (s *ClientAskDir) Run(cmd *cobra.Command, args []string) error {
 	}
 
 	retrieveOpts := &datastore.RetrieveOpts{
-		TopK: s.TopK,
+		TopK:     s.TopK,
+		Keywords: s.Keywords,
 	}
 
 	if s.FlowsFile != "" {

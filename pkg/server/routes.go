@@ -80,8 +80,8 @@ func (s *Server) RetrieveFromDS(c *gin.Context) {
 		return
 	}
 
-	// TODO: support retrieval flows
-	docs, err := s.Retrieve(c, id, query.Prompt, datastore.RetrieveOpts{TopK: z.Dereference(query.TopK)})
+	// TODO: support retrieval flows and keywords
+	docs, err := s.Retrieve(c, []string{id}, query.Prompt, datastore.RetrieveOpts{TopK: z.Dereference(query.TopK)})
 	if err != nil {
 		slog.Error("Failed to retrieve documents", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

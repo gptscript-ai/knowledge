@@ -12,11 +12,12 @@ import (
 
 type RetrieveOpts struct {
 	TopK          int
+	Keywords      []string
 	RetrievalFlow *flows.RetrievalFlow
 }
 
-func (s *Datastore) Retrieve(ctx context.Context, datasetID string, query string, opts RetrieveOpts) (*types.RetrievalResponse, error) {
-	slog.Debug("Retrieving content from dataset", "dataset", datasetID, "query", query)
+func (s *Datastore) Retrieve(ctx context.Context, datasetIDs []string, query string, opts RetrieveOpts) (*types.RetrievalResponse, error) {
+	slog.Debug("Retrieving content from dataset", "dataset", datasetIDs, "query", query)
 
 	retrievalFlow := opts.RetrievalFlow
 	if retrievalFlow == nil {
@@ -28,9 +29,9 @@ func (s *Datastore) Retrieve(ctx context.Context, datasetID string, query string
 	}
 	retrievalFlow.FillDefaults(topK)
 
-	return retrievalFlow.Run(ctx, s, query, datasetID)
+	return retrievalFlow.Run(ctx, s, query, datasetIDs, &flows.RetrievalFlowOpts{Keywords: opts.Keywords})
 }
 
-func (s *Datastore) SimilaritySearch(ctx context.Context, query string, numDocuments int, datasetID string) ([]vectorstore.Document, error) {
-	return s.Vectorstore.SimilaritySearch(ctx, query, numDocuments, datasetID)
+func (s *Datastore) SimilaritySearch(ctx context.Context, query string, numDocuments int, datasetID string, keywords ...string) ([]vectorstore.Document, error) {
+	return s.Vectorstore.SimilaritySearch(ctx, query, numDocuments, datasetID, keywords...)
 }

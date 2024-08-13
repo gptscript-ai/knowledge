@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/gptscript-ai/knowledge/pkg/env"
@@ -108,7 +109,7 @@ func convertStringMapToAnyMap(m map[string]string) map[string]any {
 	return convertedMap
 }
 
-func (s *Store) SimilaritySearch(ctx context.Context, query string, numDocuments int, collection string) ([]vs.Document, error) {
+func (s *Store) SimilaritySearch(ctx context.Context, query string, numDocuments int, collection string, keywords ...string) ([]vs.Document, error) {
 	col := s.db.GetCollection(collection, s.embeddingFunc)
 	if col == nil {
 		return nil, fmt.Errorf("%w: %q", errors.ErrCollectionNotFound, collection)
@@ -134,13 +135,25 @@ func (s *Store) SimilaritySearch(ctx context.Context, query string, numDocuments
 
 	var sDocs []vs.Document
 
+	slog.Debug("filtering documents by keywords", "keywords", keywords)
+
+resultLoop:
 	for _, qrd := range qr {
+		for _, keyword := range keywords {
+			if !strings.Contains(qrd.Content, keyword) {
+				slog.Debug("Document does not contain keyword", "keyword", keyword, "documentID", qrd.ID)
+				continue resultLoop
+			}
+		}
+
 		sDocs = append(sDocs, vs.Document{
 			Metadata:        convertStringMapToAnyMap(qrd.Metadata),
 			SimilarityScore: qrd.Similarity,
 			Content:         qrd.Content,
 		})
 	}
+
+	slog.Debug("Found similar documents", "numDocuments", len(sDocs), "numUnfilteredDocuments", len(qr))
 
 	return sDocs, nil
 }
