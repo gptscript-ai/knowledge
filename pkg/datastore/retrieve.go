@@ -3,6 +3,7 @@ package datastore
 import (
 	"context"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
+	"github.com/philippgille/chromem-go"
 	"log/slog"
 
 	"github.com/gptscript-ai/knowledge/pkg/datastore/defaults"
@@ -29,9 +30,41 @@ func (s *Datastore) Retrieve(ctx context.Context, datasetIDs []string, query str
 	}
 	retrievalFlow.FillDefaults(topK)
 
-	return retrievalFlow.Run(ctx, s, query, datasetIDs, &flows.RetrievalFlowOpts{Keywords: opts.Keywords})
+	var whereDocs []chromem.WhereDocument
+	if len(opts.Keywords) > 0 {
+		whereDoc := chromem.WhereDocument{
+			Operator:       chromem.WhereDocumentOperatorOr,
+			WhereDocuments: []chromem.WhereDocument{},
+		}
+		whereDocNot := chromem.WhereDocument{
+			Operator:       chromem.WhereDocumentOperatorAnd,
+			WhereDocuments: []chromem.WhereDocument{},
+		}
+		for _, kw := range opts.Keywords {
+			if kw[0] == '-' {
+				whereDocNot.WhereDocuments = append(whereDocNot.WhereDocuments, chromem.WhereDocument{
+					Operator: chromem.WhereDocumentOperatorNotContains,
+					Value:    kw[1:],
+				})
+			} else {
+				whereDoc.WhereDocuments = append(whereDoc.WhereDocuments, chromem.WhereDocument{
+					Operator: chromem.WhereDocumentOperatorContains,
+					Value:    kw,
+				})
+			}
+		}
+		if len(whereDoc.WhereDocuments) > 0 {
+			whereDocs = append(whereDocs, whereDoc)
+		}
+		if len(whereDocNot.WhereDocuments) > 0 {
+			whereDocs = append(whereDocs, whereDocNot)
+		}
+
+	}
+
+	return retrievalFlow.Run(ctx, s, query, datasetIDs, &flows.RetrievalFlowOpts{Where: nil, WhereDocument: whereDocs})
 }
 
-func (s *Datastore) SimilaritySearch(ctx context.Context, query string, numDocuments int, datasetID string, keywords ...string) ([]vectorstore.Document, error) {
-	return s.Vectorstore.SimilaritySearch(ctx, query, numDocuments, datasetID, keywords...)
+func (s *Datastore) SimilaritySearch(ctx context.Context, query string, numDocuments int, datasetID string, where map[string]string, whereDocument []chromem.WhereDocument) ([]vectorstore.Document, error) {
+	return s.Vectorstore.SimilaritySearch(ctx, query, numDocuments, datasetID, where, whereDocument)
 }

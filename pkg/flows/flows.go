@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/store"
+	"github.com/philippgille/chromem-go"
 	"io"
 	"log/slog"
 	"slices"
@@ -115,7 +116,8 @@ func (f *RetrievalFlow) FillDefaults(topK int) {
 }
 
 type RetrievalFlowOpts struct {
-	Keywords []string
+	Where         map[string]string
+	WhereDocument []chromem.WhereDocument
 }
 
 func (f *RetrievalFlow) Run(ctx context.Context, store store.Store, query string, datasetIDs []string, opts *RetrievalFlowOpts) (*dstypes.RetrievalResponse, error) {
@@ -140,7 +142,7 @@ func (f *RetrievalFlow) Run(ctx context.Context, store store.Store, query string
 	}
 	for _, q := range queries {
 
-		docs, err := f.Retriever.Retrieve(ctx, store, q, datasetIDs, opts.Keywords...)
+		docs, err := f.Retriever.Retrieve(ctx, store, q, datasetIDs, opts.Where, opts.WhereDocument)
 		if err != nil {
 			return nil, fmt.Errorf("failed to retrieve documents for query %q using retriever %q: %w", q, f.Retriever.Name(), err)
 		}

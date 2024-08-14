@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/store"
+	"github.com/philippgille/chromem-go"
 	"log/slog"
 
 	"github.com/gptscript-ai/knowledge/pkg/datastore/defaults"
@@ -11,7 +12,7 @@ import (
 )
 
 type Retriever interface {
-	Retrieve(ctx context.Context, store store.Store, query string, datasetIDs []string, keywords ...string) ([]vs.Document, error)
+	Retrieve(ctx context.Context, store store.Store, query string, datasetIDs []string, where map[string]string, whereDocument []chromem.WhereDocument) ([]vs.Document, error)
 	Name() string
 }
 
@@ -42,7 +43,7 @@ func (r *BasicRetriever) Name() string {
 	return BasicRetrieverName
 }
 
-func (r *BasicRetriever) Retrieve(ctx context.Context, store store.Store, query string, datasetIDs []string, keywords ...string) ([]vs.Document, error) {
+func (r *BasicRetriever) Retrieve(ctx context.Context, store store.Store, query string, datasetIDs []string, where map[string]string, whereDocument []chromem.WhereDocument) ([]vs.Document, error) {
 
 	if len(datasetIDs) > 1 {
 		return nil, fmt.Errorf("basic retriever does not support querying multiple datasets")
@@ -60,5 +61,5 @@ func (r *BasicRetriever) Retrieve(ctx context.Context, store store.Store, query 
 		log.Debug("[BasicRetriever] TopK not set, using default", "default", defaults.TopK)
 		r.TopK = defaults.TopK
 	}
-	return store.SimilaritySearch(ctx, query, r.TopK, datasetID, keywords...)
+	return store.SimilaritySearch(ctx, query, r.TopK, datasetID, where, whereDocument)
 }

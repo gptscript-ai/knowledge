@@ -8,6 +8,7 @@ import (
 	"github.com/gptscript-ai/knowledge/pkg/datastore/store"
 	"github.com/gptscript-ai/knowledge/pkg/llm"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
+	"github.com/philippgille/chromem-go"
 	"log/slog"
 )
 
@@ -35,7 +36,7 @@ type routingResp struct {
 	Result string `json:"result"`
 }
 
-func (r *RoutingRetriever) Retrieve(ctx context.Context, store store.Store, query string, datasetIDs []string, keywords ...string) ([]vs.Document, error) {
+func (r *RoutingRetriever) Retrieve(ctx context.Context, store store.Store, query string, datasetIDs []string, where map[string]string, whereDocument []chromem.WhereDocument) ([]vs.Document, error) {
 	log := slog.With("component", "RoutingRetriever")
 
 	// TODO: properly handle the datasetIDs input
@@ -92,5 +93,5 @@ func (r *RoutingRetriever) Retrieve(ctx context.Context, store store.Store, quer
 
 	slog.Debug("Routing query to dataset", "query", query, "dataset", resp.Result)
 
-	return store.SimilaritySearch(ctx, query, r.TopK, resp.Result, keywords...)
+	return store.SimilaritySearch(ctx, query, r.TopK, resp.Result, where, whereDocument)
 }
