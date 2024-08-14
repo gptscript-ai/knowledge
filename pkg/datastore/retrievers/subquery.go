@@ -7,6 +7,7 @@ import (
 	"github.com/gptscript-ai/knowledge/pkg/datastore/store"
 	"github.com/gptscript-ai/knowledge/pkg/llm"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
+	"github.com/philippgille/chromem-go"
 	"log/slog"
 	"strings"
 )
@@ -37,7 +38,19 @@ type subqueryResp struct {
 	Results []string `json:"results"`
 }
 
-func (s SubqueryRetriever) Retrieve(ctx context.Context, store store.Store, query string, datasetID string) ([]vs.Document, error) {
+func (s SubqueryRetriever) Retrieve(ctx context.Context, store store.Store, query string, datasetIDs []string, where map[string]string, whereDocument []chromem.WhereDocument) ([]vs.Document, error) {
+
+	if len(datasetIDs) > 1 {
+		return nil, fmt.Errorf("basic retriever does not support querying multiple datasets")
+	}
+
+	var datasetID string
+	if len(datasetIDs) == 0 {
+		datasetID = "default"
+	} else {
+		datasetID = datasetIDs[0]
+	}
+
 	m, err := llm.NewFromConfig(s.Model)
 	if err != nil {
 		return nil, err
@@ -72,7 +85,7 @@ func (s SubqueryRetriever) Retrieve(ctx context.Context, store store.Store, quer
 
 	var resultDocs []vs.Document
 	for _, q := range queries {
-		docs, err := store.SimilaritySearch(ctx, q, s.TopK, datasetID)
+		docs, err := store.SimilaritySearch(ctx, q, s.TopK, datasetID, where, whereDocument)
 		if err != nil {
 			return nil, err
 		}

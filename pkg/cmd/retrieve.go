@@ -13,14 +13,15 @@ import (
 
 type ClientRetrieve struct {
 	Client
-	Dataset string `usage:"Target Dataset ID" short:"d" default:"default" env:"KNOW_TARGET_DATASET"`
-	Archive string `usage:"Path to the archive file"`
+	Datasets []string `usage:"Target Dataset IDs" short:"d" default:"default" env:"KNOW_TARGET_DATASETS" name:"dataset"`
+	Archive  string   `usage:"Path to the archive file"`
 	ClientRetrieveOpts
 	ClientFlowsConfig
 }
 
 type ClientRetrieveOpts struct {
-	TopK int `usage:"Number of sources to retrieve" short:"k" default:"10"`
+	TopK     int      `usage:"Number of sources to retrieve" short:"k" default:"10"`
+	Keywords []string `usage:"Keywords that retrieved documents must contain" short:"w" name:"keyword" env:"KNOW_RETRIEVE_KEYWORDS"`
 }
 
 func (s *ClientRetrieve) Customize(cmd *cobra.Command) {
@@ -35,15 +36,19 @@ func (s *ClientRetrieve) Run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	datasetID := s.Dataset
+	datasetIDs := s.Datasets
+	if len(s.Datasets) == 0 {
+		datasetIDs = []string{"default"}
+	}
 	query := args[0]
 
 	retrieveOpts := datastore.RetrieveOpts{
-		TopK: s.TopK,
+		TopK:     s.TopK,
+		Keywords: s.Keywords,
 	}
 
 	if s.FlowsFile != "" {
-		slog.Debug("Loading retrieval flows from config", "flows_file", s.FlowsFile, "dataset", datasetID)
+		slog.Debug("Loading retrieval flows from config", "flows_file", s.FlowsFile, "dataset", datasetIDs)
 		flowCfg, err := flowconfig.FromFile(s.FlowsFile)
 		if err != nil {
 			return err
@@ -55,29 +60,36 @@ func (s *ClientRetrieve) Run(cmd *cobra.Command, args []string) error {
 				return err
 			}
 		} else {
-			flow, err = flowCfg.ForDataset(datasetID) // get flow for the dataset
-			if err != nil {
-				return err
+			if len(datasetIDs) == 1 {
+				flow, err = flowCfg.ForDataset(datasetIDs[0]) // get flow for the dataset
+				if err != nil {
+					return err
+				}
+			} else {
+				flow, err = flowCfg.GetDefaultFlowConfigEntry()
+				if err != nil {
+					return err
+				}
 			}
 		}
 
 		if flow.Retrieval == nil {
-			slog.Info("No retrieval config in assigned flow", "flows_file", s.FlowsFile, "dataset", datasetID)
+			slog.Info("No retrieval config in assigned flow", "flows_file", s.FlowsFile, "dataset", datasetIDs)
 		} else {
 			rf, err := flow.Retrieval.AsRetrievalFlow()
 			if err != nil {
 				return err
 			}
 			retrieveOpts.RetrievalFlow = rf
-			slog.Debug("Loaded retrieval flow from config", "flows_file", s.FlowsFile, "dataset", datasetID)
+			slog.Debug("Loaded retrieval flow from config", "flows_file", s.FlowsFile, "dataset", datasetIDs)
 		}
 	}
 
-	retrievalResp, err := c.Retrieve(cmd.Context(), datasetID, query, retrieveOpts)
+	retrievalResp, err := c.Retrieve(cmd.Context(), datasetIDs, query, retrieveOpts)
 	if err != nil {
 		// An empty collection is not a hard error - the LLM session can "recover" from it
 		if errors.Is(err, vserr.ErrCollectionEmpty) {
-			fmt.Printf("Dataset %q does not contain any documents\n", datasetID)
+			fmt.Printf("Dataset %q does not contain any documents\n", datasetIDs)
 			return nil
 		}
 		return err

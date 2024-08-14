@@ -124,8 +124,8 @@ func (c *StandaloneClient) DeleteDocuments(ctx context.Context, datasetID string
 	return nil
 }
 
-func (c *StandaloneClient) Retrieve(ctx context.Context, datasetID string, query string, opts datastore.RetrieveOpts) (*dstypes.RetrievalResponse, error) {
-	return c.Datastore.Retrieve(ctx, datasetID, query, opts)
+func (c *StandaloneClient) Retrieve(ctx context.Context, datasetIDs []string, query string, opts datastore.RetrieveOpts) (*dstypes.RetrievalResponse, error) {
+	return c.Datastore.Retrieve(ctx, datasetIDs, query, opts)
 }
 
 func (c *StandaloneClient) AskDirectory(ctx context.Context, path string, query string, opts *IngestPathsOpts, ropts *datastore.RetrieveOpts) (*dstypes.RetrievalResponse, error) {

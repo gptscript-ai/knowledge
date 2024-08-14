@@ -33,7 +33,7 @@ type Client interface {
 	AskDirectory(ctx context.Context, path string, query string, opts *IngestPathsOpts, ropts *datastore.RetrieveOpts) (*dstypes.RetrievalResponse, error)
 	PrunePath(ctx context.Context, datasetID string, path string, keep []string) ([]index.File, error)
 	DeleteDocuments(ctx context.Context, datasetID string, documentIDs ...string) error
-	Retrieve(ctx context.Context, datasetID string, query string, opts datastore.RetrieveOpts) (*dstypes.RetrievalResponse, error)
+	Retrieve(ctx context.Context, datasetIDs []string, query string, opts datastore.RetrieveOpts) (*dstypes.RetrievalResponse, error)
 	ExportDatasets(ctx context.Context, path string, datasets ...string) error
 	ImportDatasets(ctx context.Context, path string, datasets ...string) error
 	UpdateDataset(ctx context.Context, dataset index.Dataset, opts *datastore.UpdateDatasetOpts) (*index.Dataset, error)

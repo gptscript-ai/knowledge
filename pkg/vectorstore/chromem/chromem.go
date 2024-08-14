@@ -3,17 +3,16 @@ package chromem
 import (
 	"context"
 	"fmt"
+	"github.com/google/uuid"
+	"github.com/gptscript-ai/knowledge/pkg/env"
+	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 	"github.com/gptscript-ai/knowledge/pkg/vectorstore/errors"
+	"github.com/philippgille/chromem-go"
 	"log/slog"
 	"maps"
 	"os"
 	"path/filepath"
 	"strconv"
-
-	"github.com/google/uuid"
-	"github.com/gptscript-ai/knowledge/pkg/env"
-	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
-	"github.com/philippgille/chromem-go"
 )
 
 // VsChromemEmbeddingParallelThread can be set as an environment variable to control the number of parallel API calls to create embedding for documents. Default is 100
@@ -108,7 +107,7 @@ func convertStringMapToAnyMap(m map[string]string) map[string]any {
 	return convertedMap
 }
 
-func (s *Store) SimilaritySearch(ctx context.Context, query string, numDocuments int, collection string) ([]vs.Document, error) {
+func (s *Store) SimilaritySearch(ctx context.Context, query string, numDocuments int, collection string, where map[string]string, whereDocument []chromem.WhereDocument) ([]vs.Document, error) {
 	col := s.db.GetCollection(collection, s.embeddingFunc)
 	if col == nil {
 		return nil, fmt.Errorf("%w: %q", errors.ErrCollectionNotFound, collection)
@@ -123,7 +122,9 @@ func (s *Store) SimilaritySearch(ctx context.Context, query string, numDocuments
 		slog.Debug("Reduced number of documents to search for", "numDocuments", numDocuments)
 	}
 
-	qr, err := col.Query(ctx, query, numDocuments, nil, nil)
+	slog.Debug("filtering documents", "where", where, "whereDocument", whereDocument)
+
+	qr, err := col.Query(ctx, query, numDocuments, where, whereDocument)
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +150,7 @@ func (s *Store) RemoveCollection(_ context.Context, collection string) error {
 	return s.db.DeleteCollection(collection)
 }
 
-func (s *Store) RemoveDocument(ctx context.Context, documentID string, collection string, where, whereDocument map[string]string) error {
+func (s *Store) RemoveDocument(ctx context.Context, documentID string, collection string, where map[string]string, whereDocument []chromem.WhereDocument) error {
 	col := s.db.GetCollection(collection, s.embeddingFunc)
 	if col == nil {
 		return fmt.Errorf("%w: %q", errors.ErrCollectionNotFound, collection)

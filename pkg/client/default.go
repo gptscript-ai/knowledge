@@ -173,7 +173,7 @@ func (c *DefaultClient) DeleteDocuments(_ context.Context, datasetID string, doc
 	return nil
 }
 
-func (c *DefaultClient) Retrieve(_ context.Context, datasetID string, query string, opts datastore.RetrieveOpts) (*dstypes.RetrievalResponse, error) {
+func (c *DefaultClient) Retrieve(_ context.Context, datasetIDs []string, query string, opts datastore.RetrieveOpts) (*dstypes.RetrievalResponse, error) {
 	q := types.Query{Prompt: query}
 
 	if opts.TopK != 0 {
@@ -185,7 +185,8 @@ func (c *DefaultClient) Retrieve(_ context.Context, datasetID string, query stri
 		return nil, err
 	}
 
-	resp, err := c.request(http.MethodPost, fmt.Sprintf("/datasets/%s/retrieve", datasetID), bytes.NewBuffer(data))
+	// TODO: change to allow for multiple datasets
+	resp, err := c.request(http.MethodPost, fmt.Sprintf("/datasets/%s/retrieve", datasetIDs), bytes.NewBuffer(data))
 	if err != nil {
 		return nil, err
 	}
