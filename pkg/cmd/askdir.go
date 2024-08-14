@@ -115,7 +115,7 @@ func (s *ClientAskDir) Run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	fmt.Printf("Retrieved the following %d source collections for the query %q from path %q: %s\n", len(retrievalResp.Responses), query, path, jsonSources)
+	fmt.Printf("Retrieved the following %d source collections for the query %q (keywords: %q) from path %q: %s\n", len(retrievalResp.Responses), query, strings.Join(retrieveOpts.Keywords, ","), path, jsonSources)
 
 	return nil
 }
