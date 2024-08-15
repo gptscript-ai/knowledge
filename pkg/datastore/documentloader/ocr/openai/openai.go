@@ -12,18 +12,20 @@ import (
 	"github.com/gen2brain/go-fitz"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/openai"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
+	"golang.org/x/sync/errgroup"
+	"golang.org/x/sync/semaphore"
 	"image"
 	"image/png"
 	"io"
-	"log"
 	"log/slog"
 	"net/http"
 )
 
 type OpenAIOCR struct {
-	OpenAI    openai.EmbeddingModelProviderOpenAI
-	Prompt    string
-	MaxTokens *int
+	openai.OpenAIConfig `mapstructure:",squash"`
+	Prompt              string
+	MaxTokens           *int
+	Concurrency         int
 }
 
 type ImagePayload struct {
@@ -47,39 +49,89 @@ type Payload struct {
 	MaxTokens int       `json:"max_tokens"`
 }
 
+type RespMessage struct {
+	Content string `json:"content"`
+}
+
+type Choice struct {
+	FinishReason string      `json:"finish_reason"`
+	Message      RespMessage `json:"message"`
+}
+
+type Response struct {
+	Choices []Choice `json:"choices"`
+}
+
 func (o *OpenAIOCR) Load(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
 	if o.Prompt == "" {
-		o.Prompt = "What is in this image?"
+		o.Prompt = `What is in this image? If it's a pure text page, try to return it verbatim. 
+Don't add any additional text as the output will be used for a retrieval pipeline later on.
+Leave out introductory sentences like "The image seems to contain...", etc.
+For images and tabular data, try to describe the content in a way that it's useful for retrieval later on.
+If you identify a specific page tpe, like book cover, table of contents, etc., please add that information to the beginning of the text.
+`
 	}
 
+	if o.BaseURL == "" {
+		o.BaseURL = "https://api.openai.com/v1"
+	}
+
+	if o.APIKey == "" {
+		return nil, fmt.Errorf("OpenAI API key is required for OpenAI OCR")
+	}
+
+	if o.Concurrency == 0 {
+		o.Concurrency = 3
+	}
+
+	// We don't pull this into the concurrent loop because we first want to make sure that the PDF can be converted to images completely
+	// before firing off the requests to OpenAI
 	images, err := convertPdfToImages(reader)
 	if err != nil {
-		log.Fatalf("Error converting PDF to images: %v", err)
+		return nil, fmt.Errorf("error converting PDF to images: %w", err)
 	}
 
 	docs := make([]vs.Document, len(images))
+
+	sem := semaphore.NewWeighted(int64(o.Concurrency)) // limit max. concurrency
+
+	g, ctx := errgroup.WithContext(ctx)
+
 	for i, img := range images {
-		slog.Debug("Processing PDF image", "page", i+1, "totalPages", len(images))
-		base64Image, err := encodeImageToBase64(img)
-		if err != nil {
-			log.Fatalf("Error encoding image to base64: %v", err)
-		}
 
-		result, err := o.sendImageToOpenAI(base64Image)
-		if err != nil {
-			log.Fatalf("Error sending image to OpenAI: %v", err)
-		}
+		pageNo := i + 1
 
-		fmt.Printf("Result for page %d: %v\n", i+1, result)
-		docs = append(docs, vs.Document{
-			Metadata: map[string]interface{}{
-				"page":       i + 1,
-				"totalPages": len(images),
-			},
-			Content: fmt.Sprintf("%v", result),
+		g.Go(func() error {
+
+			if err := sem.Acquire(ctx, 1); err != nil {
+				return err
+			}
+			defer sem.Release(1)
+
+			slog.Debug("Processing PDF image", "page", pageNo, "totalPages", len(images))
+			base64Image, err := encodeImageToBase64(img)
+			if err != nil {
+				return fmt.Errorf("error encoding image to base64: %w", err)
+			}
+
+			result, err := o.sendImageToOpenAI(base64Image)
+			if err != nil {
+				return fmt.Errorf("error sending image to OpenAI: %w", err)
+			}
+
+			slog.Debug("OpenAI OCR result", "page", pageNo, "result", result)
+
+			docs = append(docs, vs.Document{
+				Metadata: map[string]interface{}{
+					"page":       pageNo,
+					"totalPages": len(images),
+				},
+				Content: fmt.Sprintf("%v", result),
+			})
+			return nil
 		})
 	}
-	return docs, nil
+	return docs, g.Wait()
 }
 
 func convertPdfToImages(reader io.Reader) ([]image.Image, error) {
@@ -109,24 +161,25 @@ func encodeImageToBase64(img image.Image) (string, error) {
 	return base64.StdEncoding.EncodeToString(buffer.Bytes()), nil
 }
 
-func (o *OpenAIOCR) sendImageToOpenAI(base64Image string) (map[string]interface{}, error) {
-	url := fmt.Sprintf("%s/chat/completions", o.OpenAI.BaseURL)
+func (o *OpenAIOCR) sendImageToOpenAI(base64Image string) (string, error) {
+
+	url := fmt.Sprintf("%s/chat/completions", o.BaseURL)
 
 	headers := map[string]string{
 		"Content-Type":  "application/json",
-		"Authorization": "Bearer " + o.OpenAI.APIKey,
+		"Authorization": "Bearer " + o.APIKey,
 	}
 
 	if o.MaxTokens == nil {
 		o.MaxTokens = z.Pointer(300)
 	}
 
-	if o.OpenAI.Model == "" {
-		o.OpenAI.Model = "gpt-4o"
+	if o.Model == "" {
+		o.Model = "gpt-4o"
 	}
 
 	payload := Payload{
-		Model: o.OpenAI.Model,
+		Model: o.Model,
 		Messages: []Message{
 			{
 				Role: "user",
@@ -141,12 +194,12 @@ func (o *OpenAIOCR) sendImageToOpenAI(base64Image string) (map[string]interface{
 
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payloadBytes))
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	for k, v := range headers {
@@ -156,19 +209,19 @@ func (o *OpenAIOCR) sendImageToOpenAI(base64Image string) (map[string]interface{
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	var result map[string]interface{}
+	var result Response
 	if err := json.Unmarshal(body, &result); err != nil {
-		return nil, err
+		return "", err
 	}
 
-	return result, nil
+	return result.Choices[0].Message.Content, nil
 }

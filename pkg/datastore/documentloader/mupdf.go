@@ -8,6 +8,7 @@ import (
 	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader/ocr/openai"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader/pdf/defaults"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader/pdf/mupdf"
+	"github.com/gptscript-ai/knowledge/pkg/output"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 	"github.com/mitchellh/mapstructure"
 	"io"
@@ -54,6 +55,7 @@ func init() {
 			if err := mapstructure.Decode(config, &openAIOCR); err != nil {
 				return nil, fmt.Errorf("failed to decode OpenAI OCR configuration: %w", err)
 			}
+			slog.Debug("OpenAI OCR custom config (decoded)", "openAIOCR", output.RedactSensitive(openAIOCR))
 		}
 		return openAIOCR.Load, nil
 	}
