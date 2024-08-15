@@ -15,10 +15,10 @@ type Config struct {
 }
 
 type EmbeddingsConfig struct {
-	Providers []EmbeddingsProviderConfig `koanf:"providers" json:"providers,omitempty" mapstructure:"providers"`
+	Providers []ModelProviderConfig `koanf:"providers" json:"providers,omitempty" mapstructure:"providers"`
 }
 
-type EmbeddingsProviderConfig struct {
+type ModelProviderConfig struct {
 	Name   string         `koanf:"name" json:"name,omitempty" mapstructure:"name"`
 	Type   string         `koanf:"type" json:"type,omitempty" mapstructure:"type"`
 	Config map[string]any `koanf:"config" json:"config,omitempty" mapstructure:"config"`
@@ -70,7 +70,7 @@ func LoadConfig(configFile string) (*Config, error) {
 }
 
 func (ec *EmbeddingsConfig) RemoveUnselected(selected string) {
-	keep := make([]EmbeddingsProviderConfig, 1)
+	keep := make([]ModelProviderConfig, 1)
 	for _, p := range ec.Providers {
 		if p.Name == selected {
 			keep[0] = p
