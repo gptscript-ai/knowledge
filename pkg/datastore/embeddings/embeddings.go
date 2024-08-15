@@ -36,7 +36,7 @@ func GetSelectedEmbeddingsModelProvider(selected string, embeddingsConfig config
 	return provider, nil
 }
 
-func ProviderFromConfig(providerConfig config.EmbeddingsProviderConfig) (types.EmbeddingModelProvider, error) {
+func ProviderFromConfig(providerConfig config.ModelProviderConfig) (types.EmbeddingModelProvider, error) {
 	provider, err := GetProviderConfig(providerConfig.Type)
 	if err != nil {
 		return nil, err
@@ -79,7 +79,7 @@ func GetProviderConfig(providerType string) (types.EmbeddingModelProvider, error
 	}
 }
 
-func FindProviderConfig(name string, providers []config.EmbeddingsProviderConfig) *config.EmbeddingsProviderConfig {
+func FindProviderConfig(name string, providers []config.ModelProviderConfig) *config.ModelProviderConfig {
 	for _, p := range providers {
 		if p.Name == name {
 			return &p
@@ -88,11 +88,11 @@ func FindProviderConfig(name string, providers []config.EmbeddingsProviderConfig
 	return nil
 }
 
-func GetProviderCfg(name string, embeddingsConfig config.EmbeddingsConfig) (*config.EmbeddingsProviderConfig, error) {
+func GetProviderCfg(name string, embeddingsConfig config.EmbeddingsConfig) (*config.ModelProviderConfig, error) {
 	providerCfg := FindProviderConfig(name, embeddingsConfig.Providers)
 	if providerCfg == nil {
 		// no config with that name exists, so we assume the name is the type
-		providerCfg = &config.EmbeddingsProviderConfig{
+		providerCfg = &config.ModelProviderConfig{
 			Name: name,
 			Type: name,
 		}
@@ -209,7 +209,7 @@ func CompareRequiredFields(a, b any) error {
 	return nil
 }
 
-func AsEmbeddingModelProviderConfig(emp types.EmbeddingModelProvider, export bool) (config.EmbeddingsProviderConfig, error) {
+func AsEmbeddingModelProviderConfig(emp types.EmbeddingModelProvider, export bool) (config.ModelProviderConfig, error) {
 	var cfg map[string]any
 
 	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
@@ -218,22 +218,22 @@ func AsEmbeddingModelProviderConfig(emp types.EmbeddingModelProvider, export boo
 	})
 
 	if err != nil {
-		return config.EmbeddingsProviderConfig{}, err
+		return config.ModelProviderConfig{}, err
 	}
 
 	conf := emp.Config()
 	if export {
 		conf, err = ExportConfig(conf)
 		if err != nil {
-			return config.EmbeddingsProviderConfig{}, err
+			return config.ModelProviderConfig{}, err
 		}
 	}
 
 	if err := decoder.Decode(conf); err != nil {
-		return config.EmbeddingsProviderConfig{}, err
+		return config.ModelProviderConfig{}, err
 	}
 
-	return config.EmbeddingsProviderConfig{
+	return config.ModelProviderConfig{
 		Type:   emp.Name(),
 		Config: cfg,
 	}, nil

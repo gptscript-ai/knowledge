@@ -27,7 +27,15 @@ func GetDocumentLoaderConfig(name string) (any, error) {
 		return nil, nil
 	case "pdf", "gopdf":
 		return gopdf.PDFOptions{}, nil
+	case "ocr_openai":
+		if OpenAIOCRConfig == nil {
+			return nil, fmt.Errorf("OpenAI OCR is not available")
+		}
+		return OpenAIOCRConfig, nil
 	case "mupdf":
+		if MuPDFConfig == nil {
+			return nil, fmt.Errorf("MuPDF is not available")
+		}
 		return MuPDFConfig, nil
 	case "csv":
 		return golcdocloaders.CSVOptions{}, nil
@@ -42,6 +50,9 @@ type LoaderFunc func(ctx context.Context, reader io.Reader) ([]vs.Document, erro
 
 var MuPDFGetter func(config any) (LoaderFunc, error) = nil
 var MuPDFConfig any
+
+var OpenAIOCRGetter func(config any) (LoaderFunc, error) = nil
+var OpenAIOCRConfig any
 
 func GetDocumentLoaderFunc(name string, config any) (LoaderFunc, error) {
 	switch name {
@@ -59,6 +70,11 @@ func GetDocumentLoaderFunc(name string, config any) (LoaderFunc, error) {
 		return func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
 			return FromLangchain(lcgodocloaders.NewHTML(reader)).Load(ctx)
 		}, nil
+	case "ocr_openai":
+		if OpenAIOCRGetter == nil {
+			return nil, fmt.Errorf("OpenAI OCR is not available")
+		}
+		return OpenAIOCRGetter(config)
 	case "mupdf":
 		if MuPDFGetter == nil {
 			return nil, fmt.Errorf("MuPDF is not available")

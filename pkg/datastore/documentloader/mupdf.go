@@ -5,6 +5,7 @@ package documentloader
 import (
 	"context"
 	"fmt"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader/ocr/openai"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader/pdf/defaults"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader/pdf/mupdf"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
@@ -45,4 +46,17 @@ func init() {
 	}
 
 	MuPDFConfig = mupdf.PDFOptions{}
+
+	// OpenAI OCR (depends on MuPDF)
+	OpenAIOCRGetter = func(config any) (LoaderFunc, error) {
+		var openAIOCR openai.OpenAIOCR
+		if config != nil {
+			if err := mapstructure.Decode(config, &openAIOCR); err != nil {
+				return nil, fmt.Errorf("failed to decode OpenAI OCR configuration: %w", err)
+			}
+		}
+		return openAIOCR.Load, nil
+	}
+
+	OpenAIOCRConfig = openai.OpenAIOCR{}
 }

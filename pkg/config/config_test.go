@@ -7,7 +7,7 @@ import (
 
 func TestEmbeddingsConfig_ClearUnselected(t *testing.T) {
 	ec := &EmbeddingsConfig{
-		Providers: []EmbeddingsProviderConfig{
+		Providers: []ModelProviderConfig{
 			{
 				Name: "openai",
 				Type: "openai",
@@ -33,7 +33,7 @@ func TestEmbeddingsConfig_ClearUnselected(t *testing.T) {
 	require.Len(t, ec.Providers, 1)
 	require.Equal(t, "openai", ec.Providers[0].Name)
 
-	ec.Providers = append(ec.Providers, EmbeddingsProviderConfig{
+	ec.Providers = append(ec.Providers, ModelProviderConfig{
 		Name: "cohere",
 		Type: "cohere",
 		Config: map[string]any{
