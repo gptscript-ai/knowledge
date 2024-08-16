@@ -15,6 +15,7 @@ Context: github.com/gptscript-ai/context/workspace
 Credential: github.com/gptscript-ai/credential as sys.openai with OPENAI_API_KEY as env and "Please provide your OpenAI API key" as message and key as field
 Param: know_retrieve_keywords: (OPTIONAL - only use if you think it will improve results) A comma-separated list (no spaces) of keywords used to pre-filter the document base before conducting the semantic similarity search. Prefix a keyword sign with a dash (-) to exclude documents containing that keyword.
 Param: query: The query to search for in the knowledge directory.
+Param: debug: (OPTIONAL) Set to "true" to enable debug mode - only use if you are explicitly asked to do so.
 
 #!${GPTSCRIPT_TOOL_DIR}/bin/gptscript-go-tool askdir --path "${GPTSCRIPT_WORKSPACE_DIR}" "${QUERY}"
 

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -36,6 +37,9 @@ func (s *ClientAskDir) Run(cmd *cobra.Command, args []string) error {
 	}
 
 	path := s.Path
+
+	slog.Debug("Asking directory", "path", path, "GPTSCRIPT_WORKSPACE_DIR", os.Getenv("GPTSCRIPT_WORKSPACE_DIR"))
+
 	query := args[0]
 
 	ingestOpts := &client.IngestPathsOpts{
