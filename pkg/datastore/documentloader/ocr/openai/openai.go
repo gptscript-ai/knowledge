@@ -8,17 +8,18 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"image"
+	"image/png"
+	"io"
+	"log/slog"
+	"net/http"
+
 	"github.com/acorn-io/z"
 	"github.com/gen2brain/go-fitz"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/openai"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/sync/semaphore"
-	"image"
-	"image/png"
-	"io"
-	"log/slog"
-	"net/http"
 )
 
 type OpenAIOCR struct {
@@ -64,11 +65,11 @@ type Response struct {
 
 func (o *OpenAIOCR) Load(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
 	if o.Prompt == "" {
-		o.Prompt = `What is in this image? If it's a pure text page, try to return it verbatim. 
+		o.Prompt = `What is in this image? If it's a pure text page, try to return it verbatim.
 Don't add any additional text as the output will be used for a retrieval pipeline later on.
 Leave out introductory sentences like "The image seems to contain...", etc.
 For images and tabular data, try to describe the content in a way that it's useful for retrieval later on.
-If you identify a specific page tpe, like book cover, table of contents, etc., please add that information to the beginning of the text.
+If you identify a specific page type, like book cover, table of contents, etc., please add that information to the beginning of the text.
 `
 	}
 
