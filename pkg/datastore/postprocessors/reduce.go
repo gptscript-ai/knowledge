@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
+	"log/slog"
 	"slices"
 )
 
@@ -30,6 +31,8 @@ func (s *ReducePostprocessor) Transform(ctx context.Context, response *types.Ret
 		if topK > len(docs) {
 			topK = len(docs) - 1
 		}
+
+		slog.Debug("Reducing topK", "topK", topK, "len(docs)", len(docs))
 
 		response.Responses[q] = docs[:topK]
 	}
