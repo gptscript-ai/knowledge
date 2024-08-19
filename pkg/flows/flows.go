@@ -3,7 +3,9 @@ package flows
 import (
 	"context"
 	"fmt"
+	"github.com/acorn-io/z"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/store"
+	"github.com/mitchellh/mapstructure"
 	"github.com/philippgille/chromem-go"
 	"io"
 	"log/slog"
@@ -19,10 +21,15 @@ import (
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 )
 
+type IngestionFlowGlobals struct {
+	SplitterOpts map[string]any
+}
+
 type IngestionFlow struct {
+	Globals         IngestionFlowGlobals
 	Filetypes       []string
 	Load            documentloader.LoaderFunc
-	Split           textsplitter.SplitterFunc
+	Splitter        dstypes.TextSplitter
 	Transformations []dstypes.DocumentTransformer
 }
 
@@ -37,28 +44,43 @@ func (f *IngestionFlow) Transform(ctx context.Context, docs []vs.Document) ([]vs
 	return docs, nil
 }
 
-func NewDefaultIngestionFlow(filetype string, textsplitterOpts *textsplitter.TextSplitterOpts) IngestionFlow {
+func NewDefaultIngestionFlow(filetype string, textsplitterOpts *textsplitter.TextSplitterOpts) (IngestionFlow, error) {
 	ingestionFlow := IngestionFlow{
 		Filetypes: []string{filetype},
 	}
-	ingestionFlow.FillDefaults(filetype, textsplitterOpts)
-	return ingestionFlow
+	if err := ingestionFlow.FillDefaults(filetype, textsplitterOpts); err != nil {
+		return IngestionFlow{}, err
+	}
+	return ingestionFlow, nil
 }
 
 func (f *IngestionFlow) SupportsFiletype(filetype string) bool {
-	return slices.Contains(f.Filetypes, filetype)
+	return slices.Contains(f.Filetypes, filetype) || slices.Contains(f.Filetypes, "*")
 }
 
-func (f *IngestionFlow) FillDefaults(filetype string, textsplitterOpts *textsplitter.TextSplitterOpts) {
+func (f *IngestionFlow) FillDefaults(filetype string, textsplitterOpts *textsplitter.TextSplitterOpts) error {
 	if f.Load == nil {
 		f.Load = documentloader.DefaultDocLoaderFunc(filetype)
 	}
-	if f.Split == nil {
-		f.Split = textsplitter.DefaultTextSplitter(filetype, textsplitterOpts).SplitDocuments
+	if f.Splitter == nil {
+		if textsplitterOpts == nil {
+			textsplitterOpts = z.Pointer(textsplitter.NewTextSplitterOpts())
+		}
+		slog.Debug("Using default text splitter", "filetype", filetype, "textSplitterOpts", textsplitterOpts)
+
+		if len(f.Globals.SplitterOpts) > 0 {
+			if err := mapstructure.Decode(f.Globals.SplitterOpts, textsplitterOpts); err != nil {
+				return fmt.Errorf("failed to decode globals.SplitterOpts configuration: %w", err)
+			}
+			slog.Debug("Overriding text splitter options with globals from flows config", "filetype", filetype, "textSplitterOpts", textsplitterOpts)
+		}
+
+		f.Splitter = textsplitter.DefaultTextSplitter(filetype, textsplitterOpts)
 	}
 	if len(f.Transformations) == 0 {
 		f.Transformations = transformers.DefaultDocumentTransformers(filetype)
 	}
+	return nil
 }
 
 func (f *IngestionFlow) Run(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
@@ -84,7 +106,7 @@ func (f *IngestionFlow) Run(ctx context.Context, reader io.Reader) ([]vs.Documen
 	/*
 	 * Split documents - Chunking
 	 */
-	docs, err = f.Split(docs)
+	docs, err = f.Splitter.SplitDocuments(docs)
 	if err != nil {
 		slog.Error("Failed to split documents", "error", err)
 		return nil, fmt.Errorf("failed to split documents: %w", err)

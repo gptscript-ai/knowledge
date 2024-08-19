@@ -17,7 +17,7 @@ type Client struct {
 	Server           string `usage:"URL of the Knowledge API Server" default:"" env:"KNOW_SERVER_URL"`
 	datastoreArchive string
 
-	EmbeddingModelProvider string `usage:"Embedding model provider" default:"openai" env:"KNOW_EMBEDDING_MODEL_PROVIDER" name:"embedding-model-provider" default:"openai" koanf:"provider"`
+	EmbeddingModelProvider string `usage:"Embedding model provider" env:"KNOW_EMBEDDING_MODEL_PROVIDER" name:"embedding-model-provider" default:"openai" koanf:"provider"`
 	ConfigFile             string `usage:"Path to the configuration file" env:"KNOW_CONFIG_FILE" default:"" short:"c"`
 
 	config.DatabaseConfig

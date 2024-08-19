@@ -1,0 +1,15 @@
+flows:
+  chatgpt:
+    default: true
+    globals:
+      ingestion:
+        textsplitter:
+          chunkSize: 800
+          chunkOverlap: 400
+    ingestion:
+      - filetypes: ["*"]
+        textsplitter:
+          name: text
+          options:
+            chunkSize: 811
+
