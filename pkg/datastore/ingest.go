@@ -122,7 +122,7 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 		return nil, fmt.Errorf("failed to check for duplicates: %w", err)
 	}
 	if isDupe {
-		slog.Info("Ignoring duplicate document", "filename", filename, "absolute_path", opts.FileMetadata.AbsolutePath)
+		slog.Debug("Ignoring duplicate document", "filename", filename, "absolute_path", opts.FileMetadata.AbsolutePath)
 		return nil, nil
 	}
 
@@ -137,6 +137,9 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 		}
 	}
 	ingestionFlow.FillDefaults(filetype, opts.TextSplitterOpts)
+	if ingestionFlow.Load == nil {
+		return nil, fmt.Errorf("unsupported filetype %q (file %q)", filetype, opts.FileMetadata.AbsolutePath)
+	}
 
 	// Mandatory Transformation: Add filename to metadata
 	em := &transformers.ExtraMetadata{Metadata: map[string]any{"filename": filename, "absPath": opts.FileMetadata.AbsolutePath}}

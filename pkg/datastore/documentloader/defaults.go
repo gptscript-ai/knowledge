@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/csv"
 	"errors"
+	"fmt"
 	"io"
 	"log/slog"
 	"strings"
@@ -100,29 +101,6 @@ func DefaultDocLoaderFunc(filetype string) func(ctx context.Context, reader io.R
 
 			return docs, nil
 		}
-	// todo: OCR support is commented out for now as it relies on external dependencies.
-	// We might add it back later.
-	//case "image/png", "image/jpeg":
-	//	return func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
-	//		client := gosseract.NewClient()
-	//		defer client.Close()
-	//		data, nerr := io.ReadAll(reader)
-	//		if nerr != nil {
-	//			return nil, fmt.Errorf("failed to read %s data: %w", filetype, nerr)
-	//		}
-	//		if err := client.SetImageFromBytes(data); err != nil {
-	//			return nil, fmt.Errorf("failed to feed data into OCR: %w", nerr)
-	//		}
-	//		text, err := client.Text()
-	//		if err != nil {
-	//			return nil, fmt.Errorf("failed to convert image data into OCR")
-	//		}
-	//		return []vs.Document{
-	//			{
-	//				Content: text,
-	//			},
-	//		}, nil
-	//	}
 	case "application/zip", ".zip":
 		var result []vs.Document
 		return func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
@@ -150,7 +128,12 @@ func DefaultDocLoaderFunc(filetype string) func(ctx context.Context, reader io.R
 				if err != nil {
 					return nil, err
 				}
-				docs, err := DefaultDocLoaderFunc(ft)(ctx, bytes.NewReader(content))
+				dlf := DefaultDocLoaderFunc(ft)
+				if dlf == nil {
+					slog.Error("Unsupported file type in ZIP", "type", ft, "filename", f.Name)
+					return nil, fmt.Errorf("unsupported file type %q (file %q) in ZIP", f.Name, ft)
+				}
+				docs, err := dlf(ctx, bytes.NewReader(content))
 				if err != nil {
 					return nil, err
 				}
@@ -186,7 +169,12 @@ func DefaultDocLoaderFunc(filetype string) func(ctx context.Context, reader io.R
 				if err != nil {
 					return nil, err
 				}
-				docs, err := DefaultDocLoaderFunc(ft)(ctx, bytes.NewReader(content))
+				dlf := DefaultDocLoaderFunc(ft)
+				if dlf == nil {
+					slog.Error("Unsupported file type in BZ2", "type", ft, "filename", header.Name)
+					return nil, fmt.Errorf("unsupported file type %q (file %q) in BZ2", header.Name, ft)
+				}
+				docs, err := dlf(ctx, bytes.NewReader(content))
 				if err != nil {
 					return nil, err
 				}
