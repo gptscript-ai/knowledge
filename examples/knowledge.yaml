@@ -1,5 +1,5 @@
 flows:
-  chatgpt:
+  knowledge:
     default: true
     globals:
       ingestion:
@@ -18,7 +18,7 @@ flows:
                 apiKey: "${OPENAI_API_KEY}"
                 model: gpt-4o
                 apiType: OPEN_AI
-                apiBase: https://api.openai.com/v1
+                baseURL: https://api.openai.com/v1
       retriever:
         name: subquery
         options:
@@ -29,14 +29,14 @@ flows:
               apiKey: "${OPENAI_API_KEY}"
               model: gpt-4o
               apiType: OPEN_AI
-              apiBase: https://api.openai.com/v1
+              baseURL: https://api.openai.com/v1
       postprocessors:
         - name: similarity
           options:
             threshold: 0.6
         - name: reduce
           options:
-            topK: 5
+            topK: 10
 
 
 

@@ -137,6 +137,7 @@ func (s *Store) SimilaritySearch(ctx context.Context, query string, numDocuments
 
 	for _, qrd := range qr {
 		sDocs = append(sDocs, vs.Document{
+			ID:              qrd.ID,
 			Metadata:        convertStringMapToAnyMap(qrd.Metadata),
 			SimilarityScore: qrd.Similarity,
 			Content:         qrd.Content,
