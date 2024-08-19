@@ -89,7 +89,21 @@ func (s SubqueryRetriever) Retrieve(ctx context.Context, store store.Store, quer
 		if err != nil {
 			return nil, err
 		}
-		resultDocs = append(resultDocs, docs...)
+		slog.Debug("SubqueryQueryRetriever retrieved documents", "query", q, "len(docs)", len(docs))
+
+	docLoop:
+		for _, doc := range docs {
+			// check if	doc is already in resultDocs and if so, update similarity score if higher
+			for i, r := range resultDocs {
+				if doc.ID == r.ID {
+					if doc.SimilarityScore > r.SimilarityScore {
+						resultDocs[i].SimilarityScore = doc.SimilarityScore
+						continue docLoop
+					}
+				}
+			}
+			resultDocs = append(resultDocs, doc)
+		}
 	}
 
 	return resultDocs, nil
