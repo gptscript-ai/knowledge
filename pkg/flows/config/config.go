@@ -30,9 +30,18 @@ type FlowConfig struct {
 }
 
 type FlowConfigEntry struct {
-	Default   bool                  `json:"default,omitempty" yaml:"default" mapstructure:"default"`
-	Ingestion []IngestionFlowConfig `json:"ingestion,omitempty" yaml:"ingestion" mapstructure:"ingestion"`
-	Retrieval *RetrievalFlowConfig  `json:"retrieval,omitempty" yaml:"retrieval" mapstructure:"retrieval"`
+	Default   bool                      `json:"default,omitempty" yaml:"default" mapstructure:"default"`
+	Globals   FlowConfigEntryGlobalOpts `json:"globals,omitempty" yaml:"globals" mapstructure:"globals"`
+	Ingestion []IngestionFlowConfig     `json:"ingestion,omitempty" yaml:"ingestion" mapstructure:"ingestion"`
+	Retrieval *RetrievalFlowConfig      `json:"retrieval,omitempty" yaml:"retrieval" mapstructure:"retrieval"`
+}
+
+type FlowConfigEntryGlobalOpts struct {
+	Ingestion FlowConfigGlobalsIngestion `json:"ingestion,omitempty" yaml:"ingestion" mapstructure:"ingestion"`
+}
+
+type FlowConfigGlobalsIngestion struct {
+	Textsplitter map[string]any `json:"textsplitter,omitempty" yaml:"textsplitter" mapstructure:"textsplitter"`
 }
 
 type IngestionFlowConfig struct {
@@ -144,10 +153,14 @@ func (f *FlowConfig) GetFlow(name string) (*FlowConfigEntry, error) {
 }
 
 // AsIngestionFlow converts an IngestionFlowConfig to an actual flows.IngestionFlow.
-func (i *IngestionFlowConfig) AsIngestionFlow() (*flows.IngestionFlow, error) {
+func (i *IngestionFlowConfig) AsIngestionFlow(globals *FlowConfigGlobalsIngestion) (*flows.IngestionFlow, error) {
 	flow := &flows.IngestionFlow{
 		Filetypes: i.Filetypes,
+		Globals: flows.IngestionFlowGlobals{
+			SplitterOpts: globals.Textsplitter,
+		},
 	}
+
 	if i.DocumentLoader.Name != "" {
 		name := strings.ToLower(strings.Trim(i.DocumentLoader.Name, " "))
 		cfg, err := documentloader.GetDocumentLoaderConfig(name)
@@ -177,21 +190,24 @@ func (i *IngestionFlowConfig) AsIngestionFlow() (*flows.IngestionFlow, error) {
 		if err != nil {
 			return nil, err
 		}
-		if len(i.TextSplitter.Options) > 0 {
-			jsondata, err := json.Marshal(i.TextSplitter.Options)
-			if err != nil {
-				return nil, err
-			}
-			err = json.Unmarshal(jsondata, &cfg)
-			if err != nil {
-				return nil, err
+
+		if len(globals.Textsplitter) > 0 {
+			if err := mapstructure.Decode(globals.Textsplitter, &cfg); err != nil {
+				return nil, fmt.Errorf("failed to decode text splitter global configuration: %w", err)
 			}
 		}
-		splitterFunc, err := textsplitter.GetTextSplitterFunc(name, cfg)
+
+		if len(i.TextSplitter.Options) > 0 {
+			if err := mapstructure.Decode(i.TextSplitter.Options, &cfg); err != nil {
+				return nil, fmt.Errorf("failed to decode text splitter %q configuration: %w", i.TextSplitter.Name, err)
+			}
+		}
+
+		splitterFunc, err := textsplitter.GetTextSplitter(name, cfg)
 		if err != nil {
 			return nil, err
 		}
-		flow.Split = splitterFunc
+		flow.Splitter = splitterFunc
 	}
 
 	if len(i.Transformers) > 0 {

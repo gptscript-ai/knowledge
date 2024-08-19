@@ -17,21 +17,21 @@ func TestGetTextSplitterConfigWithInvalidName(t *testing.T) {
 }
 
 func TestGetTextSplitterFuncWithValidNameAndNilConfig(t *testing.T) {
-	_, err := GetTextSplitterFunc("text", nil)
+	_, err := GetTextSplitter("text", nil)
 	assert.NoError(t, err)
 }
 
 func TestGetTextSplitterFuncWithValidNameAndInvalidConfig(t *testing.T) {
-	_, err := GetTextSplitterFunc("text", "invalid")
+	_, err := GetTextSplitter("text", "invalid")
 	assert.Error(t, err)
 }
 
 func TestGetTextSplitterFuncWithValidNameAndValidConfig(t *testing.T) {
-	_, err := GetTextSplitterFunc("text", NewTextSplitterOpts())
+	_, err := GetTextSplitter("text", NewTextSplitterOpts())
 	assert.NoError(t, err)
 }
 
 func TestGetTextSplitterFuncWithInvalidName(t *testing.T) {
-	_, err := GetTextSplitterFunc("invalid", nil)
+	_, err := GetTextSplitter("invalid", nil)
 	assert.Error(t, err)
 }

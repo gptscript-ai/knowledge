@@ -136,7 +136,11 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 			break
 		}
 	}
-	ingestionFlow.FillDefaults(filetype, opts.TextSplitterOpts)
+
+	if err := ingestionFlow.FillDefaults(filetype, opts.TextSplitterOpts); err != nil {
+		return nil, err
+	}
+
 	if ingestionFlow.Load == nil {
 		return nil, fmt.Errorf("unsupported filetype %q (file %q)", filetype, opts.FileMetadata.AbsolutePath)
 	}

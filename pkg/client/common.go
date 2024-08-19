@@ -16,18 +16,11 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
-	"slices"
 	"strings"
 )
 
 func isIgnored(ignore gitignore.Matcher, path string) bool {
 	return ignore.Match(strings.Split(path, string(filepath.Separator)), false)
-}
-
-func checkIgnored(path string, ignoreExtensions []string) bool {
-	ext := filepath.Ext(path)
-	slog.Debug("checking path", "path", path, "ext", ext, "ignore", ignoreExtensions)
-	return slices.Contains(ignoreExtensions, ext)
 }
 
 func readIgnoreFile(path string) ([]gitignore.Pattern, error) {

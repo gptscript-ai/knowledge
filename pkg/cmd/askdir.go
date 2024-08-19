@@ -84,7 +84,7 @@ func (s *ClientAskDir) Run(cmd *cobra.Command, args []string) error {
 		}
 
 		for _, ingestionFlowConfig := range flow.Ingestion {
-			ingestionFlow, err := ingestionFlowConfig.AsIngestionFlow()
+			ingestionFlow, err := ingestionFlowConfig.AsIngestionFlow(&flow.Globals.Ingestion)
 			if err != nil {
 				return err
 			}
