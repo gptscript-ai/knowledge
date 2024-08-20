@@ -1,5 +1,5 @@
 flows:
-  chatgpt:
+  knowledge:
     default: true
     globals:
       ingestion:
