@@ -26,7 +26,7 @@ type Client struct {
 }
 
 type ClientFlowsConfig struct {
-	FlowsFile string `usage:"Path to a YAML/JSON file containing ingestion/retrieval flows" env:"KNOW_FLOWS_FILE" default:""`
+	FlowsFile string `usage:"Path to a YAML/JSON file containing ingestion/retrieval flows" env:"KNOW_FLOWS_FILE" default:"blueprint:default"`
 	Flow      string `usage:"Flow name" env:"KNOW_FLOW"`
 }
 
