@@ -3,10 +3,11 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gptscript-ai/knowledge/pkg/output"
 	"log/slog"
 	"os"
 	"strings"
+
+	"github.com/gptscript-ai/knowledge/pkg/output"
 
 	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/postprocessors"
@@ -82,15 +83,35 @@ type TransformerConfig struct {
 	GenericBaseConfig
 }
 
+func FromBlueprint(name string) (*FlowConfig, error) {
+	bp, err := GetBlueprint(name)
+	if err != nil {
+		return nil, err
+	}
+	return FromBytes(bp)
+}
+
+func Load(reference string) (*FlowConfig, error) {
+	if strings.HasPrefix(reference, "blueprint:") {
+		return FromBlueprint(strings.TrimPrefix(reference, "blueprint:"))
+	}
+	return FromFile(reference)
+}
+
 // FromFile reads a configuration file and returns a FlowConfig.
 func FromFile(filename string) (*FlowConfig, error) {
 	content, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
+	return FromBytes(content)
+}
 
+func FromBytes(content []byte) (*FlowConfig, error) {
 	// Expand environment variables in config
 	content = []byte(os.ExpandEnv(string(content)))
+
+	var err error
 
 	var config FlowConfig
 	jsondata := content
