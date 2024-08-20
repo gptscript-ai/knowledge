@@ -3,14 +3,15 @@ package cmd
 import (
 	"archive/zip"
 	"fmt"
+	"io"
+	"os"
+	"path/filepath"
+
 	"github.com/gptscript-ai/knowledge/pkg/client"
 	"github.com/gptscript-ai/knowledge/pkg/config"
 	"github.com/gptscript-ai/knowledge/pkg/datastore"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
-	"io"
-	"os"
-	"path/filepath"
 )
 
 type Client struct {
@@ -25,7 +26,7 @@ type Client struct {
 }
 
 type ClientFlowsConfig struct {
-	FlowsFile string `usage:"Path to a YAML/JSON file containing ingestion/retrieval flows" env:"KNOW_FLOWS_FILE"`
+	FlowsFile string `usage:"Path to a YAML/JSON file containing ingestion/retrieval flows" env:"KNOW_FLOWS_FILE" default:""`
 	Flow      string `usage:"Flow name" env:"KNOW_FLOW"`
 }
 

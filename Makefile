@@ -9,7 +9,7 @@ ifeq ($(GIT_TAG),)
 GIT_TAG   := $(shell git describe --always)
 endif
 
-GO_TAGS := netgo
+GO_TAGS := netgo mupdf
 LD_FLAGS := -s -w -X github.com/gptscript-ai/knowledge/version.Version=${GIT_TAG}
 build:
 	go build -mod=mod -o bin/knowledge -tags "${GO_TAGS}" -ldflags '$(LD_FLAGS) ' .

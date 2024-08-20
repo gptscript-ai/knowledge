@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
+
 	"github.com/gptscript-ai/knowledge/pkg/datastore"
 	flowconfig "github.com/gptscript-ai/knowledge/pkg/flows/config"
 	vserr "github.com/gptscript-ai/knowledge/pkg/vectorstore/errors"
 	"github.com/spf13/cobra"
-	"log/slog"
 )
 
 type ClientRetrieve struct {
@@ -49,7 +50,7 @@ func (s *ClientRetrieve) Run(cmd *cobra.Command, args []string) error {
 
 	if s.FlowsFile != "" {
 		slog.Debug("Loading retrieval flows from config", "flows_file", s.FlowsFile, "dataset", datasetIDs)
-		flowCfg, err := flowconfig.FromFile(s.FlowsFile)
+		flowCfg, err := flowconfig.Load(s.FlowsFile)
 		if err != nil {
 			return err
 		}
