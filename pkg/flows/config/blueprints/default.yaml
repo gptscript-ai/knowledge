@@ -18,7 +18,7 @@ flows:
                 apiKey: "${OPENAI_API_KEY}"
                 model: gpt-4o
                 apiType: OPEN_AI
-                baseURL: https://api.openai.com/v1
+                baseURL: "${OPENAI_BASE_URL}"
       retriever:
         name: subquery
         options:
@@ -29,7 +29,7 @@ flows:
               apiKey: "${OPENAI_API_KEY}"
               model: gpt-4o
               apiType: OPEN_AI
-              baseURL: https://api.openai.com/v1
+              baseURL: "${OPENAI_BASE_URL}"
       postprocessors:
         - name: similarity
           options:
