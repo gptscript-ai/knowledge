@@ -22,6 +22,14 @@ type BM25Postprocessor struct {
 }
 
 func (c *BM25Postprocessor) Transform(ctx context.Context, response *types.RetrievalResponse) error {
+
+	if c.K1 == 0 {
+		c.K1 = 1.5
+	}
+	if c.B == 0 {
+		c.B = 0.75
+	}
+
 	var err error
 	for q, docs := range response.Responses {
 		response.Responses[q], err = c.transform(ctx, q, docs)
