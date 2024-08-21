@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings"
 	"log/slog"
+
+	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings"
 
 	"github.com/acorn-io/z"
 	"github.com/google/uuid"
@@ -142,7 +144,7 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 	}
 
 	if ingestionFlow.Load == nil {
-		return nil, fmt.Errorf("unsupported filetype %q (file %q)", filetype, opts.FileMetadata.AbsolutePath)
+		return nil, fmt.Errorf("%w (file %q)", &documentloader.UnsupportedFileTypeError{FileType: filetype}, opts.FileMetadata.AbsolutePath)
 	}
 
 	// Mandatory Transformation: Add filename to metadata

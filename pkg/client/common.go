@@ -6,6 +6,11 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
+	"log/slog"
+	"os"
+	"path/filepath"
+	"strings"
+
 	"github.com/go-git/go-git/v5/plumbing/format/gitignore"
 	"github.com/gptscript-ai/knowledge/pkg/datastore"
 	remotes "github.com/gptscript-ai/knowledge/pkg/datastore/documentloader/remote"
@@ -13,10 +18,6 @@ import (
 	"github.com/gptscript-ai/knowledge/pkg/index"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/sync/semaphore"
-	"log/slog"
-	"os"
-	"path/filepath"
-	"strings"
 )
 
 func isIgnored(ignore gitignore.Matcher, path string) bool {

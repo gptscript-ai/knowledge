@@ -22,6 +22,21 @@ import (
 	lcgodocloaders "github.com/tmc/langchaingo/documentloaders"
 )
 
+// UnsupportedFileTypeError is returned when a file type is not supported
+type UnsupportedFileTypeError struct {
+	FileType string
+}
+
+func (e *UnsupportedFileTypeError) Error() string {
+	return fmt.Sprintf("unsupported file type %q", e.FileType)
+}
+
+func (e *UnsupportedFileTypeError) Is(err error) bool {
+	var unsupportedFileTypeError *UnsupportedFileTypeError
+	ok := errors.As(err, &unsupportedFileTypeError)
+	return ok
+}
+
 func DefaultDocLoaderFunc(filetype string) func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
 	switch filetype {
 	case ".pdf", "application/pdf":
@@ -131,7 +146,7 @@ func DefaultDocLoaderFunc(filetype string) func(ctx context.Context, reader io.R
 				dlf := DefaultDocLoaderFunc(ft)
 				if dlf == nil {
 					slog.Error("Unsupported file type in ZIP", "type", ft, "filename", f.Name)
-					return nil, fmt.Errorf("unsupported file type %q (file %q) in ZIP", f.Name, ft)
+					return nil, fmt.Errorf("%w (file %q) in ZIP", &UnsupportedFileTypeError{ft}, f.Name)
 				}
 				docs, err := dlf(ctx, bytes.NewReader(content))
 				if err != nil {
@@ -184,7 +199,7 @@ func DefaultDocLoaderFunc(filetype string) func(ctx context.Context, reader io.R
 		}
 
 	default:
-		slog.Error("Unsupported file type", "type", filetype)
+		slog.Debug("Unsupported file type", "type", filetype)
 		return nil
 	}
 }

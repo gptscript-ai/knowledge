@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+
 	"github.com/gptscript-ai/knowledge/pkg/datastore"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/textsplitter"
 	dstypes "github.com/gptscript-ai/knowledge/pkg/datastore/types"
@@ -11,16 +12,17 @@ import (
 )
 
 type IngestPathsOpts struct {
-	IgnoreExtensions    []string
-	Concurrency         int
-	Recursive           bool
-	TextSplitterOpts    *textsplitter.TextSplitterOpts
-	IngestionFlows      []flows.IngestionFlow
-	IgnoreFile          string
-	IncludeHidden       bool
-	NoCreateDataset     bool
-	IsDuplicateFuncName string
-	Prune               bool // Prune deleted files
+	IgnoreExtensions     []string
+	Concurrency          int
+	Recursive            bool
+	TextSplitterOpts     *textsplitter.TextSplitterOpts
+	IngestionFlows       []flows.IngestionFlow
+	IgnoreFile           string
+	IncludeHidden        bool
+	NoCreateDataset      bool
+	IsDuplicateFuncName  string
+	Prune                bool // Prune deleted files
+	ErrOnUnsupportedFile bool
 }
 
 type Client interface {
