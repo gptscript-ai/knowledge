@@ -17,8 +17,8 @@ type BM25Postprocessor struct {
 	TopN         int
 	SparseWeight float64 // How to weight the BM25 scores against the similarity scores from dense vector search
 
-	K1 float64 // K1 should be between 1.2 and 2
-	B  float64 // B should be around 0.75
+	K1 float64 // K1 should be between 1.2 and 2 - controls term frequency saturation
+	B  float64 // B should be around 0.75 - controls the influence of document length normalization
 }
 
 func (c *BM25Postprocessor) Transform(ctx context.Context, response *types.RetrievalResponse) error {
