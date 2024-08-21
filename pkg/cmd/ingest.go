@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"log/slog"
+	"os"
 	"strings"
 
 	"github.com/acorn-io/z"
@@ -30,6 +31,7 @@ type ClientIngestOpts struct {
 	NoRecursive           bool   `usage:"Don't recursively ingest directories" default:"false" env:"KNOW_NO_INGEST_RECURSIVE"`
 	NoCreateDataset       bool   `usage:"Do NOT create the dataset if it doesn't exist" default:"true" env:"KNOW_INGEST_NO_CREATE_DATASET"`
 	DeduplicationFuncName string `usage:"Name of the deduplication function to use" name:"dedupe-func" env:"KNOW_INGEST_DEDUPE_FUNC"`
+	ErrOnUnsupportedFile  bool   `usage:"Error on unsupported file types" default:"false" env:"KNOW_INGEST_ERR_ON_UNSUPPORTED_FILE"`
 }
 
 func (s *ClientIngest) Customize(cmd *cobra.Command) {
@@ -56,15 +58,25 @@ func (s *ClientIngest) Run(cmd *cobra.Command, args []string) error {
 	datasetID := s.Dataset
 	filePath := args[0]
 
+	finfo, err := os.Stat(filePath)
+	if err != nil {
+		return err
+	}
+	if !finfo.IsDir() {
+		slog.Debug("ingesting single file, setting err-on-unsupported-file to true", "file", filePath)
+		s.ErrOnUnsupportedFile = true
+	}
+
 	ingestOpts := &client.IngestPathsOpts{
-		IgnoreExtensions:    strings.Split(s.IgnoreExtensions, ","),
-		Concurrency:         s.Concurrency,
-		Recursive:           !s.NoRecursive,
-		TextSplitterOpts:    &s.TextSplitterOpts,
-		IgnoreFile:          s.IgnoreFile,
-		IncludeHidden:       s.IncludeHidden,
-		IsDuplicateFuncName: s.DeduplicationFuncName,
-		Prune:               s.Prune,
+		IgnoreExtensions:     strings.Split(s.IgnoreExtensions, ","),
+		Concurrency:          s.Concurrency,
+		Recursive:            !s.NoRecursive,
+		TextSplitterOpts:     &s.TextSplitterOpts,
+		IgnoreFile:           s.IgnoreFile,
+		IncludeHidden:        s.IncludeHidden,
+		IsDuplicateFuncName:  s.DeduplicationFuncName,
+		Prune:                s.Prune,
+		ErrOnUnsupportedFile: s.ErrOnUnsupportedFile,
 	}
 
 	if s.FlowsFile != "" {

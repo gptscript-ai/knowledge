@@ -2,10 +2,13 @@ package client
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	dstypes "github.com/gptscript-ai/knowledge/pkg/datastore/types"
 	"os"
 	"path/filepath"
+
+	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader"
+	dstypes "github.com/gptscript-ai/knowledge/pkg/datastore/types"
 
 	"github.com/acorn-io/z"
 	"github.com/gptscript-ai/knowledge/pkg/datastore"
@@ -100,6 +103,11 @@ func (c *StandaloneClient) IngestPaths(ctx context.Context, datasetID string, op
 		}
 
 		_, err = c.Ingest(ctx, datasetID, file, iopts)
+
+		if err != nil && !opts.ErrOnUnsupportedFile && errors.Is(err, &documentloader.UnsupportedFileTypeError{}) {
+			err = nil
+		}
+
 		return err
 	}
 
