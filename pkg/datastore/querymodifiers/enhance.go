@@ -3,6 +3,7 @@ package querymodifiers
 import (
 	"context"
 	"encoding/json"
+
 	"github.com/gptscript-ai/knowledge/pkg/llm"
 )
 
@@ -19,7 +20,8 @@ func (s EnhanceQueryModifier) Name() string {
 var enhancePromptTpl = `The following query will be used for a vector similarity search.
 Please enhance it to improve the semantic similarity search.
 Query: "{{.query}}"
-Reply only with {"result": "<enhanced-query>"}.`
+Reply only with the JSON {"result": "<enhanced-query>"}.
+Do not include anything else in your response and don't use markdown highlighting or formatting, just raw JSON.`
 
 type enhanceResp struct {
 	Result string `json:"result"`
