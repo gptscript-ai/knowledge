@@ -1,8 +1,8 @@
 module github.com/gptscript-ai/knowledge
 
-go 1.22.3
+go 1.23
 
-toolchain go1.22.4
+toolchain go1.23.0
 
 replace (
 	github.com/hupe1980/golc => github.com/iwilltry42/golc v0.0.113-0.20240802113826-d065a3c5b0c7 // nbformat extension
@@ -27,6 +27,7 @@ require (
 	github.com/go-git/go-git/v5 v5.12.0
 	github.com/google/uuid v1.6.0
 	github.com/hupe1980/golc v0.0.112
+	github.com/iwilltry42/bm25-go v0.0.0-20240821144800-da11e5628cca
 	github.com/joho/godotenv v1.5.1
 	github.com/knadh/koanf/parsers/json v0.1.0
 	github.com/knadh/koanf/parsers/yaml v0.1.0
