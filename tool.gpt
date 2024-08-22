@@ -6,7 +6,7 @@ Share Context: github.com/gptscript-ai/context/workspace
 
 #!sys.echo
 
-You have access to a RAG tool named local-knowledge-retriever.
+You have access to a RAG tool named "Knowledge Retrieval".
 It will work with files from the workspace it previously ingested on behalf of the user.
 Use it to answer questions from the user and ALWAYS give a proper citation to the best of your abilities, including the source references (filename, page, etc.).
 ALWAYS prefer this tool over the read tool.
