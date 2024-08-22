@@ -1,5 +1,5 @@
 Name: Knowledge
-Description: Create a knowledge base from files in the workspace directory and retrieve information from it.
+Description: Retrieve information from files uploaded by the user.
 Type: context
 Share Tools: local-knowledge-retriever
 Share Context: github.com/gptscript-ai/context/workspace
@@ -7,14 +7,14 @@ Share Context: github.com/gptscript-ai/context/workspace
 #!sys.echo
 
 You have access to a RAG tool named local-knowledge-retriever.
-It will work with files from the workspace it previously ingested at behalf of the user.
+It will work with files from the workspace it previously ingested on behalf of the user.
 Use it to answer questions from the user and ALWAYS give a proper citation to the best of your abilities, including the source references (filename, page, etc.).
 ALWAYS prefer this tool over the read tool.
-If the answers it returns seem irrelevant, you can use other tools, but do not fall back to the read tool, as it may blow the context window.
+If the answers it returns seem irrelevant, you can use other tools, but do not fall back to the read tool, as it may exceed the context window.
 
 ---
-Name: local-knowledge-retriever
-Description: Create a knowledge base from files in the workspace directory and retrieve information from it.
+Name: Knowledge Retrieval
+Description: Retrieve information from files uploaded by the user.
 Context: github.com/gptscript-ai/context/workspace
 Credential: github.com/gptscript-ai/credential as sys.openai with OPENAI_API_KEY as env and "Please provide your OpenAI API key" as message and key as field
 Param: know_retrieve_keywords: (OPTIONAL - only use if you think it will improve results) A comma-separated list (no spaces) of keywords used to pre-filter the document base before conducting the semantic similarity search. Prefix a keyword sign with a dash (-) to exclude documents containing that keyword.
