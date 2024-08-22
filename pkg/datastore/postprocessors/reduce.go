@@ -2,10 +2,11 @@ package postprocessors
 
 import (
 	"context"
-	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
-	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 	"log/slog"
 	"slices"
+
+	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
+	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 )
 
 const ReducePostprocessorName = "reduce"
@@ -17,6 +18,12 @@ type ReducePostprocessor struct {
 func (s *ReducePostprocessor) Transform(ctx context.Context, response *types.RetrievalResponse) error {
 	for q, docs := range response.Responses {
 
+		topK := s.TopK
+
+		if len(docs) <= topK {
+			continue
+		}
+
 		slices.SortFunc(docs, func(i, j vs.Document) int {
 			if i.SimilarityScore > j.SimilarityScore {
 				return -1
@@ -27,9 +34,11 @@ func (s *ReducePostprocessor) Transform(ctx context.Context, response *types.Ret
 			return 0
 		})
 
-		topK := s.TopK
 		if topK > len(docs) {
 			topK = len(docs) - 1
+		}
+		if topK <= 0 {
+			continue
 		}
 
 		slog.Debug("Reducing topK", "topK", topK, "len(docs)", len(docs))
