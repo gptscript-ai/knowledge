@@ -3,35 +3,36 @@ package chromem
 import (
 	"context"
 	"fmt"
-	"github.com/google/uuid"
-	"github.com/gptscript-ai/knowledge/pkg/env"
-	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
-	"github.com/gptscript-ai/knowledge/pkg/vectorstore/errors"
-	"github.com/philippgille/chromem-go"
 	"log/slog"
 	"maps"
 	"os"
 	"path/filepath"
 	"strconv"
+
+	"github.com/google/uuid"
+	"github.com/gptscript-ai/knowledge/pkg/env"
+	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
+	"github.com/gptscript-ai/knowledge/pkg/vectorstore/errors"
+	"github.com/philippgille/chromem-go"
 )
 
 // VsChromemEmbeddingParallelThread can be set as an environment variable to control the number of parallel API calls to create embedding for documents. Default is 100
 const VsChromemEmbeddingParallelThread = "VS_CHROMEM_EMBEDDING_PARALLEL_THREAD"
 
-type Store struct {
+type ChromemStore struct {
 	db            *chromem.DB
 	embeddingFunc chromem.EmbeddingFunc
 }
 
 // New creates a new Chromem vector store.
-func New(db *chromem.DB, embeddingFunc chromem.EmbeddingFunc) *Store {
-	return &Store{
+func New(db *chromem.DB, embeddingFunc chromem.EmbeddingFunc) *ChromemStore {
+	return &ChromemStore{
 		db:            db,
 		embeddingFunc: embeddingFunc,
 	}
 }
 
-func (s *Store) CreateCollection(_ context.Context, name string) error {
+func (s *ChromemStore) CreateCollection(_ context.Context, name string) error {
 	_, err := s.db.CreateCollection(name, nil, s.embeddingFunc)
 	if err != nil {
 		return err
@@ -40,7 +41,7 @@ func (s *Store) CreateCollection(_ context.Context, name string) error {
 	return nil
 }
 
-func (s *Store) AddDocuments(ctx context.Context, docs []vs.Document, collection string) ([]string, error) {
+func (s *ChromemStore) AddDocuments(ctx context.Context, docs []vs.Document, collection string) ([]string, error) {
 	ids := make([]string, len(docs))
 	chromemDocs := make([]chromem.Document, len(docs))
 	for docIdx, doc := range docs {
@@ -107,7 +108,7 @@ func convertStringMapToAnyMap(m map[string]string) map[string]any {
 	return convertedMap
 }
 
-func (s *Store) SimilaritySearch(ctx context.Context, query string, numDocuments int, collection string, where map[string]string, whereDocument []chromem.WhereDocument) ([]vs.Document, error) {
+func (s *ChromemStore) SimilaritySearch(ctx context.Context, query string, numDocuments int, collection string, where map[string]string, whereDocument []chromem.WhereDocument) ([]vs.Document, error) {
 	col := s.db.GetCollection(collection, s.embeddingFunc)
 	if col == nil {
 		return nil, fmt.Errorf("%w: %q", errors.ErrCollectionNotFound, collection)
@@ -147,11 +148,11 @@ func (s *Store) SimilaritySearch(ctx context.Context, query string, numDocuments
 	return sDocs, nil
 }
 
-func (s *Store) RemoveCollection(_ context.Context, collection string) error {
+func (s *ChromemStore) RemoveCollection(_ context.Context, collection string) error {
 	return s.db.DeleteCollection(collection)
 }
 
-func (s *Store) RemoveDocument(ctx context.Context, documentID string, collection string, where map[string]string, whereDocument []chromem.WhereDocument) error {
+func (s *ChromemStore) RemoveDocument(ctx context.Context, documentID string, collection string, where map[string]string, whereDocument []chromem.WhereDocument) error {
 	col := s.db.GetCollection(collection, s.embeddingFunc)
 	if col == nil {
 		return fmt.Errorf("%w: %q", errors.ErrCollectionNotFound, collection)
@@ -159,7 +160,7 @@ func (s *Store) RemoveDocument(ctx context.Context, documentID string, collectio
 	return col.Delete(ctx, where, whereDocument, documentID)
 }
 
-func (s *Store) ImportCollectionsFromFile(ctx context.Context, path string, collections ...string) error {
+func (s *ChromemStore) ImportCollectionsFromFile(ctx context.Context, path string, collections ...string) error {
 	finfo, err := os.Stat(path)
 	if err != nil {
 		return fmt.Errorf("couldn't stat file %q: %w", path, err)
@@ -171,7 +172,7 @@ func (s *Store) ImportCollectionsFromFile(ctx context.Context, path string, coll
 	return s.db.ImportFromFile(path, "", collections...)
 }
 
-func (s *Store) ExportCollectionsToFile(ctx context.Context, path string, collections ...string) error {
+func (s *ChromemStore) ExportCollectionsToFile(ctx context.Context, path string, collections ...string) error {
 	finfo, err := os.Stat(path)
 	if err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("couldn't stat file %q: %w", path, err)
@@ -181,4 +182,27 @@ func (s *Store) ExportCollectionsToFile(ctx context.Context, path string, collec
 	}
 	slog.Debug("Exporting collections to file", "path", path)
 	return s.db.ExportToFile(path, false, "", collections...)
+}
+
+func (s *ChromemStore) GetDocuments(ctx context.Context, collection string, where map[string]string, whereDocument []chromem.WhereDocument) ([]vs.Document, error) {
+	col := s.db.GetCollection(collection, s.embeddingFunc)
+	if col == nil {
+		return nil, fmt.Errorf("%w: %q", errors.ErrCollectionNotFound, collection)
+	}
+
+	cdocs, err := col.GetDocuments(ctx, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var docs []vs.Document
+	for _, doc := range cdocs {
+		docs = append(docs, vs.Document{
+			ID:       doc.ID,
+			Metadata: convertStringMapToAnyMap(doc.Metadata),
+			Content:  doc.Content,
+		})
+	}
+
+	return docs, nil
 }

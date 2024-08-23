@@ -25,10 +25,10 @@ type BM25Postprocessor struct {
 func (c *BM25Postprocessor) Transform(ctx context.Context, response *types.RetrievalResponse) error {
 
 	if c.K1 == 0 {
-		c.K1 = 1.2
+		c.K1 = bm25.DefaultK1
 	}
 	if c.B == 0 {
-		c.B = 0.75
+		c.B = bm25.DefaultB
 	}
 
 	var err error
@@ -64,7 +64,7 @@ func (c *BM25Postprocessor) transform(ctx context.Context, query string, docs []
 
 	// Sort by combined score
 	sort.Slice(docs, func(i, j int) bool {
-		return docs[i].Metadata["combinedScore"].(float64) > docs[i].Metadata["bm25Score"].(float64)
+		return docs[i].Metadata["combinedScore"].(float64) > docs[i].Metadata["combinedScore"].(float64)
 	})
 
 	return docs[:c.TopN-1], nil
