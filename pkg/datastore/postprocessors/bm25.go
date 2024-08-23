@@ -4,11 +4,10 @@ import (
 	"context"
 	"log/slog"
 	"sort"
-	"strings"
 
+	"github.com/gptscript-ai/knowledge/pkg/datastore/lib/bm25"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
-	"github.com/iwilltry42/bm25-go/bm25"
 )
 
 const BM25PostprocessorName = "bm25"
@@ -19,12 +18,14 @@ type BM25Postprocessor struct {
 
 	K1 float64 // K1 should be between 1.2 and 2 - controls term frequency saturation
 	B  float64 // B should be around 0.75 - controls the influence of document length normalization
+
+	CleanStopWords []string // list of stopwords to remove from the documents - if empty, no stopwords are removed, if only "auto" is present, the language is detected automatically
 }
 
 func (c *BM25Postprocessor) Transform(ctx context.Context, response *types.RetrievalResponse) error {
 
 	if c.K1 == 0 {
-		c.K1 = 1.5
+		c.K1 = 1.2
 	}
 	if c.B == 0 {
 		c.B = 0.75
@@ -44,19 +45,12 @@ func (c *BM25Postprocessor) transform(ctx context.Context, query string, docs []
 	slog.Debug("BM25", "topN", c.TopN, "numDocs", len(docs), "sparseWeight", c.SparseWeight)
 
 	corpus := make([]string, len(docs))
-	// TODO: remove stopwords, etc.
 	for i, doc := range docs {
-		corpus[i] = doc.Content
+		content := doc.Content
+		corpus[i] = bm25.CleanStopwords(content, doc.ID, c.CleanStopWords)
 	}
 
-	whiteSpaceTokenizer := func(s string) []string { return strings.Split(s, " ") }
-
-	okapi, err := bm25.NewBM25Okapi(corpus, whiteSpaceTokenizer, c.K1, c.B, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	scores, err := okapi.GetScores(strings.Split(query, " "))
+	scores, err := bm25.Score(corpus, query, c.K1, c.B)
 	if err != nil {
 		return nil, err
 	}

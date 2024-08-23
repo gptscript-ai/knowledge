@@ -11,3 +11,6 @@ flows:
           options:
             topN: 10
             sparseWeight: 0.5
+            cleanStopWords:
+              - en
+              - de
