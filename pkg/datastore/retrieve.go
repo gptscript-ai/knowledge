@@ -2,9 +2,10 @@ package datastore
 
 import (
 	"context"
+	"log/slog"
+
 	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
 	"github.com/philippgille/chromem-go"
-	"log/slog"
 
 	"github.com/gptscript-ai/knowledge/pkg/datastore/defaults"
 	"github.com/gptscript-ai/knowledge/pkg/flows"

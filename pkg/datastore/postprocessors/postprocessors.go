@@ -47,6 +47,7 @@ var PostprocessorMap = map[string]Postprocessor{
 	ContentFilterPostprocessorName:               &ContentFilterPostprocessor{},
 	CohereRerankPostprocessorName:                &CohereRerankPostprocessor{},
 	ReducePostprocessorName:                      &ReducePostprocessor{},
+	BM25PostprocessorName:                        &BM25Postprocessor{},
 }
 
 func GetPostprocessor(name string) (Postprocessor, error) {

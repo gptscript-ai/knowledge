@@ -201,8 +201,10 @@ github.com/hupe1980/go-tiktoken v0.0.9 h1:qNs/XGTe7UHDUaFkU+jAPbhGzyi9BusOpxrNC8
 github.com/hupe1980/go-tiktoken v0.0.9/go.mod h1:NME6d8hrE+Jo+kLUZHhXShYV8e40hYkm4BbSLQKtvAo=
 github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
-github.com/iwilltry42/chromem-go v0.0.0-20240814135107-86b4f217a8e8 h1:Tob2qUvv7zEeVNDb4kNhAmboaj0zUYUlZ+fcJg/ru14=
-github.com/iwilltry42/chromem-go v0.0.0-20240814135107-86b4f217a8e8/go.mod h1:hTd+wGEm/fFPQl7ilfCwQXkgEUxceYh86iIdoKMolPo=
+github.com/iwilltry42/bm25-go v0.0.0-20240821172942-fe039bf617dd h1:jXAPsEoBgiKLA3vS/2uZn7Ig5r0Kg2sR1QNP4ZBqDcM=
+github.com/iwilltry42/bm25-go v0.0.0-20240821172942-fe039bf617dd/go.mod h1:AmA5WoRtPljzo03tlOVOoLKPh9doUNUQrtrHaq5VkUg=
+github.com/iwilltry42/chromem-go v0.0.0-20240823164228-4be5cec7a886 h1:t68xfZ3kFJbFqwfJgEdfa1rlxZ2KVyVwlals64F0vhA=
+github.com/iwilltry42/chromem-go v0.0.0-20240823164228-4be5cec7a886/go.mod h1:hTd+wGEm/fFPQl7ilfCwQXkgEUxceYh86iIdoKMolPo=
 github.com/iwilltry42/golc v0.0.113-0.20240802113826-d065a3c5b0c7 h1:2AzzbKVW1iP2F+ovqJKq801l6tgxYPt9m2zFKbs+i/Y=
 github.com/iwilltry42/golc v0.0.113-0.20240802113826-d065a3c5b0c7/go.mod h1:w692KzkSTSvXROfyu+jYauNXB4YaL1s8zHPDMnNW88o=
 github.com/iwilltry42/pdf v0.0.0-20240517145113-99fbaebc5dd3 h1:rCVwFT7Q+HxpijWfSzKTYX4pCDMS7oy/I/WzU30VXyI=
@@ -216,6 +218,8 @@ github.com/jinzhu/inflection v1.0.0 h1:K317FqzuhWc8YvSVlFMCCUb36O/S9MCKRDI7QkRKD
 github.com/jinzhu/inflection v1.0.0/go.mod h1:h+uFLlag+Qp1Va5pdKtLDYj+kHp5pxUVkryuEj+Srlc=
 github.com/jinzhu/now v1.1.5 h1:/o9tlHleP7gOFmsnYNz3RGnqzefHA47wQpKrrdTIwXQ=
 github.com/jinzhu/now v1.1.5/go.mod h1:d3SSVoowX0Lcu0IBviAWJpolVfI5UJVZZ7cO71lE/z8=
+github.com/jmcarbo/stopwords v1.1.9 h1:168Y2CZvou72GD71tUtlwN686qC6e4JpuazmuBefiUo=
+github.com/jmcarbo/stopwords v1.1.9/go.mod h1:+jK78PnfH7/GENpGGDK1kVKvDsQEJyD+QrXIKzTG++g=
 github.com/joho/godotenv v1.5.1 h1:7eLL/+HRGLY0ldzfGMeQkb7vMd0as4CfYvUVzLqw0N0=
 github.com/joho/godotenv v1.5.1/go.mod h1:f4LDr5Voq0i2e/R5DDNOoa2zzDfwtkZa6DnEwAbqwq4=
 github.com/josharian/intern v1.0.0 h1:vlS4z54oSdjm0bgjRigI+G1HpF+tI+9rE5LLzOg8HmY=
