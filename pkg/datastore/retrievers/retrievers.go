@@ -3,9 +3,10 @@ package retrievers
 import (
 	"context"
 	"fmt"
+	"log/slog"
+
 	"github.com/gptscript-ai/knowledge/pkg/datastore/store"
 	"github.com/philippgille/chromem-go"
-	"log/slog"
 
 	"github.com/gptscript-ai/knowledge/pkg/datastore/defaults"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"

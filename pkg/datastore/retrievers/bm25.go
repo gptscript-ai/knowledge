@@ -15,7 +15,12 @@ import (
 const BM25RetrieverName = postprocessors.BM25PostprocessorName
 
 type BM25Retriever struct {
-	postprocessors.BM25Postprocessor `json:",inline" mapstructure:",squash" yaml:",squash,inline"`
+	TopN int
+
+	K1 float64 // K1 should be between 1.2 and 2 - controls term frequency saturation
+	B  float64 // B should be around 0.75 - controls the influence of document length normalization
+
+	CleanStopWords []string // list of stopwords to remove from the documents - if empty, no stopwords are removed, if only "auto" is present, the language is detected automatically
 }
 
 func (r *BM25Retriever) Name() string {
@@ -42,11 +47,11 @@ func (r *BM25Retriever) Retrieve(ctx context.Context, store store.Store, query s
 	}
 
 	for i, doc := range docs {
-		doc.Metadata["bm25Score"] = scores[i]
+		doc.SimilarityScore = float32(scores[i])
 	}
 
 	sort.Slice(docs, func(i, j int) bool {
-		return docs[i].Metadata["bm25Score"].(float64) > docs[i].Metadata["bm25Score"].(float64)
+		return docs[i].SimilarityScore > docs[i].SimilarityScore
 	})
 
 	return docs[:r.TopN-1], nil
