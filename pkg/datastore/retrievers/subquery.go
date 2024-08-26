@@ -4,12 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
+	"strings"
+
 	"github.com/gptscript-ai/knowledge/pkg/datastore/store"
 	"github.com/gptscript-ai/knowledge/pkg/llm"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 	"github.com/philippgille/chromem-go"
-	"log/slog"
-	"strings"
 )
 
 const SubqueryRetrieverName = "subquery"
@@ -20,8 +21,12 @@ type SubqueryRetriever struct {
 	TopK  int
 }
 
-func (s SubqueryRetriever) Name() string {
+func (s *SubqueryRetriever) Name() string {
 	return SubqueryRetrieverName
+}
+
+func (s *SubqueryRetriever) DecodeConfig(cfg map[string]any) error {
+	return DefaultConfigDecoder(s, cfg)
 }
 
 var subqueryPrompt = `The following query will be used for a vector similarity search.
@@ -38,7 +43,7 @@ type subqueryResp struct {
 	Results []string `json:"results"`
 }
 
-func (s SubqueryRetriever) Retrieve(ctx context.Context, store store.Store, query string, datasetIDs []string, where map[string]string, whereDocument []chromem.WhereDocument) ([]vs.Document, error) {
+func (s *SubqueryRetriever) Retrieve(ctx context.Context, store store.Store, query string, datasetIDs []string, where map[string]string, whereDocument []chromem.WhereDocument) ([]vs.Document, error) {
 
 	if len(datasetIDs) > 1 {
 		return nil, fmt.Errorf("basic retriever does not support querying multiple datasets")

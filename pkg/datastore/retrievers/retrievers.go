@@ -6,6 +6,8 @@ import (
 	"log/slog"
 
 	"github.com/gptscript-ai/knowledge/pkg/datastore/store"
+	"github.com/gptscript-ai/knowledge/pkg/output"
+	"github.com/mitchellh/mapstructure"
 	"github.com/philippgille/chromem-go"
 
 	"github.com/gptscript-ai/knowledge/pkg/datastore/defaults"
@@ -15,6 +17,7 @@ import (
 type Retriever interface {
 	Retrieve(ctx context.Context, store store.Store, query string, datasetIDs []string, where map[string]string, whereDocument []chromem.WhereDocument) ([]vs.Document, error)
 	Name() string
+	DecodeConfig(cfg map[string]any) error
 }
 
 func GetRetriever(name string) (Retriever, error) {
@@ -25,9 +28,27 @@ func GetRetriever(name string) (Retriever, error) {
 		return &SubqueryRetriever{Limit: 3, TopK: 3}, nil
 	case RoutingRetrieverName:
 		return &RoutingRetriever{TopK: defaults.TopK}, nil
+	case MergingRetrieverName:
+		return &MergingRetriever{TopK: defaults.TopK}, nil
+	case BM25RetrieverName:
+		return &BM25Retriever{TopN: defaults.TopK, K1: 1.2, B: 0.75}, nil
 	default:
 		return nil, fmt.Errorf("unknown retriever %q", name)
 	}
+}
+
+func DefaultConfigDecoder(ret Retriever, cfg map[string]any) error {
+	if ret == nil {
+		return fmt.Errorf("retriever is nil")
+	}
+	if len(cfg) == 0 {
+		return nil
+	}
+	if err := mapstructure.Decode(cfg, &ret); err != nil {
+		return fmt.Errorf("failed to decode retriever configuration: %w", err)
+	}
+	slog.Debug("Retriever custom configuration", "name", ret.Name(), "config", output.RedactSensitive(ret))
+	return nil
 }
 
 func GetDefaultRetriever() Retriever {
@@ -42,6 +63,10 @@ type BasicRetriever struct {
 
 func (r *BasicRetriever) Name() string {
 	return BasicRetrieverName
+}
+
+func (r *BasicRetriever) DecodeConfig(cfg map[string]any) error {
+	return DefaultConfigDecoder(r, cfg)
 }
 
 func (r *BasicRetriever) Retrieve(ctx context.Context, store store.Store, query string, datasetIDs []string, where map[string]string, whereDocument []chromem.WhereDocument) ([]vs.Document, error) {

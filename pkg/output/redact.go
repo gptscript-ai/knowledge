@@ -37,6 +37,11 @@ func RedactSensitive(s any, fields ...string) any {
 		fieldType := v.Type().Field(i)
 		fieldName := strings.ToLower(fieldType.Name)
 
+		// Skip unexported fields
+		if !field.CanSet() {
+			continue
+		}
+
 		// Handle nested structs recursively
 		if field.Kind() == reflect.Struct {
 			redactedStruct.Field(i).Set(reflect.ValueOf(RedactSensitive(field.Interface())))

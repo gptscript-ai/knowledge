@@ -4,12 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
+
 	"github.com/gptscript-ai/knowledge/pkg/datastore/defaults"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/store"
 	"github.com/gptscript-ai/knowledge/pkg/llm"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 	"github.com/philippgille/chromem-go"
-	"log/slog"
 )
 
 const RoutingRetrieverName = "routing"
@@ -22,6 +23,10 @@ type RoutingRetriever struct {
 
 func (r *RoutingRetriever) Name() string {
 	return RoutingRetrieverName
+}
+
+func (r *RoutingRetriever) DecodeConfig(cfg map[string]any) error {
+	return DefaultConfigDecoder(r, cfg)
 }
 
 var routingPromptTpl = `The following query will be used for a vector similarity search.
