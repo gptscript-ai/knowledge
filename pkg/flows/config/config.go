@@ -285,7 +285,7 @@ func (r *RetrievalFlowConfig) AsRetrievalFlow() (*flows.RetrievalFlow, error) {
 			return nil, err
 		}
 		if len(r.Retriever.Options) > 0 {
-			if err := mapstructure.Decode(r.Retriever.Options, &ret); err != nil {
+			if err := ret.DecodeConfig(r.Retriever.Options); err != nil {
 				return nil, fmt.Errorf("failed to decode retriever configuration: %w", err)
 			}
 			slog.Debug("Retriever custom configuration", "name", r.Retriever.Name, "config", output.RedactSensitive(ret))

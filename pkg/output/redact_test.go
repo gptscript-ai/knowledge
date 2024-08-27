@@ -1,6 +1,7 @@
 package output
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -12,13 +13,12 @@ func TestRedactSensitiveWithNoCustomFields(t *testing.T) {
 		Username string
 	}{"secret", "user"}
 
-	redacted := RedactSensitive(original).(struct {
-		ApiKey   string
-		Username string
-	})
+	redacted := RedactSensitive(original)
 
-	assert.Equal(t, "REDACTED", redacted.ApiKey)
-	assert.Equal(t, "user", redacted.Username)
+	v := reflect.ValueOf(redacted)
+
+	assert.Equal(t, "REDACTED", v.FieldByName("ApiKey").String())
+	assert.Equal(t, "user", v.FieldByName("Username").String())
 }
 
 func TestRedactSensitiveWithCustomFields(t *testing.T) {
@@ -28,15 +28,13 @@ func TestRedactSensitiveWithCustomFields(t *testing.T) {
 		Bar  string
 	}{"some", "weird", "fields"}
 
-	redacted := RedactSensitive(original, "spam").(struct {
-		Foo  string
-		Spam string
-		Bar  string
-	})
+	redacted := RedactSensitive(original, "spam")
 
-	assert.Equal(t, "some", redacted.Foo)
-	assert.Equal(t, "REDACTED", redacted.Spam)
-	assert.Equal(t, "fields", redacted.Bar)
+	v := reflect.ValueOf(redacted)
+
+	assert.Equal(t, "some", v.FieldByName("Foo").String())
+	assert.Equal(t, "REDACTED", v.FieldByName("Spam").String())
+	assert.Equal(t, "fields", v.FieldByName("Bar").String())
 }
 
 func TestRedactSensitiveWithUnsupportedType(t *testing.T) {
@@ -51,13 +49,12 @@ func TestRedactSensitiveWithPointerToStruct(t *testing.T) {
 		Info  string
 	}{"token", "info"}
 
-	redacted := RedactSensitive(original).(struct {
-		Token string
-		Info  string
-	})
+	redacted := RedactSensitive(original)
 
-	assert.Equal(t, "REDACTED", redacted.Token)
-	assert.Equal(t, "info", redacted.Info)
+	v := reflect.ValueOf(redacted)
+
+	assert.Equal(t, "REDACTED", v.FieldByName("Token").String())
+	assert.Equal(t, "info", v.FieldByName("Info").String())
 }
 
 func TestRedactSensitiveWithNestedStruct(t *testing.T) {
@@ -68,13 +65,24 @@ func TestRedactSensitiveWithNestedStruct(t *testing.T) {
 		Detail string
 	}{struct{ Password string }{"pass"}, "detail"}
 
-	redacted := RedactSensitive(original).(struct {
-		Credentials struct {
-			Password string
-		}
-		Detail string
-	})
+	redacted := RedactSensitive(original)
 
-	assert.Equal(t, "REDACTED", redacted.Credentials.Password)
-	assert.Equal(t, "detail", redacted.Detail)
+	v := reflect.ValueOf(redacted)
+
+	assert.Equal(t, "REDACTED", v.FieldByName("Credentials").FieldByName("Password").String())
+	assert.Equal(t, "detail", v.FieldByName("Detail").String())
+}
+
+func TestRedactSensitiveUnexportedField(t *testing.T) {
+	original := struct {
+		Password string
+		secret   string
+	}{"pass", "secret"}
+
+	redacted := RedactSensitive(original)
+
+	v := reflect.ValueOf(redacted)
+
+	assert.Equal(t, "REDACTED", v.FieldByName("Password").String())
+	assert.Equal(t, "", v.FieldByName("secret").String())
 }

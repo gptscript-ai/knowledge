@@ -3,7 +3,7 @@ package retrievers
 import (
 	"context"
 	"log/slog"
-	"sort"
+	"slices"
 
 	"github.com/gptscript-ai/knowledge/pkg/datastore/lib/bm25"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/postprocessors"
@@ -26,6 +26,11 @@ type BM25Retriever struct {
 func (r *BM25Retriever) Name() string {
 	return BM25RetrieverName
 }
+
+func (r *BM25Retriever) DecodeConfig(cfg map[string]any) error {
+	return DefaultConfigDecoder(r, cfg)
+}
+
 func (r *BM25Retriever) Retrieve(ctx context.Context, store store.Store, query string, datasetIDs []string, where map[string]string, whereDocument []chromem.WhereDocument) ([]vs.Document, error) {
 	log := slog.With("component", "BM25Retriever")
 
@@ -46,12 +51,18 @@ func (r *BM25Retriever) Retrieve(ctx context.Context, store store.Store, query s
 		return nil, err
 	}
 
-	for i, doc := range docs {
-		doc.SimilarityScore = float32(scores[i])
+	for i, _ := range docs {
+		docs[i].SimilarityScore = float32(scores[i])
 	}
 
-	sort.Slice(docs, func(i, j int) bool {
-		return docs[i].SimilarityScore > docs[i].SimilarityScore
+	slices.SortFunc(docs, func(i, j vs.Document) int {
+		if i.SimilarityScore > j.SimilarityScore {
+			return -1
+		}
+		if i.SimilarityScore < j.SimilarityScore {
+			return 1
+		}
+		return 0
 	})
 
 	return docs[:r.TopN-1], nil
