@@ -77,3 +77,11 @@ Note: The examples in the `examples/` directory expect the `knowledge` binary to
 ```bash
 gptscript examples/client.gpt
 ```
+
+## Choosing an Embedding Model
+
+**! Important !**
+
+The same embedding model must be used for both ingestion and retrieval.
+
+Checkout the MTEB Leaderboard: https://huggingface.co/spaces/mteb/leaderboard
