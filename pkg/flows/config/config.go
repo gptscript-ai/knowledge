@@ -299,9 +299,19 @@ func (r *RetrievalFlowConfig) AsRetrievalFlow() (*flows.RetrievalFlow, error) {
 			if err != nil {
 				return nil, err
 			}
+
 			if len(pp.Options) > 0 {
-				if err := mapstructure.Decode(pp.Options, &postprocessor); err != nil {
-					return nil, fmt.Errorf("failed to decode postprocessor configuration: %w", err)
+				// if it's a transformer wrapper, call decode
+				if transformerWrapper, ok := postprocessor.(*postprocessors.TransformerWrapper); ok {
+					if err := transformerWrapper.Decode(pp.Options); err != nil {
+						return nil, fmt.Errorf("failed to decode postprocessor configuration: %w", err)
+					}
+					postprocessor = transformerWrapper
+				} else {
+
+					if err := mapstructure.Decode(pp.Options, &postprocessor); err != nil {
+						return nil, fmt.Errorf("failed to decode postprocessor configuration: %w", err)
+					}
 				}
 				slog.Debug("Postprocessor custom configuration", "name", pp.Name, "config", output.RedactSensitive(postprocessor))
 			}

@@ -10,6 +10,7 @@ var TransformerMap = map[string]types.DocumentTransformer{
 	ExtraMetadataName:               &ExtraMetadata{},
 	FilterMarkdownDocsNoContentName: &FilterMarkdownDocsNoContent{},
 	KeywordExtractorName:            &KeywordExtractor{},
+	MetadataManipulatorName:         &MetadataManipulator{},
 }
 
 func GetTransformer(name string) (types.DocumentTransformer, error) {
