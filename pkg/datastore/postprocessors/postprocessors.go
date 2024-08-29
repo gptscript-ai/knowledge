@@ -7,6 +7,7 @@ import (
 
 	"github.com/gptscript-ai/knowledge/pkg/datastore/transformers"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
+	"github.com/mitchellh/mapstructure"
 )
 
 // Postprocessor is similar to types.DocumentTransformer, but can take into account the retrieval query
@@ -16,7 +17,7 @@ type Postprocessor interface {
 }
 
 type TransformerWrapper struct {
-	types.DocumentTransformer
+	DocumentTransformer types.DocumentTransformer
 }
 
 func NewTransformerWrapper(transformer types.DocumentTransformer) *TransformerWrapper {
@@ -38,10 +39,24 @@ func (t *TransformerWrapper) Name() string {
 	return t.DocumentTransformer.Name()
 }
 
+func (t *TransformerWrapper) Decode(cfg map[string]any) error {
+	transformerCfg, err := transformers.GetTransformer(t.Name())
+	if err != nil {
+		return err
+	}
+	err = mapstructure.Decode(cfg, &transformerCfg)
+	if err != nil {
+		return fmt.Errorf("failed to decode transformer configuration: %w", err)
+	}
+	t.DocumentTransformer = transformerCfg
+	return nil
+}
+
 var PostprocessorMap = map[string]Postprocessor{
 	transformers.ExtraMetadataName:               NewTransformerWrapper(&transformers.ExtraMetadata{}),
 	transformers.KeywordExtractorName:            NewTransformerWrapper(&transformers.KeywordExtractor{}),
 	transformers.FilterMarkdownDocsNoContentName: NewTransformerWrapper(&transformers.FilterMarkdownDocsNoContent{}),
+	transformers.MetadataManipulatorName:         NewTransformerWrapper(&transformers.MetadataManipulator{}),
 	SimilarityPostprocessorName:                  &SimilarityPostprocessor{},
 	ContentSubstringFilterPostprocessorName:      &ContentSubstringFilterPostprocessor{},
 	ContentFilterPostprocessorName:               &ContentFilterPostprocessor{},
