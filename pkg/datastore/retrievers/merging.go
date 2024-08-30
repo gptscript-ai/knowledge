@@ -62,6 +62,8 @@ func (r *MergingRetriever) Retrieve(ctx context.Context, store store.Store, quer
 		}
 	}
 
+	slog.Debug("Retrieving documents from merging retriever", "query", query, "datasetIDs", datasetIDs, "where", where, "whereDocument", whereDocument)
+
 	var resultDocs []vs.Document
 	for ri, retriever := range r.Retrievers {
 		log.Debug("Retrieving documents from retriever", "retriever", retriever.Name)
@@ -70,6 +72,8 @@ func (r *MergingRetriever) Retrieve(ctx context.Context, store store.Store, quer
 			log.Error("Failed to retrieve documents from retriever", "retriever", retriever.Name, "error", err)
 			return nil, err
 		}
+
+		slog.Debug("Retrieved documents from retriever", "retriever", retriever.Name, "numDocs", len(retrievedDocs))
 
 		min, max := scores.FindMinMaxScores(retrievedDocs)
 
@@ -108,5 +112,16 @@ func (r *MergingRetriever) Retrieve(ctx context.Context, store store.Store, quer
 		return 0
 	})
 
-	return resultDocs[:r.TopK-1], nil
+	topK := r.TopK
+	if len(resultDocs) < topK {
+		topK = len(resultDocs)
+	}
+
+	slog.Debug("MergingRetriever", "topK", topK, "numDocs", len(resultDocs))
+
+	if len(resultDocs) == 0 {
+		return nil, nil
+	}
+
+	return resultDocs[:topK], nil
 }

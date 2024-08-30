@@ -35,13 +35,13 @@ func (s *ReducePostprocessor) Transform(ctx context.Context, response *types.Ret
 		})
 
 		if topK > len(docs) {
-			topK = len(docs) - 1
+			topK = len(docs)
 		}
 		if topK <= 0 {
 			continue
 		}
 
-		slog.Debug("Reducing topK", "topK", topK, "len(docs)", len(docs))
+		slog.Info("Reducing topK", "topK", topK, "len(docs)", len(docs))
 
 		response.Responses[q] = docs[:topK]
 	}
