@@ -9,10 +9,9 @@ Share Context: Knowledge Retrieval Context with *
 You have access to a RAG tool named "Knowledge Retrieval".
 It will work with files previously uploaded by the user.
 Use it to answer questions from the user.
+Only consider this tool if the knowledge from your context doesn't already hold the answer to the user query.
 Give citations or source references only if asked for it and that doesn't conflict with any other instructions you've received in your system prompt.
-ALWAYS prefer this tool over the read tool.
-If the answers that the knowledge tool returns seem irrelevant, use another tool, but not the read tool.
-Only consider this tool if the knowledge from your context doesn't already hold the answer.
+If the answers that the knowledge tool returns seem irrelevant, you may use another tool.
 
 ---
 Name: Knowledge Retrieval
@@ -40,7 +39,7 @@ Context: github.com/iwilltry42/gptscript-context/last-queries@fe1ca1b
 
 The user has put in the following message: "${INPUT}".
 Your task is to ensure that the input is good enough to be used as a query for the knowledge tool, i.e. good for a semantic similarity search.
-The input is good enough, if it contains keywords, names, entities, etc. that are likely to be found in the knowledge base.
+The input is good enough if it contains keywords, names, entities, etc. that are likely to be found in the knowledge base.
 If you think the input is a follow-up question or in anyway referring to an earlier message, then adjust it based on the chat history enclosed in the following <HISTORY></HISTORY> tags.
 <HISTORY>
 ${GPTSCRIPT_CONTEXT}
