@@ -67,7 +67,12 @@ func (c *BM25Postprocessor) transform(ctx context.Context, query string, docs []
 		return docs[i].Metadata["combinedScore"].(float64) > docs[i].Metadata["combinedScore"].(float64)
 	})
 
-	return docs[:c.TopN-1], nil
+	topN := c.TopN
+	if topN > len(docs) {
+		topN = len(docs)
+	}
+
+	return docs[:topN], nil
 }
 
 func (c *BM25Postprocessor) Name() string {

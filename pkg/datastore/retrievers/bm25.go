@@ -65,5 +65,11 @@ func (r *BM25Retriever) Retrieve(ctx context.Context, store store.Store, query s
 		return 0
 	})
 
-	return docs[:r.TopN-1], nil
+	topN := r.TopN
+	if topN > len(docs) {
+		topN = len(docs)
+	}
+
+	return docs[:topN-1], nil
+
 }
