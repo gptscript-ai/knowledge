@@ -6,6 +6,7 @@ import (
 	"slices"
 
 	"github.com/gptscript-ai/knowledge/pkg/datastore/lib/bm25"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/lib/scores"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/postprocessors"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/store"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
@@ -45,31 +46,23 @@ func (r *BM25Retriever) Retrieve(ctx context.Context, store store.Store, query s
 		docs = append(docs, docsDataset...)
 	}
 
-	scores, err := bm25.BM25Run(docs, query, r.K1, r.B, r.CleanStopWords)
+	bm25scores, err := bm25.BM25Run(docs, query, r.K1, r.B, r.CleanStopWords)
 	if err != nil {
 		log.Error("Failed to run BM25", "error", err)
 		return nil, err
 	}
 
 	for i, _ := range docs {
-		docs[i].SimilarityScore = float32(scores[i])
+		docs[i].SimilarityScore = float32(bm25scores[i])
 	}
 
-	slices.SortFunc(docs, func(i, j vs.Document) int {
-		if i.SimilarityScore > j.SimilarityScore {
-			return -1
-		}
-		if i.SimilarityScore < j.SimilarityScore {
-			return 1
-		}
-		return 0
-	})
+	slices.SortFunc(docs, scores.SortBySimilarityScore)
 
 	topN := r.TopN
 	if topN > len(docs) {
 		topN = len(docs)
 	}
 
-	return docs[:topN-1], nil
+	return docs[:topN], nil
 
 }

@@ -46,3 +46,13 @@ func NormalizeScore(score float32, minScore float32, maxScore float32) float32 {
 	normalizedScore := (score - minScore) / (maxScore - minScore)
 	return normalizedScore
 }
+
+func SortBySimilarityScore(i, j vs.Document) int {
+	if i.SimilarityScore > j.SimilarityScore {
+		return -1
+	}
+	if i.SimilarityScore < j.SimilarityScore {
+		return 1
+	}
+	return 0
+}
