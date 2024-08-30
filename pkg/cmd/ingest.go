@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"path"
 	"strings"
 
 	"github.com/acorn-io/z"
@@ -62,7 +63,7 @@ func (s *ClientIngest) Run(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	if !finfo.IsDir() {
+	if !finfo.IsDir() && path.Ext(filePath) != ".zip" {
 		slog.Debug("ingesting single file, setting err-on-unsupported-file to true", "file", filePath)
 		s.ErrOnUnsupportedFile = true
 	}
