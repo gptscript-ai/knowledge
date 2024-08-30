@@ -3,8 +3,9 @@ package llm
 import (
 	"context"
 	"fmt"
-	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/openai"
 	"log/slog"
+
+	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/openai"
 
 	golcmodel "github.com/hupe1980/golc/model"
 	"github.com/hupe1980/golc/model/chatmodel"

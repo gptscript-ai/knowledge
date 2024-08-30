@@ -4,16 +4,17 @@ import (
 	"archive/zip"
 	"context"
 	"fmt"
-	"github.com/gptscript-ai/knowledge/pkg/config"
-	etypes "github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/types"
-	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
-	"github.com/gptscript-ai/knowledge/pkg/output"
 	"io"
 	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/gptscript-ai/knowledge/pkg/config"
+	etypes "github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/types"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
+	"github.com/gptscript-ai/knowledge/pkg/output"
 
 	"github.com/adrg/xdg"
 	"github.com/gptscript-ai/knowledge/pkg/index"
@@ -101,7 +102,7 @@ func NewDatastore(dsn string, automigrate bool, vectorDBPath string, embeddingPr
 		return nil, fmt.Errorf("failed to create embedding function: %w", err)
 	}
 
-	slog.Info("Using embedding model provider", "provider", embeddingProvider.Name(), "config", output.RedactSensitive(embeddingProvider.Config()))
+	slog.Debug("Using embedding model provider", "provider", embeddingProvider.Name(), "config", output.RedactSensitive(embeddingProvider.Config()))
 
 	ds := &Datastore{
 		Index:                  idx,
