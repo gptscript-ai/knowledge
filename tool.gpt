@@ -2,13 +2,12 @@ Name: Knowledge
 Description: Retrieve information from files uploaded by the user.
 Type: context
 Share Tools: Knowledge Retrieval
-Share Context: github.com/gptscript-ai/context/workspace
 Share Context: Knowledge Retrieval Context with *
 
 #!sys.echo
 
 You have access to a RAG tool named "Knowledge Retrieval".
-It will work with files from the workspace it previously ingested on behalf of the user.
+It will work with files previously uploaded by the user.
 Use it to answer questions from the user.
 Give citations or source references only if asked for it and that doesn't conflict with any other instructions you've received in your system prompt.
 ALWAYS prefer this tool over the read tool.
@@ -18,7 +17,6 @@ Only consider this tool if the knowledge from your context doesn't already hold 
 ---
 Name: Knowledge Retrieval
 Description: Retrieve information from files uploaded by the user.
-Context: github.com/gptscript-ai/context/workspace
 Credential: github.com/gptscript-ai/gateway-creds as github.com/gptscript-ai/gateway
 Param: query: The query to search for in the knowledge base. It will be used for semantic similarity search, so enhance it accordingly to yield good results.
 Param: debug: (OPTIONAL) Set to "true" to enable debug mode - only use if you are explicitly asked to do so.
@@ -28,7 +26,6 @@ Param: debug: (OPTIONAL) Set to "true" to enable debug mode - only use if you ar
 ---
 Name: Knowledge Retrieval Context
 Description: Add knowledge retrieved from uploaded files to the context.
-Context: github.com/gptscript-ai/context/workspace
 Credential: github.com/gptscript-ai/gateway-creds as github.com/gptscript-ai/gateway
 Type: context
 Input Filter: QueryRelevancy
