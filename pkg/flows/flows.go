@@ -3,13 +3,14 @@ package flows
 import (
 	"context"
 	"fmt"
+	"io"
+	"log/slog"
+	"slices"
+
 	"github.com/acorn-io/z"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/store"
 	"github.com/mitchellh/mapstructure"
 	"github.com/philippgille/chromem-go"
-	"io"
-	"log/slog"
-	"slices"
 
 	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/postprocessors"
@@ -60,7 +61,10 @@ func (f *IngestionFlow) SupportsFiletype(filetype string) bool {
 
 func (f *IngestionFlow) FillDefaults(filetype string, textsplitterOpts *textsplitter.TextSplitterOpts) error {
 	if f.Load == nil {
-		f.Load = documentloader.DefaultDocLoaderFunc(filetype)
+		f.Load = documentloader.DefaultDocLoaderFunc(filetype, documentloader.DefaultDocLoaderFuncOpts{Archive: documentloader.ArchiveOpts{
+			ErrOnUnsupportedFiletype: false,
+			ErrOnFailedFile:          false,
+		}})
 	}
 	if f.Splitter == nil {
 		if textsplitterOpts == nil {

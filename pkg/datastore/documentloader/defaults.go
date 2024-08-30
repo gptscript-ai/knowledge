@@ -37,7 +37,16 @@ func (e *UnsupportedFileTypeError) Is(err error) bool {
 	return ok
 }
 
-func DefaultDocLoaderFunc(filetype string) func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
+type DefaultDocLoaderFuncOpts struct {
+	Archive ArchiveOpts
+}
+
+type ArchiveOpts struct {
+	ErrOnUnsupportedFiletype bool
+	ErrOnFailedFile          bool
+}
+
+func DefaultDocLoaderFunc(filetype string, opts DefaultDocLoaderFuncOpts) func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
 	switch filetype {
 	case ".pdf", "application/pdf":
 		return func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
@@ -143,14 +152,21 @@ func DefaultDocLoaderFunc(filetype string) func(ctx context.Context, reader io.R
 				if err != nil {
 					return nil, err
 				}
-				dlf := DefaultDocLoaderFunc(ft)
+				dlf := DefaultDocLoaderFunc(ft, opts)
 				if dlf == nil {
-					slog.Error("Unsupported file type in ZIP", "type", ft, "filename", f.Name)
-					return nil, fmt.Errorf("%w (file %q) in ZIP", &UnsupportedFileTypeError{ft}, f.Name)
+					slog.Debug("Unsupported file type in ZIP", "type", ft, "filename", f.Name)
+					if opts.Archive.ErrOnUnsupportedFiletype {
+						return nil, fmt.Errorf("%w (file %q) in ZIP", &UnsupportedFileTypeError{ft}, f.Name)
+					}
+					continue
 				}
 				docs, err := dlf(ctx, bytes.NewReader(content))
 				if err != nil {
-					return nil, err
+					if opts.Archive.ErrOnFailedFile {
+						return nil, fmt.Errorf("failed to load file %q from ZIP: %w", f.Name, err)
+					}
+					slog.Warn("Failed to load file from ZIP", "file", f.Name, "error", err)
+					continue
 				}
 				result = append(result, docs...)
 			}
@@ -184,14 +200,21 @@ func DefaultDocLoaderFunc(filetype string) func(ctx context.Context, reader io.R
 				if err != nil {
 					return nil, err
 				}
-				dlf := DefaultDocLoaderFunc(ft)
+				dlf := DefaultDocLoaderFunc(ft, opts)
 				if dlf == nil {
-					slog.Error("Unsupported file type in BZ2", "type", ft, "filename", header.Name)
-					return nil, fmt.Errorf("unsupported file type %q (file %q) in BZ2", header.Name, ft)
+					slog.Debug("Unsupported file type in BZ2", "type", ft, "filename", header.Name)
+					if opts.Archive.ErrOnUnsupportedFiletype {
+						return nil, fmt.Errorf("unsupported file type %q (file %q) in BZ2", header.Name, ft)
+					}
+					continue
 				}
 				docs, err := dlf(ctx, bytes.NewReader(content))
 				if err != nil {
-					return nil, err
+					if opts.Archive.ErrOnFailedFile {
+						return nil, err
+					}
+					slog.Warn("Failed to load file from BZ2", "file", header.Name, "error", err)
+					continue
 				}
 				result = append(result, docs...)
 			}
