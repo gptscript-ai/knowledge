@@ -5,8 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"slices"
 	"strings"
 
+	"github.com/gptscript-ai/knowledge/pkg/datastore/defaults"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/lib/scores"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/store"
 	"github.com/gptscript-ai/knowledge/pkg/llm"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
@@ -45,15 +48,8 @@ type subqueryResp struct {
 
 func (s *SubqueryRetriever) Retrieve(ctx context.Context, store store.Store, query string, datasetIDs []string, where map[string]string, whereDocument []chromem.WhereDocument) ([]vs.Document, error) {
 
-	if len(datasetIDs) > 1 {
-		return nil, fmt.Errorf("basic retriever does not support querying multiple datasets")
-	}
-
-	var datasetID string
 	if len(datasetIDs) == 0 {
-		datasetID = "default"
-	} else {
-		datasetID = datasetIDs[0]
+		datasetIDs = []string{"default"}
 	}
 
 	m, err := llm.NewFromConfig(s.Model)
@@ -62,7 +58,7 @@ func (s *SubqueryRetriever) Retrieve(ctx context.Context, store store.Store, que
 	}
 
 	if s.TopK <= 0 {
-		s.TopK = 3
+		s.TopK = defaults.TopK
 	}
 
 	if s.Limit < 1 {
@@ -89,27 +85,36 @@ func (s *SubqueryRetriever) Retrieve(ctx context.Context, store store.Store, que
 	slog.Debug("SubqueryQueryRetriever generated subqueries", "queries", strings.Join(queries, " | "))
 
 	var resultDocs []vs.Document
-	for _, q := range queries {
-		docs, err := store.SimilaritySearch(ctx, q, s.TopK, datasetID, where, whereDocument)
-		if err != nil {
-			return nil, err
-		}
-		slog.Debug("SubqueryQueryRetriever retrieved documents", "query", q, "len(docs)", len(docs))
+	for _, dataset := range datasetIDs {
+		for _, q := range queries {
+			docs, err := store.SimilaritySearch(ctx, q, s.TopK, dataset, where, whereDocument)
+			if err != nil {
+				return nil, err
+			}
+			slog.Debug("SubqueryQueryRetriever retrieved documents", "query", q, "len(docs)", len(docs))
 
-	docLoop:
-		for _, doc := range docs {
-			// check if	doc is already in resultDocs and if so, update similarity score if higher
-			for i, r := range resultDocs {
-				if doc.ID == r.ID {
-					if doc.SimilarityScore > r.SimilarityScore {
-						resultDocs[i].SimilarityScore = doc.SimilarityScore
-						continue docLoop
+		docLoop:
+			for _, doc := range docs {
+				// check if	doc is already in resultDocs and if so, update similarity score if higher
+				for i, r := range resultDocs {
+					if doc.ID == r.ID {
+						if doc.SimilarityScore > r.SimilarityScore {
+							resultDocs[i].SimilarityScore = doc.SimilarityScore
+							continue docLoop
+						}
 					}
 				}
+				resultDocs = append(resultDocs, doc)
 			}
-			resultDocs = append(resultDocs, doc)
 		}
 	}
 
-	return resultDocs, nil
+	slices.SortFunc(resultDocs, scores.SortBySimilarityScore)
+
+	topK := s.TopK
+	if len(resultDocs) < topK {
+		topK = len(resultDocs)
+	}
+
+	return resultDocs[:topK], nil
 }
