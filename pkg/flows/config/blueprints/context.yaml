@@ -1,0 +1,48 @@
+flows:
+  context:
+    default: true
+    retrieval:
+      querymodifiers:
+        # Enhance
+        - name: enhance
+          options:
+            model:
+              openai:
+                apiKey: "${OPENAI_API_KEY}"
+                model: gpt-4o
+                apiType: OPEN_AI
+                baseURL: "${OPENAI_BASE_URL}"
+      retriever:
+        name: merge
+        options:
+          topK: 10
+          retrievers:
+            - name: subquery
+              weight: 0.7
+              options:
+                limit: 3 # max. 3 subqueries
+                topK: 10 # topK per search
+                model:
+                  openai:
+                    apiKey: "${OPENAI_API_KEY}"
+                    model: gpt-4o
+                    apiType: OPEN_AI
+                    baseURL: "${OPENAI_BASE_URL}"
+            - name: bm25
+              weight: 0.3
+              options:
+                topN: 10
+                k1: 1.2
+                b: 0.75
+                cleanStopWords:
+                  - auto
+      postprocessors:
+        - name: similarity
+          options:
+            threshold: 0.4
+        - name: reduce
+          options:
+            topK: 10
+
+
+
