@@ -10,7 +10,7 @@ Share Context: Knowledge Retrieval Context with *
 You have access to a RAG tool named "Knowledge Retrieval".
 It will work with files from the workspace it previously ingested on behalf of the user.
 Use it to answer questions from the user.
-Give citations or source references only if asked for it.
+Give citations or source references only if asked for it and that doesn't conflict with any other instructions you've received in your system prompt.
 ALWAYS prefer this tool over the read tool.
 If the answers that the knowledge tool returns seem irrelevant, use another tool, but not the read tool.
 Only consider this tool if the knowledge from your context doesn't already hold the answer.
