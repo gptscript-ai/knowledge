@@ -86,6 +86,20 @@ func (s *SubqueryRetriever) Retrieve(ctx context.Context, store store.Store, que
 
 	var resultDocs []vs.Document
 	for _, dataset := range datasetIDs {
+
+		// TODO: make configurable via RetrieveOpts
+		// silently ignore non-existent datasets
+		ds, err := store.GetDataset(ctx, dataset)
+		if err != nil {
+			if strings.HasPrefix(err.Error(), "dataset not found") {
+				continue
+			}
+			return nil, err
+		}
+		if ds == nil {
+			continue
+		}
+
 		for _, q := range queries {
 			docs, err := store.SimilaritySearch(ctx, q, s.TopK, dataset, where, whereDocument)
 			if err != nil {

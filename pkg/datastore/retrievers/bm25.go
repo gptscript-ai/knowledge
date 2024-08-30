@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"slices"
+	"strings"
 
 	"github.com/gptscript-ai/knowledge/pkg/datastore/lib/bm25"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/lib/scores"
@@ -37,6 +38,20 @@ func (r *BM25Retriever) Retrieve(ctx context.Context, store store.Store, query s
 
 	var docs []vs.Document
 	for _, datasetID := range datasetIDs {
+
+		// TODO: make configurable via RetrieveOpts
+		// silently ignore non-existent datasets
+		ds, err := store.GetDataset(ctx, datasetID)
+		if err != nil {
+			if strings.HasPrefix(err.Error(), "dataset not found") {
+				continue
+			}
+			return nil, err
+		}
+		if ds == nil {
+			continue
+		}
+
 		log.Debug("Retrieving documents from dataset", "dataset", datasetID)
 		docsDataset, err := store.GetDocuments(ctx, datasetID, where, whereDocument)
 		if err != nil {

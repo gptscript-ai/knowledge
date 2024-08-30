@@ -83,12 +83,15 @@ func (r *BasicRetriever) Retrieve(ctx context.Context, store store.Store, query 
 
 		// TODO: make configurable via RetrieveOpts
 		// silently ignore non-existent datasets
-		_, err := store.GetDataset(ctx, dataset)
+		ds, err := store.GetDataset(ctx, dataset)
 		if err != nil {
 			if strings.HasPrefix(err.Error(), "dataset not found") {
 				continue
 			}
 			return nil, err
+		}
+		if ds == nil {
+			continue
 		}
 
 		docs, err := store.SimilaritySearch(ctx, query, r.TopK, dataset, where, whereDocument)
