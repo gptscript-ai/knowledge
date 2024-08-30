@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strings"
 
 	"github.com/gptscript-ai/knowledge/pkg/datastore"
 	flowconfig "github.com/gptscript-ai/knowledge/pkg/flows/config"
@@ -32,16 +33,27 @@ func (s *ClientRetrieve) Customize(cmd *cobra.Command) {
 }
 
 func (s *ClientRetrieve) Run(cmd *cobra.Command, args []string) error {
-	c, err := s.getClient()
-	if err != nil {
-		return err
+	query := strings.TrimSpace(args[0])
+
+	if query == "" {
+		fmt.Println("Query is empty - not retrieving anything.")
+		return fmt.Errorf("empty query")
+	}
+	slog.Info("Retrieving sources for query", "query", query)
+
+	if query == "-" {
+		return nil
 	}
 
 	datasetIDs := s.Datasets
 	if len(s.Datasets) == 0 {
 		datasetIDs = []string{"default"}
 	}
-	query := args[0]
+
+	c, err := s.getClient()
+	if err != nil {
+		return err
+	}
 
 	retrieveOpts := datastore.RetrieveOpts{
 		TopK:     s.TopK,
