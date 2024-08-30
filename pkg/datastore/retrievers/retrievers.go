@@ -4,7 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"slices"
+	"strings"
 
+	"github.com/gptscript-ai/knowledge/pkg/datastore/lib/scores"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/store"
 	"github.com/gptscript-ai/knowledge/pkg/output"
 	"github.com/mitchellh/mapstructure"
@@ -71,21 +74,46 @@ func (r *BasicRetriever) DecodeConfig(cfg map[string]any) error {
 
 func (r *BasicRetriever) Retrieve(ctx context.Context, store store.Store, query string, datasetIDs []string, where map[string]string, whereDocument []chromem.WhereDocument) ([]vs.Document, error) {
 
-	if len(datasetIDs) > 1 {
-		return nil, fmt.Errorf("basic retriever does not support querying multiple datasets")
+	if len(datasetIDs) == 0 {
+		datasetIDs = []string{"default"}
 	}
 
-	var datasetID string
-	if len(datasetIDs) == 0 {
-		datasetID = "default"
-	} else {
-		datasetID = datasetIDs[0]
+	var results []vs.Document
+	for _, dataset := range datasetIDs {
+
+		// TODO: make configurable via RetrieveOpts
+		// silently ignore non-existent datasets
+		ds, err := store.GetDataset(ctx, dataset)
+		if err != nil {
+			if strings.HasPrefix(err.Error(), "dataset not found") {
+				continue
+			}
+			return nil, err
+		}
+		if ds == nil {
+			continue
+		}
+
+		docs, err := store.SimilaritySearch(ctx, query, r.TopK, dataset, where, whereDocument)
+		if err != nil {
+			return nil, err
+		}
+
+		results = append(results, docs...)
 	}
+
+	slices.SortFunc(results, scores.SortBySimilarityScore)
 
 	log := slog.With("retriever", r.Name())
 	if r.TopK <= 0 {
 		log.Debug("[BasicRetriever] TopK not set, using default", "default", defaults.TopK)
 		r.TopK = defaults.TopK
 	}
-	return store.SimilaritySearch(ctx, query, r.TopK, datasetID, where, whereDocument)
+
+	topK := r.TopK
+	if topK > len(results) {
+		topK = len(results)
+	}
+
+	return results[:topK], nil
 }

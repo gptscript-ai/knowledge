@@ -102,15 +102,7 @@ func (r *MergingRetriever) Retrieve(ctx context.Context, store store.Store, quer
 	}
 
 	// Sort the resultDocs by similarity score
-	slices.SortFunc(resultDocs, func(i, j vs.Document) int {
-		if i.SimilarityScore > j.SimilarityScore {
-			return -1
-		}
-		if i.SimilarityScore < j.SimilarityScore {
-			return 1
-		}
-		return 0
-	})
+	slices.SortFunc(resultDocs, scores.SortBySimilarityScore)
 
 	topK := r.TopK
 	if len(resultDocs) < topK {

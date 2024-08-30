@@ -5,8 +5,8 @@ import (
 	"log/slog"
 	"slices"
 
+	"github.com/gptscript-ai/knowledge/pkg/datastore/lib/scores"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
-	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 )
 
 const ReducePostprocessorName = "reduce"
@@ -24,15 +24,7 @@ func (s *ReducePostprocessor) Transform(ctx context.Context, response *types.Ret
 			continue
 		}
 
-		slices.SortFunc(docs, func(i, j vs.Document) int {
-			if i.SimilarityScore > j.SimilarityScore {
-				return -1
-			}
-			if i.SimilarityScore < j.SimilarityScore {
-				return 1
-			}
-			return 0
-		})
+		slices.SortFunc(docs, scores.SortBySimilarityScore)
 
 		if topK > len(docs) {
 			topK = len(docs)
