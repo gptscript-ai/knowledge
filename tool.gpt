@@ -2,24 +2,21 @@ Name: Knowledge
 Description: Retrieve information from files uploaded by the user.
 Type: context
 Share Tools: Knowledge Retrieval
-Share Context: github.com/gptscript-ai/context/workspace
 
 #!sys.echo
 
 You have access to a RAG tool named "Knowledge Retrieval".
-It will work with files from the workspace it previously ingested on behalf of the user.
-Use it to answer questions from the user and ALWAYS give a proper citation to the best of your abilities, including the source references (filename, page, etc.).
-ALWAYS prefer this tool over the read tool.
-If the answers it returns seem irrelevant, you can use other tools, but do not fall back to the read tool, as it may exceed the context window.
+It will work with files previously uploaded by the user.
+Use it to answer questions from the user.
+Only consider this tool if the knowledge from your context doesn't already hold the answer to the user query.
+Give citations or source references only if asked for it and that doesn't conflict with any other instructions you've received in your system prompt.
+If the answers that the knowledge tool returns seem irrelevant, you may use another tool.
 
 ---
 Name: Knowledge Retrieval
 Description: Retrieve information from files uploaded by the user.
-Context: github.com/gptscript-ai/context/workspace
-Credential: github.com/gptscript-ai/credential as sys.openai with OPENAI_API_KEY as env and "Please provide your OpenAI API key" as message and key as field
-Param: know_retrieve_keywords: (OPTIONAL - only use if you think it will improve results) A comma-separated list (no spaces) of keywords used to pre-filter the document base before conducting the semantic similarity search. Prefix a keyword sign with a dash (-) to exclude documents containing that keyword.
+Credential: github.com/gptscript-ai/gateway-creds as github.com/gptscript-ai/gateway
 Param: query: The query to search for in the knowledge base. It will be used for semantic similarity search, so enhance it accordingly to yield good results.
 Param: debug: (OPTIONAL) Set to "true" to enable debug mode - only use if you are explicitly asked to do so.
 
-#!${GPTSCRIPT_TOOL_DIR}/bin/gptscript-go-tool askdir --path "${GPTSCRIPT_WORKSPACE_DIR}" "${QUERY}"
-
+#!${KNOWLEDGE_BIN} retrieve --dataset ${GPTSCRIPT_THREAD_ID} --dataset ${GPTSCRIPT_SCRIPT_ID} "${GPTSCRIPT_INPUT}"
