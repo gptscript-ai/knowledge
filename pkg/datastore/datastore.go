@@ -18,14 +18,12 @@ import (
 
 	"github.com/adrg/xdg"
 	"github.com/gptscript-ai/knowledge/pkg/index"
-	"github.com/gptscript-ai/knowledge/pkg/llm"
 	"github.com/gptscript-ai/knowledge/pkg/vectorstore"
 	"github.com/gptscript-ai/knowledge/pkg/vectorstore/chromem"
 	cg "github.com/philippgille/chromem-go"
 )
 
 type Datastore struct {
-	LLM                    llm.LLM
 	Index                  *index.DB
 	Vectorstore            vectorstore.VectorStore
 	EmbeddingConfig        config.EmbeddingsConfig
