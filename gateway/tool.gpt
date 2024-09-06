@@ -30,7 +30,7 @@ Type: context
 Input Filter: QueryRelevancy
 Output Filter: KnowledgeInstructions
 
-#!${KNOWLEDGE_BIN} retrieve --flows-file=blueprint:context --dataset ${GPTSCRIPT_THREAD_ID} --dataset ${GPTSCRIPT_SCRIPT_ID} "${GPTSCRIPT_INPUT}"
+#!${KNOWLEDGE_BIN} retrieve --debug --flows-file=blueprint:context --dataset ${GPTSCRIPT_THREAD_ID} --dataset ${GPTSCRIPT_SCRIPT_ID} "${GPTSCRIPT_INPUT}"
 
 ---
 Name: QueryRelevancy

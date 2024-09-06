@@ -35,10 +35,20 @@ func New() *cobra.Command {
 	)
 }
 
-type Knowledge struct{}
+type Knowledge struct {
+	Debug bool `usage:"Enable debug logging" env:"DEBUG" hidden:"true"`
+}
 
 func (c *Knowledge) Run(cmd *cobra.Command, _ []string) error {
 	return cmd.Help()
+}
+
+func (c *Knowledge) Customize(cmd *cobra.Command) {
+	cmd.PersistentPreRun = func(cmd *cobra.Command, _ []string) {
+		if c.Debug {
+			_ = slog.SetLogLoggerLevel(slog.LevelDebug)
+		}
+	}
 }
 
 type Version struct{}
