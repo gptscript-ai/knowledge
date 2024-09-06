@@ -39,21 +39,39 @@ Context: LastUserInputOverview
 
 The user has put in the following message: "${INPUT}".
 Your task is to ensure that the input is good enough to be used as a query for the knowledge tool, i.e. good for a semantic similarity search.
-The input is good enough if it contains keywords, names, entities, etc. that are likely to be found in the knowledge base.
-If you think the input is a follow-up question or in anyway referring to an earlier message, then adjust it based on the chat history enclosed in the following <HISTORY></HISTORY> tags.
+Use the following criteria to determine if the input is good enough:
+1. It's good if it contains keywords, names, entities, etc.
+2. It's good if it's written as a natural language question with proper semantic meaning.
+3. It's not good if it's too generic or vague or if it only contains stopwords and no real content.
+
+If you decide based on the above criteria that the input is good enough, return it as is without further considerations.
+If you decide that it's not good enough, check if it may be a follow-up question or in any way referring to an earlier message.
+Consider the chat history enclosed in the following <HISTORY></HISTORY> tags.
 <HISTORY>
 ${GPTSCRIPT_CONTEXT}
 </HISTORY>
-If the chat history is empty, but the input is not good for a semantic search (e.g. does not contain any keywords, entities, etc.), return a single - with no quotes or highlighting or anything else.
-If the chat history is empty, but the input is good enough for a semantic search, return the input as is.
+If you think the input is connected to parts of the history, enrich it with details from there.
 If the chat history is irrelevant (i.e. there is no connection the current input) and you're certain that the input won't make for a good query, return a single - with no quotes or highlighting or anything else.
-Only reply with the final query and nothing else.
-Here's an example:
+Only reply with the final query and nothing else. Do not use any syntax highlighting.
+Here's are some examples:
+
+## Example 1
 Input: "Who's the employer?"
 History: "<USER_MESSAGES>[User Message #1] How much does John Doe earn?</USER_MESSAGES>"
 Output: "Who's the employer of John Doe?"
 Reasoning: The input looks like a follow-up question related to a previous query. The previous query is about the entity John Doe, so the current query is likely asking about the same entity.
 
+## Example 2
+Input: "What are its attributes?"
+History: "<USER_MESSAGES>[User Message #1] What's Oystersteel?</USER_MESSAGES>"
+Output: "What are the attributes of Oystersteel?"
+Reasoning: The input is a follow-up question related to a previous query. The previous query is about the entity Oystersteel, so the current query is likely asking about the attributes of the same entity.
+
+## Example 3
+Input: "What's the weather like?"
+History: "<USER_MESSAGES></USER_MESSAGES>"
+Output: -
+Reasoning: The input is too generic and doesn't contain any specific keywords or entities. There is no relevant history to enrich the input with, so it's not good enough to be used as a query.
 
 ---
 Name: KnowledgeInstructions
