@@ -25,6 +25,10 @@ func (r *RoutingRetriever) Name() string {
 	return RoutingRetrieverName
 }
 
+func (r *RoutingRetriever) NormalizedScores() bool {
+	return true
+}
+
 func (r *RoutingRetriever) DecodeConfig(cfg map[string]any) error {
 	return DefaultConfigDecoder(r, cfg)
 }

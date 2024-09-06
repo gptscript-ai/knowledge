@@ -32,6 +32,10 @@ func (r *MergingRetriever) Name() string {
 	return MergingRetrieverName
 }
 
+func (r *MergingRetriever) NormalizedScores() bool {
+	return true
+}
+
 func (r *MergingRetriever) DecodeConfig(cfg map[string]any) error {
 	if err := mapstructure.Decode(cfg, &r); err != nil {
 		return fmt.Errorf("failed to decode merging retriever configuration: %w", err)
@@ -75,7 +79,11 @@ func (r *MergingRetriever) Retrieve(ctx context.Context, store store.Store, quer
 
 		slog.Debug("Retrieved documents from retriever", "retriever", retriever.Name, "numDocs", len(retrievedDocs))
 
-		min, max := scores.FindMinMaxScores(retrievedDocs)
+		normalized := r.retrievers[ri].NormalizedScores()
+		var minScore, maxScore float32
+		if !normalized {
+			minScore, maxScore = scores.FindMinMaxScores(retrievedDocs)
+		}
 
 	docLoop:
 		for _, retrievedDoc := range retrievedDocs {
@@ -85,7 +93,11 @@ func (r *MergingRetriever) Retrieve(ctx context.Context, store store.Store, quer
 					// Note that this was found by another retriever and note it's similarityScore
 					resultDocs[i].Metadata["retriever"] = fmt.Sprintf("%s,%s", resultDocs[i].Metadata["retriever"], retriever.Name)
 					resultDocs[i].Metadata["retrieverScore::"+retriever.Name] = retrievedDoc.SimilarityScore
-					normalizedScore := scores.NormalizeScore(retrievedDoc.SimilarityScore, min, max)
+					normalizedScore := retrievedDoc.SimilarityScore
+					if !normalized {
+						normalizedScore = scores.NormalizeScore(retrievedDoc.SimilarityScore, minScore, maxScore)
+						slog.Debug("Normalized score", "retriever", retriever.Name, "score", retrievedDoc.SimilarityScore, "minScore", minScore, "maxScore", maxScore, "normalizedScore", normalizedScore)
+					}
 					resultDocs[i].Metadata["retrieverScoreNormalized::"+retriever.Name] = normalizedScore
 					resultDocs[i].SimilarityScore += normalizedScore * z.Dereference(retriever.Weight)
 					continue docLoop
@@ -94,7 +106,7 @@ func (r *MergingRetriever) Retrieve(ctx context.Context, store store.Store, quer
 			// not in resultDocs yet, add it
 			retrievedDoc.Metadata["retriever"] = retriever.Name
 			retrievedDoc.Metadata["retrieverScore::"+retriever.Name] = retrievedDoc.SimilarityScore
-			normalizedScore := scores.NormalizeScore(retrievedDoc.SimilarityScore, min, max)
+			normalizedScore := scores.NormalizeScore(retrievedDoc.SimilarityScore, minScore, maxScore)
 			retrievedDoc.Metadata["retrieverScoreNormalized::"+retriever.Name] = normalizedScore
 			retrievedDoc.SimilarityScore = normalizedScore * z.Dereference(retriever.Weight)
 			resultDocs = append(resultDocs, retrievedDoc)

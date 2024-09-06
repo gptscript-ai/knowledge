@@ -29,6 +29,10 @@ func (r *BM25Retriever) Name() string {
 	return BM25RetrieverName
 }
 
+func (r *BM25Retriever) NormalizedScores() bool {
+	return false
+}
+
 func (r *BM25Retriever) DecodeConfig(cfg map[string]any) error {
 	return DefaultConfigDecoder(r, cfg)
 }
