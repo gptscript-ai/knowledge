@@ -39,9 +39,9 @@ func (s *ClientRetrieve) Run(cmd *cobra.Command, args []string) error {
 		fmt.Println("Query is empty - not retrieving anything.")
 		return fmt.Errorf("empty query")
 	}
-	slog.Info("Retrieving sources for query", "query", query)
 
 	if query == "-" {
+		slog.Info("Ignoring query", "query", query)
 		return nil
 	}
 
@@ -49,6 +49,7 @@ func (s *ClientRetrieve) Run(cmd *cobra.Command, args []string) error {
 	if len(s.Datasets) == 0 {
 		datasetIDs = []string{"default"}
 	}
+	slog.Info("Retrieving sources for query", "query", query, "datasets", datasetIDs)
 
 	c, err := s.getClient()
 	if err != nil {
