@@ -44,6 +44,7 @@ func (r *BM25Retriever) Retrieve(ctx context.Context, store store.Store, query s
 		ds, err := store.GetDataset(ctx, datasetID)
 		if err != nil {
 			if strings.HasPrefix(err.Error(), "dataset not found") {
+				slog.Info("Dataset not found", "dataset", datasetID)
 				continue
 			}
 			return nil, err
@@ -59,6 +60,11 @@ func (r *BM25Retriever) Retrieve(ctx context.Context, store store.Store, query s
 			return nil, err
 		}
 		docs = append(docs, docsDataset...)
+	}
+
+	if len(docs) == 0 {
+		slog.Info("No documents found for BM25 retrieval", "datasets", datasetIDs)
+		return nil, nil
 	}
 
 	bm25scores, err := bm25.BM25Run(docs, query, r.K1, r.B, r.CleanStopWords)
