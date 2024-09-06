@@ -40,6 +40,9 @@ func NormalizeDocScores(docs []vs.Document) []vs.Document {
 
 // NormalizeScore normalizes a single score
 func NormalizeScore(score float32, minScore float32, maxScore float32) float32 {
+	if maxScore == 0 {
+		return 0
+	}
 	if maxScore-minScore == 0 {
 		return 1 // Avoid division by zero - also, this happens for a single document, so we want a score of 1 here
 	}

@@ -21,6 +21,7 @@ type Retriever interface {
 	Retrieve(ctx context.Context, store store.Store, query string, datasetIDs []string, where map[string]string, whereDocument []chromem.WhereDocument) ([]vs.Document, error)
 	Name() string
 	DecodeConfig(cfg map[string]any) error
+	NormalizedScores() bool // whether the retriever returns normalized scores
 }
 
 func GetRetriever(name string) (Retriever, error) {
@@ -66,6 +67,10 @@ type BasicRetriever struct {
 
 func (r *BasicRetriever) Name() string {
 	return BasicRetrieverName
+}
+
+func (r *BasicRetriever) NormalizedScores() bool {
+	return true
 }
 
 func (r *BasicRetriever) DecodeConfig(cfg map[string]any) error {

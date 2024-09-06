@@ -28,6 +28,10 @@ func (s *SubqueryRetriever) Name() string {
 	return SubqueryRetrieverName
 }
 
+func (s *SubqueryRetriever) NormalizedScores() bool {
+	return true
+}
+
 func (s *SubqueryRetriever) DecodeConfig(cfg map[string]any) error {
 	return DefaultConfigDecoder(s, cfg)
 }
