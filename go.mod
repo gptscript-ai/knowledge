@@ -27,7 +27,7 @@ require (
 	github.com/go-git/go-git/v5 v5.12.0
 	github.com/google/uuid v1.6.0
 	github.com/hupe1980/golc v0.0.112
-	github.com/iwilltry42/bm25-go v0.0.0-20240821172942-fe039bf617dd
+	github.com/iwilltry42/bm25-go v0.0.0-20240909111832-a928590cc9da
 	github.com/jmcarbo/stopwords v1.1.9
 	github.com/joho/godotenv v1.5.1
 	github.com/knadh/koanf/parsers/json v0.1.0
