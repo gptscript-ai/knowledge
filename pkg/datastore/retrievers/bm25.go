@@ -79,6 +79,7 @@ func (r *BM25Retriever) Retrieve(ctx context.Context, store store.Store, query s
 
 	for i, _ := range docs {
 		docs[i].SimilarityScore = float32(bm25scores[i])
+		slog.Debug("BM25 score", "docID", docs[i].ID, "score", docs[i].SimilarityScore)
 	}
 
 	slices.SortFunc(docs, scores.SortBySimilarityScore)
