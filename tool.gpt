@@ -19,4 +19,4 @@ Credential: github.com/gptscript-ai/gateway-creds as github.com/gptscript-ai/gat
 Param: query: The query to search for in the knowledge base. It will be used for semantic similarity search, so enhance it accordingly to yield good results.
 Param: debug: (OPTIONAL) Set to "true" to enable debug mode - only use if you are explicitly asked to do so.
 
-#!${KNOWLEDGE_BIN} retrieve --dataset ${GPTSCRIPT_THREAD_ID} --dataset ${GPTSCRIPT_SCRIPT_ID} "${GPTSCRIPT_INPUT}"
+#!${KNOWLEDGE_BIN} retrieve --dataset "${GPTSCRIPT_THREAD_ID}" --dataset "${GPTSCRIPT_SCRIPT_ID}" "${GPTSCRIPT_INPUT}"
