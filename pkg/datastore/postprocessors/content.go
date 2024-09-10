@@ -3,6 +3,7 @@ package postprocessors
 import (
 	"context"
 	"encoding/json"
+
 	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
 	"github.com/gptscript-ai/knowledge/pkg/llm"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
@@ -33,9 +34,9 @@ type cfpResponse struct {
 }
 
 func (c *ContentFilterPostprocessor) Transform(ctx context.Context, response *types.RetrievalResponse) error {
-	for q, docs := range response.Responses {
+	for i, resp := range response.Responses {
 		var filteredDocs []vs.Document
-		for _, doc := range docs {
+		for _, doc := range resp.ResultDocuments {
 			res, err := c.LLM.Prompt(ctx, promptTemplate, map[string]any{
 				"question": c.Question,
 				"content":  doc.Content,
@@ -54,7 +55,7 @@ func (c *ContentFilterPostprocessor) Transform(ctx context.Context, response *ty
 				filteredDocs = append(filteredDocs, doc)
 			}
 		}
-		response.Responses[q] = filteredDocs
+		response.Responses[i].ResultDocuments = filteredDocs
 	}
 	return nil
 }

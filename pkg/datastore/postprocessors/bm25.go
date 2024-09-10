@@ -23,7 +23,6 @@ type BM25Postprocessor struct {
 }
 
 func (c *BM25Postprocessor) Transform(ctx context.Context, response *types.RetrievalResponse) error {
-
 	if c.K1 == 0 {
 		c.K1 = bm25.DefaultK1
 	}
@@ -31,12 +30,12 @@ func (c *BM25Postprocessor) Transform(ctx context.Context, response *types.Retri
 		c.B = bm25.DefaultB
 	}
 
-	var err error
-	for q, docs := range response.Responses {
-		response.Responses[q], err = c.transform(ctx, q, docs)
+	for i, resp := range response.Responses {
+		docs, err := c.transform(ctx, resp.Query, resp.ResultDocuments)
 		if err != nil {
 			return err
 		}
+		response.Responses[i].ResultDocuments = docs
 	}
 	return nil
 }

@@ -10,7 +10,6 @@ var doubleQuotePattern = regexp.MustCompile(`"([^"]*)"`)
 
 // Extract double-quoted substrings from a string
 func ExtractQuotedSubstrings(input string) []string {
-
 	matches := doubleQuotePattern.FindAllStringSubmatch(input, -1)
 
 	var substrings []string

@@ -160,20 +160,24 @@ func (f *RetrievalFlow) Run(ctx context.Context, store store.Store, query string
 		slog.Debug("Modified queries", "before", queries, "queryModifier", m.Name(), "after", mq)
 		queries = mq
 	}
-	slog.Debug("Updated query set", "query", query, "modified_query_set", queries)
+	slog.Debug("Updated query set", "query", query, "modified_query_set", queries, "num_queries", len(queries))
 
 	response := &dstypes.RetrievalResponse{
 		Query:     query,
-		Responses: make(map[string][]vs.Document, len(queries)),
+		Datasets:  datasetIDs,
+		Responses: make([]dstypes.Response, len(queries)),
 	}
-	for _, q := range queries {
-
+	for i, q := range queries {
 		docs, err := f.Retriever.Retrieve(ctx, store, q, datasetIDs, opts.Where, opts.WhereDocument)
 		if err != nil {
 			return nil, fmt.Errorf("failed to retrieve documents for query %q using retriever %q: %w", q, f.Retriever.Name(), err)
 		}
 		slog.Debug("Retrieved documents", "num_documents", len(docs), "query", q, "datasets", datasetIDs, "retriever", f.Retriever.Name())
-		response.Responses[q] = docs
+		response.Responses[i] = dstypes.Response{
+			Query:           q,
+			NumDocs:         len(docs),
+			ResultDocuments: docs,
+		}
 	}
 
 	for _, pp := range f.Postprocessors {

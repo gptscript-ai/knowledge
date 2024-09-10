@@ -16,10 +16,9 @@ type SimilarityPostprocessor struct {
 }
 
 func (s *SimilarityPostprocessor) Transform(ctx context.Context, response *types.RetrievalResponse) error {
-
-	for q, docs := range response.Responses {
+	for i, resp := range response.Responses {
 		var filteredDocs []vs.Document
-		for _, doc := range docs {
+		for _, doc := range resp.ResultDocuments {
 			if doc.SimilarityScore >= s.Threshold {
 				filteredDocs = append(filteredDocs, doc)
 			} else {
@@ -30,7 +29,7 @@ func (s *SimilarityPostprocessor) Transform(ctx context.Context, response *types
 				}
 			}
 		}
-		response.Responses[q] = filteredDocs
+		response.Responses[i].ResultDocuments = filteredDocs
 	}
 	return nil
 }

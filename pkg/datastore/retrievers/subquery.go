@@ -51,7 +51,6 @@ type subqueryResp struct {
 }
 
 func (s *SubqueryRetriever) Retrieve(ctx context.Context, store store.Store, query string, datasetIDs []string, where map[string]string, whereDocument []chromem.WhereDocument) ([]vs.Document, error) {
-
 	if len(datasetIDs) == 0 {
 		datasetIDs = []string{"default"}
 	}
@@ -90,7 +89,6 @@ func (s *SubqueryRetriever) Retrieve(ctx context.Context, store store.Store, que
 
 	var resultDocs []vs.Document
 	for _, dataset := range datasetIDs {
-
 		// TODO: make configurable via RetrieveOpts
 		// silently ignore non-existent datasets
 		ds, err := store.GetDataset(ctx, dataset)

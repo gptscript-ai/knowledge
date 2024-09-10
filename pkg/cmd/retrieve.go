@@ -109,12 +109,14 @@ func (s *ClientRetrieve) Run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	jsonSources, err := json.Marshal(retrievalResp.Responses)
+	jsonSources, err := json.Marshal(retrievalResp)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("Retrieved the following %d source collections for the original query %q: %s\n", len(retrievalResp.Responses), query, jsonSources)
+	slog.Info("Retrieved sources", "num_sources", len(retrievalResp.Responses), "query", query, "datasets", datasetIDs)
+
+	fmt.Println(string(jsonSources))
 
 	return nil
 }

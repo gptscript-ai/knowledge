@@ -1,7 +1,6 @@
 package bm25
 
 import (
-	"log/slog"
 	"strings"
 
 	"github.com/gptscript-ai/knowledge/pkg/vectorstore"
@@ -33,18 +32,15 @@ func CleanStopwords(content string, docID string, languages []string) string {
 		if languages[0] == "auto" {
 			langCodes = []string{}
 		}
-		cleanedContent, langs, removed, total := stopwords.GetLanguage([]byte(content), langCodes)
-		slog.Debug("Removed stopwords", "langs", langs, "document", docID, "removed", removed, "total", total, "lenContent", len(content), "lenCleaned", len(cleanedContent))
+		cleanedContent, _, _, _ := stopwords.GetLanguage([]byte(content), langCodes)
 		return string(cleanedContent)
 	}
 	return content
-
 }
 
 var whiteSpaceTokenizer = func(s string) []string { return strings.Split(s, " ") }
 
 func Score(corpus []string, query string, k1, b float64) ([]float64, error) {
-
 	okapi, err := bm25.NewBM25Okapi(corpus, whiteSpaceTokenizer, k1, b, nil)
 	if err != nil {
 		return nil, err

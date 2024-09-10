@@ -26,7 +26,14 @@ type TextSplitter interface {
 	SplitDocuments(docs []vs.Document) ([]vs.Document, error)
 }
 
+type Response struct {
+	Query           string        `json:"subquery"`
+	NumDocs         int           `json:"numResultDocuments"`
+	ResultDocuments []vs.Document `json:"resultDocuments"`
+}
+
 type RetrievalResponse struct {
-	Query     string
-	Responses map[string][]vs.Document
+	Query     string     `json:"originalQuery"`
+	Datasets  []string   `json:"queriedDatasets"`
+	Responses []Response `json:"subqueryResults"`
 }

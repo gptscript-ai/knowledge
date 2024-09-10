@@ -60,7 +60,6 @@ func (s *Datastore) Retrieve(ctx context.Context, datasetIDs []string, query str
 		if len(whereDocNot.WhereDocuments) > 0 {
 			whereDocs = append(whereDocs, whereDocNot)
 		}
-
 	}
 
 	return retrievalFlow.Run(ctx, s, query, datasetIDs, &flows.RetrievalFlowOpts{Where: nil, WhereDocument: whereDocs})

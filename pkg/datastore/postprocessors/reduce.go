@@ -16,9 +16,10 @@ type ReducePostprocessor struct {
 }
 
 func (s *ReducePostprocessor) Transform(ctx context.Context, response *types.RetrievalResponse) error {
-	for q, docs := range response.Responses {
-
+	for i, resp := range response.Responses {
 		topK := s.TopK
+
+		docs := resp.ResultDocuments
 
 		if len(docs) <= topK {
 			continue
@@ -35,7 +36,7 @@ func (s *ReducePostprocessor) Transform(ctx context.Context, response *types.Ret
 
 		slog.Info("Reducing topK", "topK", topK, "len(docs)", len(docs))
 
-		response.Responses[q] = docs[:topK]
+		response.Responses[i].ResultDocuments = docs[:topK]
 	}
 	return nil
 }
