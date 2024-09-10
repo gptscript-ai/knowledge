@@ -25,12 +25,12 @@ func NewTransformerWrapper(transformer types.DocumentTransformer) *TransformerWr
 }
 
 func (t *TransformerWrapper) Transform(ctx context.Context, response *types.RetrievalResponse) error {
-	for q, docs := range response.Responses {
-		newDocs, err := t.DocumentTransformer.Transform(ctx, docs)
+	for i, resp := range response.Responses {
+		newDocs, err := t.DocumentTransformer.Transform(ctx, resp.ResultDocuments)
 		if err != nil {
 			return err
 		}
-		response.Responses[q] = newDocs
+		response.Responses[i].ResultDocuments = newDocs
 	}
 	return nil
 }

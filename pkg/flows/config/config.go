@@ -308,7 +308,6 @@ func (r *RetrievalFlowConfig) AsRetrievalFlow() (*flows.RetrievalFlow, error) {
 					}
 					postprocessor = transformerWrapper
 				} else {
-
 					if err := mapstructure.Decode(pp.Options, &postprocessor); err != nil {
 						return nil, fmt.Errorf("failed to decode postprocessor configuration: %w", err)
 					}

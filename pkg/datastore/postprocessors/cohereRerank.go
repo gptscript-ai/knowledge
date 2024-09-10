@@ -2,12 +2,13 @@ package postprocessors
 
 import (
 	"context"
+	"log/slog"
+
 	"github.com/acorn-io/z"
 	cohere "github.com/cohere-ai/cohere-go/v2"
 	cohereclient "github.com/cohere-ai/cohere-go/v2/client"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
-	"log/slog"
 )
 
 const CohereRerankPostprocessorName = "cohere_rerank"
@@ -19,13 +20,14 @@ type CohereRerankPostprocessor struct {
 }
 
 func (c *CohereRerankPostprocessor) Transform(ctx context.Context, response *types.RetrievalResponse) error {
-	var err error
-	for q, docs := range response.Responses {
-		response.Responses[q], err = c.transform(ctx, q, docs)
+	for i, resp := range response.Responses {
+		docs, err := c.transform(ctx, resp.Query, resp.ResultDocuments)
 		if err != nil {
 			return err
 		}
+		response.Responses[i].ResultDocuments = docs
 	}
+
 	return nil
 }
 
