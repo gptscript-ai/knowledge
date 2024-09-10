@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"slices"
+	"sync"
 
 	"github.com/acorn-io/z"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/lib/scores"
@@ -12,6 +13,7 @@ import (
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 	"github.com/mitchellh/mapstructure"
 	"github.com/philippgille/chromem-go"
+	"golang.org/x/sync/errgroup"
 )
 
 const MergingRetrieverName = "merge"
@@ -68,49 +70,72 @@ func (r *MergingRetriever) Retrieve(ctx context.Context, store store.Store, quer
 
 	slog.Debug("Retrieving documents from merging retriever", "query", query, "datasetIDs", datasetIDs, "where", where, "whereDocument", whereDocument)
 
-	var resultDocs []vs.Document
+	g, ctx := errgroup.WithContext(ctx)
+
+	var mu sync.Mutex
+	documentsMap := make(map[string]vs.Document)
+
 	for ri, retriever := range r.Retrievers {
-		log.Debug("Retrieving documents from retriever", "retriever", retriever.Name)
-		retrievedDocs, err := r.retrievers[ri].Retrieve(ctx, store, query, datasetIDs, where, whereDocument)
-		if err != nil {
-			log.Error("Failed to retrieve documents from retriever", "retriever", retriever.Name, "error", err)
-			return nil, err
-		}
+		ri := ri
+		retriever := retriever
+		g.Go(func() error {
+			log.Debug("Retrieving documents from retriever", "retriever", retriever.Name)
+			retrievedDocs, err := r.retrievers[ri].Retrieve(ctx, store, query, datasetIDs, where, whereDocument)
+			if err != nil {
+				log.Error("Failed to retrieve documents from retriever", "retriever", retriever.Name, "error", err)
+				return err
+			}
 
-		slog.Debug("Retrieved documents from retriever", "retriever", retriever.Name, "numDocs", len(retrievedDocs))
+			slog.Debug("Retrieved documents from retriever", "retriever", retriever.Name, "numDocs", len(retrievedDocs))
 
-		normalized := r.retrievers[ri].NormalizedScores()
-		var minScore, maxScore float32
-		if !normalized {
-			minScore, maxScore = scores.FindMinMaxScores(retrievedDocs)
-		}
+			normalized := r.retrievers[ri].NormalizedScores()
+			var minScore, maxScore float32
+			if !normalized {
+				minScore, maxScore = scores.FindMinMaxScores(retrievedDocs)
+			}
 
-	docLoop:
-		for _, retrievedDoc := range retrievedDocs {
-			for i, resultDoc := range resultDocs {
-				// check if	resultDoc is already in resultDocs and if so, update similarity score if higher
-				if resultDoc.ID == retrievedDoc.ID {
-					// Note that this was found by another retriever and note it's similarityScore
-					resultDocs[i].Metadata["retriever"] = fmt.Sprintf("%s,%s", resultDocs[i].Metadata["retriever"], retriever.Name)
-					resultDocs[i].Metadata["retrieverScore::"+retriever.Name] = retrievedDoc.SimilarityScore
+			mu.Lock()
+			defer mu.Unlock()
+
+			for _, retrievedDoc := range retrievedDocs {
+				if existingDoc, found := documentsMap[retrievedDoc.ID]; found {
+					// Document already exists, update its similarity score and metadata
+					existingDoc.Metadata["retriever"] = fmt.Sprintf("%s,%s", existingDoc.Metadata["retriever"], retriever.Name)
+					existingDoc.Metadata["retrieverScore::"+retriever.Name] = retrievedDoc.SimilarityScore
+
 					normalizedScore := retrievedDoc.SimilarityScore
 					if !normalized {
 						normalizedScore = scores.NormalizeScore(retrievedDoc.SimilarityScore, minScore, maxScore)
 						slog.Debug("Normalized score", "retriever", retriever.Name, "score", retrievedDoc.SimilarityScore, "minScore", minScore, "maxScore", maxScore, "normalizedScore", normalizedScore)
 					}
-					resultDocs[i].Metadata["retrieverScoreNormalized::"+retriever.Name] = normalizedScore
-					resultDocs[i].SimilarityScore += normalizedScore * z.Dereference(retriever.Weight)
-					continue docLoop
+					existingDoc.Metadata["retrieverScoreNormalized::"+retriever.Name] = normalizedScore
+					existingDoc.SimilarityScore += normalizedScore * z.Dereference(retriever.Weight)
+
+					documentsMap[retrievedDoc.ID] = existingDoc
+				} else {
+					// New document, add it to the map
+					normalizedScore := scores.NormalizeScore(retrievedDoc.SimilarityScore, minScore, maxScore)
+					retrievedDoc.Metadata["retriever"] = retriever.Name
+					retrievedDoc.Metadata["retrieverScore::"+retriever.Name] = retrievedDoc.SimilarityScore
+					retrievedDoc.Metadata["retrieverScoreNormalized::"+retriever.Name] = normalizedScore
+					retrievedDoc.SimilarityScore = normalizedScore * z.Dereference(retriever.Weight)
+
+					documentsMap[retrievedDoc.ID] = retrievedDoc
 				}
 			}
-			// not in resultDocs yet, add it
-			retrievedDoc.Metadata["retriever"] = retriever.Name
-			retrievedDoc.Metadata["retrieverScore::"+retriever.Name] = retrievedDoc.SimilarityScore
-			normalizedScore := scores.NormalizeScore(retrievedDoc.SimilarityScore, minScore, maxScore)
-			retrievedDoc.Metadata["retrieverScoreNormalized::"+retriever.Name] = normalizedScore
-			retrievedDoc.SimilarityScore = normalizedScore * z.Dereference(retriever.Weight)
-			resultDocs = append(resultDocs, retrievedDoc)
-		}
+
+			return nil
+		})
+	}
+
+	if err := g.Wait(); err != nil {
+		return nil, err
+	}
+
+	// Convert map to slice
+	var resultDocs []vs.Document
+	for _, doc := range documentsMap {
+		resultDocs = append(resultDocs, doc)
 	}
 
 	// Sort the resultDocs by similarity score
