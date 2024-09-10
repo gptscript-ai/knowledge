@@ -40,7 +40,6 @@ flows:
         - name: similarity
           options:
             threshold: 0.4
-            keepMin: 5 # keep at least 5 results, even if they are below the threshold
         - name: reduce
           options:
             topK: 10
