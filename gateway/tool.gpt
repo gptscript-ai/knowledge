@@ -90,14 +90,19 @@ async def main():
     continuation = os.getenv('CONTINUATION', '') == 'true'
     is_chat = os.getenv('CHAT', '') == 'true'
 
-    # only use the part of the output starting with "Retrieved the following"
-    if '{"originalQuery":' in output:
-        output = '{"originalQuery":'+output.split('{"originalQuery":')[1]
+    # We're looping here instead of just search + split, since there are some edge cases, where
+    # the actual result output was followed by more logs that shouldn't be in the output.
+    result = ""
+    for part in output.split("\n"):
+        if part.startswith('{"originalQuery"'):
+           result = part
+           break
 
+    if result != "":
         msg = f"""
 Use the content within the following <KNOWLEDGE></KNOWLEDGE> tags as your learned knowledge.
 <KNOWLEDGE>
-{output}
+{result}
 </KNOWLEDGE>
 If this knowledge seems irrelevant to the user query, ignore it.
 Avoid mentioning that you retrieved the information from the context or the knowledge tool.
@@ -108,7 +113,6 @@ Answer in the language that the user asked the question in.
         msg = "No data retrieved from knowledge base."
 
     print(msg)
-
 
 asyncio.run(main())
 
