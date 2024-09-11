@@ -46,7 +46,7 @@ func (c *BM25Postprocessor) transform(ctx context.Context, query string, docs []
 	corpus := make([]string, len(docs))
 	for i, doc := range docs {
 		content := doc.Content
-		corpus[i] = bm25.CleanStopwords(content, doc.ID, c.CleanStopWords)
+		corpus[i] = bm25.CleanStopwords(content, c.CleanStopWords)
 	}
 
 	scores, err := bm25.Score(corpus, query, c.K1, c.B)

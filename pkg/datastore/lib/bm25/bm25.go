@@ -21,12 +21,12 @@ func BuildCorpus(docs []vectorstore.Document, cleanStopwords []string) []string 
 	corpus := make([]string, len(docs))
 	for i, doc := range docs {
 		content := doc.Content
-		corpus[i] = CleanStopwords(content, doc.ID, cleanStopwords)
+		corpus[i] = CleanStopwords(content, cleanStopwords)
 	}
 	return corpus
 }
 
-func CleanStopwords(content string, docID string, languages []string) string {
+func CleanStopwords(content string, languages []string) string {
 	if len(languages) > 0 {
 		langCodes := languages
 		if languages[0] == "auto" {
@@ -46,5 +46,5 @@ func Score(corpus []string, query string, k1, b float64) ([]float64, error) {
 		return nil, err
 	}
 
-	return okapi.GetScores(whiteSpaceTokenizer(query))
+	return okapi.GetScores(whiteSpaceTokenizer(CleanStopwords(query, nil)))
 }
