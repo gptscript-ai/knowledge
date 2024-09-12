@@ -118,7 +118,7 @@ Description: Get an overview over the last user inputs in the current chat
 Context: sys.chat.current
 Param: Limit: How many entries should be returned
 
-#!/usr/bin/env python3.12
+#!/usr/bin/env python3
 
 import json
 import asyncio
