@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/acorn-io/z"
+	"github.com/gptscript-ai/knowledge/pkg/log"
 	"github.com/spf13/cobra"
 
 	"github.com/gptscript-ai/knowledge/pkg/client"
@@ -112,7 +113,8 @@ func (s *ClientIngest) Run(cmd *cobra.Command, args []string) error {
 		slog.Debug("Loaded ingestion flows from config", "flows_file", s.FlowsFile, "dataset", datasetID, "flows", len(ingestOpts.IngestionFlows))
 	}
 
-	filesIngested, err := c.IngestPaths(cmd.Context(), datasetID, ingestOpts, filePath)
+	ctx := log.ToCtx(cmd.Context(), slog.With("flow", "ingestion").With("rootPath", filePath))
+	filesIngested, err := c.IngestPaths(ctx, datasetID, ingestOpts, filePath)
 	if err != nil {
 		return err
 	}

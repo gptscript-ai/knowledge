@@ -9,6 +9,7 @@ import (
 
 	"github.com/acorn-io/z"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/store"
+	"github.com/gptscript-ai/knowledge/pkg/log"
 	"github.com/mitchellh/mapstructure"
 	"github.com/philippgille/chromem-go"
 
@@ -36,11 +37,15 @@ type IngestionFlow struct {
 
 func (f *IngestionFlow) Transform(ctx context.Context, docs []vs.Document) ([]vs.Document, error) {
 	var err error
-	for _, t := range f.Transformations {
+	for i, t := range f.Transformations {
+		l := log.FromCtx(ctx).With("transformer", t.Name()).With("progress", fmt.Sprintf("%d/%d", i+1, len(f.Transformations))).With("progress_unit", "transformations")
+		l.Info("Running transformer")
 		docs, err = t.Transform(ctx, docs)
 		if err != nil {
+			l.With("status", "failed").Error("Failed to transform documents", "error", err)
 			return nil, err
 		}
+		l.With("status", "completed").Info("Transformed documents", "num_documents", len(docs))
 	}
 	return docs, nil
 }
@@ -91,39 +96,52 @@ func (f *IngestionFlow) Run(ctx context.Context, reader io.Reader) ([]vs.Documen
 	var err error
 	var docs []vs.Document
 
+	phaseLog := log.FromCtx(ctx).With("phase", "parse")
+
 	/*
 	 * Load documents from the content
 	 * For now, we're using documentloaders from both langchaingo and golc
 	 * and translate them to our document schema.
 	 */
 
+	loaderLog := phaseLog.With("stage", "documentloader")
+	loaderLog.With("status", "starting").Info("Starting document loader")
 	if f.Load == nil {
+		loaderLog.With("status", "skipped").With("reason", "missing documentloader").Info("No documentloader available")
 		return nil, nil
 	}
 
 	docs, err = f.Load(ctx, reader)
 	if err != nil {
-		slog.Error("Failed to load documents", "error", err)
+		loaderLog.With("status", "failed").Error("Failed to load documents", "error", err)
 		return nil, fmt.Errorf("failed to load documents: %w", err)
 	}
+	loaderLog.With("status", "completed").Info("Loaded documents", "num_documents", len(docs))
 
 	/*
 	 * Split documents - Chunking
 	 */
+	splitterLog := phaseLog.With("stage", "textsplitter").With(slog.Int("num_documents", len(docs)))
+	splitterLog.With("status", "starting").Info("Starting text splitter")
+
 	docs, err = f.Splitter.SplitDocuments(docs)
 	if err != nil {
-		slog.Error("Failed to split documents", "error", err)
+		splitterLog.With("status", "failed").Error("Failed to split documents", "error", err)
 		return nil, fmt.Errorf("failed to split documents: %w", err)
 	}
+	splitterLog.With("status", "completed").Info("Split documents", "new_num_documents", len(docs))
 
 	/*
 	 * Transform documents
 	 */
+	transformerLog := phaseLog.With("stage", "transformer").With(slog.Int("num_documents", len(docs))).With(slog.Int("num_transformers", len(f.Transformations)))
+	transformerLog.With("status", "starting").Info("Starting document transformers")
 	docs, err = f.Transform(ctx, docs)
 	if err != nil {
-		slog.Error("Failed to transform documents", "error", err)
+		transformerLog.With("progress", "failed").Error("Failed to transform documents", "error", err)
 		return nil, fmt.Errorf("failed to transform documents: %w", err)
 	}
+	transformerLog.With("status", "completed").Info("Transformed documents", "new_num_documents", len(docs))
 
 	return docs, nil
 }

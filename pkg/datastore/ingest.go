@@ -8,8 +8,8 @@ import (
 
 	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings"
+	"github.com/gptscript-ai/knowledge/pkg/log"
 
-	"github.com/acorn-io/z"
 	"github.com/google/uuid"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/filetypes"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/textsplitter"
@@ -19,7 +19,6 @@ import (
 )
 
 type IngestOpts struct {
-	Filename            *string
 	FileMetadata        *index.FileMetadata
 	IsDuplicateFuncName string
 	IsDuplicateFunc     IsDuplicateFunc
@@ -28,7 +27,14 @@ type IngestOpts struct {
 }
 
 // Ingest loads a document from a reader and adds it to the dataset.
-func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte, opts IngestOpts) ([]string, error) {
+func (s *Datastore) Ingest(ctx context.Context, datasetID string, name string, content []byte, opts IngestOpts) ([]string, error) {
+
+	if name == "" {
+		return nil, fmt.Errorf("name is required")
+	}
+
+	statusLog := log.FromCtx(ctx).With("phase", "store")
+
 	// Get dataset
 	ds, err := s.GetDataset(ctx, datasetID)
 	if err != nil {
@@ -86,7 +92,7 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 		isDuplicate = opts.IsDuplicateFunc
 	}
 
-	filename := z.Dereference(opts.Filename)
+	filename := name
 
 	// Generate ID
 	fUUID, err := uuid.NewUUID()
@@ -105,13 +111,7 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 		return nil, err
 	}
 
-	/*
-	 * Set filename if not provided
-	 */
-	if filename == "" {
-		filename = "<unnamed_document>"
-		*opts.Filename = filename
-	}
+	statusLog = statusLog.With("filename", filename, "filetype", filetype)
 
 	slog.Debug("Loading data", "type", filetype, "filename", filename, "size", len(content))
 
@@ -120,11 +120,11 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 	 */
 	isDupe, err := isDuplicate(ctx, s, datasetID, nil, opts)
 	if err != nil {
-		slog.Error("Failed to check for duplicates", "error", err)
+		statusLog.With("status", "failed").Error("Failed to check for duplicates", "error", err)
 		return nil, fmt.Errorf("failed to check for duplicates: %w", err)
 	}
 	if isDupe {
-		slog.Debug("Ignoring duplicate document", "filename", filename, "absolute_path", opts.FileMetadata.AbsolutePath)
+		statusLog.With("status", "skipped").With("reason", "duplicate").Info("Ignoring duplicate document")
 		return nil, nil
 	}
 
@@ -153,24 +153,30 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 
 	docs, err := ingestionFlow.Run(ctx, bytes.NewReader(content))
 	if err != nil {
-		slog.Error("Ingestion Flow failed", "error", err, "filename", filename)
-		return nil, fmt.Errorf("ingestion Flow failed for file %q: %w", filename, err)
+		statusLog.With("status", "failed").Error("Ingestion Flow failed", "error", err)
+		return nil, fmt.Errorf("ingestion flow failed for file %q: %w", filename, err)
 	}
 
 	if len(docs) == 0 {
+		statusLog.With("status", "skipped").With("reason", "no documents").Debug("No documents loaded")
 		return nil, nil
 	}
 
 	// Before adding doc, we need to remove the existing documents for duplicates or old contents
+	statusLog.With("component", "vectorstore").With("action", "remove").Debug("Removing existing documents")
 	where := map[string]string{
 		"absPath": opts.FileMetadata.AbsolutePath,
 	}
 	if err := s.Vectorstore.RemoveDocument(ctx, "", datasetID, where, nil); err != nil {
+		statusLog.With("status", "failed").With("component", "vectorstore").Error("Failed to remove existing documents", "error", err)
 		return nil, err
 	}
 
 	// Add documents to VectorStore -> This generates the embeddings
 	slog.Debug("Ingesting documents", "count", len(docs))
+
+	log.ToCtx(ctx, log.FromCtx(ctx).With("phase", "store").With("num_documents", len(docs)))
+
 	docIDs, err := s.Vectorstore.AddDocuments(ctx, docs, datasetID)
 	if err != nil {
 		slog.Error("Failed to add documents", "error", err)
@@ -202,13 +208,15 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 		dbFile.FileMetadata.ModifiedAt = opts.FileMetadata.ModifiedAt
 	}
 
+	iLog := statusLog.With("component", "index")
+	iLog.Info("Inserting file and documents into index")
 	tx := s.Index.WithContext(ctx).Create(&dbFile)
 	if tx.Error != nil {
-		slog.Error("Failed to create file", "error", tx.Error)
+		iLog.Error("Failed to create file", "error", tx.Error)
 		return nil, fmt.Errorf("failed to create file: %w", tx.Error)
 	}
 
-	slog.Info("Ingested document", "filename", filename, "count", len(docIDs), "absolute_path", dbFile.FileMetadata.AbsolutePath)
+	statusLog.With("status", "completed").Info("Ingested document", "num_documents", len(docIDs), "absolute_path", dbFile.FileMetadata.AbsolutePath)
 
 	return docIDs, nil
 }
