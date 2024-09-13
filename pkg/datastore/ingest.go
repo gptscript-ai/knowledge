@@ -153,8 +153,8 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, content []byte
 
 	docs, err := ingestionFlow.Run(ctx, bytes.NewReader(content))
 	if err != nil {
-		slog.Error("Failed to load documents", "error", err)
-		return nil, fmt.Errorf("failed to load documents: %w", err)
+		slog.Error("Ingestion Flow failed", "error", err, "filename", filename)
+		return nil, fmt.Errorf("ingestion Flow failed for file %q: %w", filename, err)
 	}
 
 	if len(docs) == 0 {
