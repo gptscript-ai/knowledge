@@ -68,7 +68,7 @@ func (c *StandaloneClient) IngestPaths(ctx context.Context, datasetID string, op
 		return 0, err
 	}
 
-	ingestFile := func(path string) error {
+	ingestFile := func(path string, extraMetadata map[string]any) error {
 		// Gather metadata
 		finfo, err := os.Stat(path)
 		if err != nil {
@@ -95,6 +95,7 @@ func (c *StandaloneClient) IngestPaths(ctx context.Context, datasetID string, op
 				ModifiedAt:   finfo.ModTime(),
 			},
 			IsDuplicateFuncName: opts.IsDuplicateFuncName,
+			ExtraMetadata:       extraMetadata,
 		}
 
 		if opts != nil {
