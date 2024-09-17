@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	dstypes "github.com/gptscript-ai/knowledge/pkg/datastore/types"
 	"io"
 	"net/http"
 	"os"
@@ -14,6 +13,8 @@ import (
 	"strings"
 
 	"github.com/acorn-io/z"
+	dstypes "github.com/gptscript-ai/knowledge/pkg/datastore/types"
+
 	"github.com/gptscript-ai/knowledge/pkg/datastore"
 	"github.com/gptscript-ai/knowledge/pkg/index"
 	"github.com/gptscript-ai/knowledge/pkg/server/types"
@@ -88,9 +89,9 @@ func (c *DefaultClient) ListDatasets(_ context.Context) ([]types.Dataset, error)
 	return datasets, nil
 }
 
-func (c *DefaultClient) Ingest(_ context.Context, datasetID string, data []byte, opts datastore.IngestOpts) ([]string, error) {
+func (c *DefaultClient) Ingest(_ context.Context, datasetID string, name string, data []byte, opts datastore.IngestOpts) ([]string, error) {
 	payload := types.Ingest{
-		Filename: opts.Filename,
+		Filename: z.Pointer(name),
 		Content:  base64.StdEncoding.EncodeToString(data),
 	}
 	if opts.FileMetadata != nil {
@@ -138,8 +139,8 @@ func (c *DefaultClient) IngestPaths(ctx context.Context, datasetID string, opts 
 			return fmt.Errorf("failed to get absolute path for %s: %w", path, err)
 		}
 
+		filename := filepath.Base(path)
 		payload := datastore.IngestOpts{
-			Filename: z.Pointer(filepath.Base(path)),
 			FileMetadata: &index.FileMetadata{
 				Name:         filepath.Base(path),
 				AbsolutePath: abspath,
@@ -151,7 +152,7 @@ func (c *DefaultClient) IngestPaths(ctx context.Context, datasetID string, opts 
 		if opts != nil {
 			payload.TextSplitterOpts = opts.TextSplitterOpts
 		}
-		_, err = c.Ingest(ctx, datasetID, content, payload)
+		_, err = c.Ingest(ctx, datasetID, filename, content, payload)
 		return err
 	}
 

@@ -11,6 +11,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gptscript-ai/knowledge/pkg/env"
+	"github.com/gptscript-ai/knowledge/pkg/log"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 	"github.com/gptscript-ai/knowledge/pkg/vectorstore/errors"
 	"github.com/philippgille/chromem-go"
@@ -42,6 +43,10 @@ func (s *ChromemStore) CreateCollection(_ context.Context, name string) error {
 }
 
 func (s *ChromemStore) AddDocuments(ctx context.Context, docs []vs.Document, collection string) ([]string, error) {
+	l := log.FromCtx(ctx).With("stage", "vectorstore").With("vectorstore", "chromem-go")
+
+	l.With("status", "starting").Info("Adding documents to collection (generating embeddings)")
+
 	ids := make([]string, len(docs))
 	chromemDocs := make([]chromem.Document, len(docs))
 	for docIdx, doc := range docs {
@@ -62,15 +67,19 @@ func (s *ChromemStore) AddDocuments(ctx context.Context, docs []vs.Document, col
 
 	col := s.db.GetCollection(collection, s.embeddingFunc)
 	if col == nil {
+		l.With("status", "failed").With("error", errors.ErrCollectionNotFound.Error()).Error("Collection not found", "collection", collection)
 		return nil, fmt.Errorf("%w: %q", errors.ErrCollectionNotFound, collection)
 	}
 
 	concurrency := env.GetIntFromEnvOrDefault(VsChromemEmbeddingParallelThread, 100)
-	slog.Debug("Adding documents to collection", "collection", collection, "numDocuments", len(chromemDocs), "concurrency", concurrency)
+
 	err := col.AddDocuments(ctx, chromemDocs, concurrency)
 	if err != nil {
+		l.With("status", "failed").With("error", err.Error()).Error("Failed to add documents to collection (generate embeddings)")
 		return nil, err
 	}
+
+	l.With("status", "completed").Info("Added documents to collection (generated embeddings)")
 
 	return ids, nil
 }

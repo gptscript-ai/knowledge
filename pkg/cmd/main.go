@@ -37,6 +37,7 @@ func New() *cobra.Command {
 
 type Knowledge struct {
 	Debug bool `usage:"Enable debug logging" env:"DEBUG" hidden:"true"`
+	Json  bool `usage:"Output JSON" env:"KNOW_JSON" hidden:"true"`
 }
 
 func (c *Knowledge) Run(cmd *cobra.Command, _ []string) error {
@@ -45,8 +46,18 @@ func (c *Knowledge) Run(cmd *cobra.Command, _ []string) error {
 
 func (c *Knowledge) Customize(cmd *cobra.Command) {
 	cmd.PersistentPreRun = func(cmd *cobra.Command, _ []string) {
+		lvl := slog.LevelInfo
+
 		if c.Debug {
-			_ = slog.SetLogLoggerLevel(slog.LevelDebug)
+			lvl = slog.LevelDebug
+			slog.SetLogLoggerLevel(lvl)
+		}
+
+		if c.Json {
+			slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+				AddSource: false,
+				Level:     lvl,
+			})))
 		}
 	}
 }

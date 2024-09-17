@@ -7,12 +7,11 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/gptscript-ai/knowledge/pkg/datastore"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader"
 	dstypes "github.com/gptscript-ai/knowledge/pkg/datastore/types"
-
-	"github.com/acorn-io/z"
-	"github.com/gptscript-ai/knowledge/pkg/datastore"
 	"github.com/gptscript-ai/knowledge/pkg/index"
+	"github.com/gptscript-ai/knowledge/pkg/log"
 	"github.com/gptscript-ai/knowledge/pkg/server/types"
 )
 
@@ -59,8 +58,8 @@ func (c *StandaloneClient) ListDatasets(ctx context.Context) ([]types.Dataset, e
 	return r, nil
 }
 
-func (c *StandaloneClient) Ingest(ctx context.Context, datasetID string, data []byte, opts datastore.IngestOpts) ([]string, error) {
-	return c.Datastore.Ingest(ctx, datasetID, data, opts)
+func (c *StandaloneClient) Ingest(ctx context.Context, datasetID string, name string, data []byte, opts datastore.IngestOpts) ([]string, error) {
+	return c.Datastore.Ingest(ctx, datasetID, name, data, opts)
 }
 
 func (c *StandaloneClient) IngestPaths(ctx context.Context, datasetID string, opts *IngestPathsOpts, paths ...string) (int, error) {
@@ -86,8 +85,9 @@ func (c *StandaloneClient) IngestPaths(ctx context.Context, datasetID string, op
 			return fmt.Errorf("failed to open file %s: %w", path, err)
 		}
 
+		filename := filepath.Base(path)
+
 		iopts := datastore.IngestOpts{
-			Filename: z.Pointer(filepath.Base(path)),
 			FileMetadata: &index.FileMetadata{
 				Name:         filepath.Base(path),
 				AbsolutePath: abspath,
@@ -102,7 +102,7 @@ func (c *StandaloneClient) IngestPaths(ctx context.Context, datasetID string, op
 			iopts.IngestionFlows = opts.IngestionFlows
 		}
 
-		_, err = c.Ingest(ctx, datasetID, file, iopts)
+		_, err = c.Ingest(log.ToCtx(ctx, log.FromCtx(ctx).With("filepath", path)), datasetID, filename, file, iopts)
 
 		if err != nil && !opts.ErrOnUnsupportedFile && errors.Is(err, &documentloader.UnsupportedFileTypeError{}) {
 			err = nil

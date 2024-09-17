@@ -123,8 +123,7 @@ func (s *Server) IngestIntoDS(c *gin.Context) {
 
 	// ingest content
 	// TODO: support ingestion flows
-	docIDs, err := s.Ingest(c, id, data, datastore.IngestOpts{
-		Filename:         ingest.Filename,
+	docIDs, err := s.Ingest(c, id, z.Dereference(ingest.Filename), data, datastore.IngestOpts{
 		FileMetadata:     ingest.FileMetadata,
 		TextSplitterOpts: ingest.TextSplitterOpts,
 	})

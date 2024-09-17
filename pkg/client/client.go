@@ -30,7 +30,7 @@ type Client interface {
 	DeleteDataset(ctx context.Context, datasetID string) error
 	GetDataset(ctx context.Context, datasetID string) (*index.Dataset, error)
 	ListDatasets(ctx context.Context) ([]types.Dataset, error)
-	Ingest(ctx context.Context, datasetID string, data []byte, opts datastore.IngestOpts) ([]string, error)
+	Ingest(ctx context.Context, datasetID string, name string, data []byte, opts datastore.IngestOpts) ([]string, error)
 	IngestPaths(ctx context.Context, datasetID string, opts *IngestPathsOpts, paths ...string) (int, error) // returns number of files ingested
 	AskDirectory(ctx context.Context, path string, query string, opts *IngestPathsOpts, ropts *datastore.RetrieveOpts) (*dstypes.RetrievalResponse, error)
 	PrunePath(ctx context.Context, datasetID string, path string, keep []string) ([]index.File, error)
