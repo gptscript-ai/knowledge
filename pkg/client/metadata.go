@@ -32,7 +32,7 @@ func loadAndMergeMetadata(dirPath string, parentMetadata *Metadata) (*Metadata, 
 		}
 
 		// Merge with parent metadata, overriding existing keys
-		mergedMetadata := &Metadata{Metadata: map[string]FileMetadata{}}
+		mergedMetadata := &Metadata{Metadata: make(map[string]FileMetadata, len(parentMetadata.Metadata)+len(newMetadata.Metadata))}
 		for filename, fileMetadata := range parentMetadata.Metadata {
 			if !strings.HasPrefix(filename, dirName) {
 				// skip entries which are not meant for this (sub-)directory
@@ -46,7 +46,7 @@ func loadAndMergeMetadata(dirPath string, parentMetadata *Metadata) (*Metadata, 
 			for filename, fileMetadata := range newMetadata.Metadata {
 				for k, v := range fileMetadata {
 					if mergedMetadata.Metadata[filename] == nil {
-						mergedMetadata.Metadata[filename] = map[string]any{}
+						mergedMetadata.Metadata[filename] = make(FileMetadata, len(fileMetadata))
 					}
 					mergedMetadata.Metadata[filename][k] = v
 				}
