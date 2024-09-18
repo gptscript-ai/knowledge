@@ -52,7 +52,7 @@ func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID
 	g, ctx := errgroup.WithContext(ctx)
 
 	// Stack to store metadata when entering nested directories
-	var metadataStack []map[string]any
+	var metadataStack []Metadata
 
 	for _, p := range paths {
 		path := p
@@ -80,12 +80,12 @@ func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID
 		}
 
 		if fileInfo.IsDir() {
-			initialMetadata := map[string]any{}
+			initialMetadata := &Metadata{Metadata: map[string]FileMetadata{}}
 			directoryMetadata, err := loadAndMergeMetadata(path, initialMetadata)
 			if err != nil {
 				return ingestedFilesCount, err
 			}
-			metadataStack = append(metadataStack, directoryMetadata)
+			metadataStack = append(metadataStack, *directoryMetadata)
 
 			// Process directory
 			err = filepath.WalkDir(path, func(subPath string, d os.DirEntry, err error) error {
@@ -102,11 +102,11 @@ func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID
 
 					// One dir level deeper -> load new metadata
 					parentMetadata := metadataStack[len(metadataStack)-1]
-					newMetadata, err := loadAndMergeMetadata(subPath, parentMetadata)
+					newMetadata, err := loadAndMergeMetadata(subPath, &parentMetadata)
 					if err != nil {
 						return err
 					}
-					metadataStack = append(metadataStack, newMetadata)
+					metadataStack = append(metadataStack, *newMetadata)
 					return nil
 				}
 				if isIgnored(ignore, subPath) {
@@ -132,7 +132,7 @@ func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID
 
 					ingestedFilesCount++
 					slog.Debug("Ingesting file", "path", absPath, "metadata", currentMetadata)
-					return ingestionFunc(sp, currentMetadata)
+					return ingestionFunc(sp, currentMetadata.Metadata[filepath.Base(sp)]) // FIXME: metadata
 				})
 				return nil
 			})
@@ -161,7 +161,7 @@ func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID
 
 				ingestedFilesCount++
 				currentMetadata := metadataStack[len(metadataStack)-1]
-				return ingestionFunc(path, currentMetadata)
+				return ingestionFunc(path, currentMetadata.Metadata[filepath.Base(path)]) // FIXME: metadata
 			})
 		}
 
