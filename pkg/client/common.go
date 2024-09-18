@@ -1,7 +1,6 @@
 package client
 
 import (
-	"bufio"
 	"context"
 	"crypto/sha1"
 	"encoding/hex"
@@ -20,38 +19,7 @@ import (
 	"golang.org/x/sync/semaphore"
 )
 
-func isIgnored(ignore gitignore.Matcher, path string) bool {
-	return ignore.Match(strings.Split(path, string(filepath.Separator)), false)
-}
-
-func readIgnoreFile(path string) ([]gitignore.Pattern, error) {
-	stat, err := os.Stat(path)
-	if err != nil {
-		return nil, fmt.Errorf("failed to checkout ignore file %q: %w", path, err)
-	}
-
-	if stat.IsDir() {
-		return nil, fmt.Errorf("ignore file %q is a directory", path)
-	}
-
-	var ps []gitignore.Pattern
-	f, err := os.Open(path)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open ignore file %q: %w", path, err)
-	}
-
-	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		s := scanner.Text()
-		if !strings.HasPrefix(s, "#") && len(strings.TrimSpace(s)) > 0 {
-			ps = append(ps, gitignore.ParsePattern(s, nil))
-		}
-	}
-
-	return ps, nil
-}
-
-func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID string, ingestionFunc func(path string) error, paths ...string) (int, error) {
+func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID string, ingestionFunc func(path string, metadata map[string]any) error, paths ...string) (int, error) {
 	ingestedFilesCount := 0
 
 	var ignorePatterns []gitignore.Pattern
@@ -72,7 +40,7 @@ func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID
 		}
 	}
 
-	slog.Debug("Ignore patterns", "patterns", ignorePatterns, "len", len(ignorePatterns))
+	ignorePatterns = append(ignorePatterns, DefaultIgnorePatterns...)
 
 	ignore := gitignore.NewMatcher(ignorePatterns)
 
@@ -82,6 +50,9 @@ func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID
 	sem := semaphore.NewWeighted(int64(opts.Concurrency)) // limit max. concurrency
 
 	g, ctx := errgroup.WithContext(ctx)
+
+	// Stack to store metadata when entering nested directories
+	var metadataStack []Metadata
 
 	for _, p := range paths {
 		path := p
@@ -109,6 +80,13 @@ func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID
 		}
 
 		if fileInfo.IsDir() {
+			initialMetadata := &Metadata{Metadata: map[string]FileMetadata{}}
+			directoryMetadata, err := loadAndMergeMetadata(path, initialMetadata)
+			if err != nil {
+				return ingestedFilesCount, err
+			}
+			metadataStack = append(metadataStack, *directoryMetadata)
+
 			// Process directory
 			err = filepath.WalkDir(path, func(subPath string, d os.DirEntry, err error) error {
 				if err != nil {
@@ -121,6 +99,14 @@ func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID
 					if !opts.Recursive {
 						return filepath.SkipDir // Skip subdirectories if not recursive
 					}
+
+					// One dir level deeper -> load new metadata
+					parentMetadata := metadataStack[len(metadataStack)-1]
+					newMetadata, err := loadAndMergeMetadata(subPath, &parentMetadata)
+					if err != nil {
+						return err
+					}
+					metadataStack = append(metadataStack, *newMetadata)
 					return nil
 				}
 				if isIgnored(ignore, subPath) {
@@ -128,12 +114,16 @@ func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID
 					return nil
 				}
 
+				// Process the file
 				sp := subPath
 				absPath, err := filepath.Abs(sp)
 				if err != nil {
 					return fmt.Errorf("failed to get absolute path for %s: %w", sp, err)
 				}
 				touchedFilePaths = append(touchedFilePaths, absPath)
+
+				currentMetadata := metadataStack[len(metadataStack)-1]
+
 				g.Go(func() error {
 					if err := sem.Acquire(ctx, 1); err != nil {
 						return err
@@ -141,14 +131,16 @@ func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID
 					defer sem.Release(1)
 
 					ingestedFilesCount++
-					slog.Debug("Ingesting file", "path", absPath)
-					return ingestionFunc(sp)
+					slog.Debug("Ingesting file", "path", absPath, "metadata", currentMetadata)
+					return ingestionFunc(sp, currentMetadata.Metadata[filepath.Base(sp)]) // FIXME: metadata
 				})
 				return nil
 			})
 			if err != nil {
 				return ingestedFilesCount, err
 			}
+			// Directory processed, pop metadata
+			metadataStack = metadataStack[:len(metadataStack)-1]
 		} else {
 			if isIgnored(ignore, path) {
 				slog.Debug("Ignoring file", "path", path, "ignorefile", opts.IgnoreFile, "ignoreExtensions", opts.IgnoreExtensions)
@@ -168,7 +160,8 @@ func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID
 				defer sem.Release(1)
 
 				ingestedFilesCount++
-				return ingestionFunc(path)
+				currentMetadata := metadataStack[len(metadataStack)-1]
+				return ingestionFunc(path, currentMetadata.Metadata[filepath.Base(path)]) // FIXME: metadata
 			})
 		}
 

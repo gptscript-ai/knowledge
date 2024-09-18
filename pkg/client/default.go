@@ -122,7 +122,7 @@ func (c *DefaultClient) IngestPaths(ctx context.Context, datasetID string, opts 
 		return 0, err
 	}
 
-	ingestFile := func(path string) error {
+	ingestFile := func(path string, extraMetadata map[string]any) error {
 		content, err := os.ReadFile(path)
 		if err != nil {
 			return fmt.Errorf("failed to read file %s: %w", path, err)
@@ -148,6 +148,7 @@ func (c *DefaultClient) IngestPaths(ctx context.Context, datasetID string, opts 
 				ModifiedAt:   finfo.ModTime(),
 			},
 			IsDuplicateFuncName: "file_metadata",
+			ExtraMetadata:       extraMetadata,
 		}
 		if opts != nil {
 			payload.TextSplitterOpts = opts.TextSplitterOpts

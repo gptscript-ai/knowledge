@@ -24,11 +24,11 @@ type IngestOpts struct {
 	IsDuplicateFunc     IsDuplicateFunc
 	TextSplitterOpts    *textsplitter.TextSplitterOpts
 	IngestionFlows      []flows.IngestionFlow
+	ExtraMetadata       map[string]any
 }
 
 // Ingest loads a document from a reader and adds it to the dataset.
 func (s *Datastore) Ingest(ctx context.Context, datasetID string, name string, content []byte, opts IngestOpts) ([]string, error) {
-
 	if name == "" {
 		return nil, fmt.Errorf("name is required")
 	}
@@ -147,8 +147,14 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, name string, c
 		return nil, fmt.Errorf("%w (file %q)", &documentloader.UnsupportedFileTypeError{FileType: filetype}, opts.FileMetadata.AbsolutePath)
 	}
 
-	// Mandatory Transformation: Add filename to metadata
-	em := &transformers.ExtraMetadata{Metadata: map[string]any{"filename": filename, "absPath": opts.FileMetadata.AbsolutePath}}
+	// Mandatory Transformation: Add filename to metadata -> append extraMetadata, but do not override filename or absPath
+	metadata := map[string]any{"filename": filename, "absPath": opts.FileMetadata.AbsolutePath}
+	for k, v := range opts.ExtraMetadata {
+		if _, ok := metadata[k]; !ok {
+			metadata[k] = v
+		}
+	}
+	em := &transformers.ExtraMetadata{Metadata: metadata}
 	ingestionFlow.Transformations = append(ingestionFlow.Transformations, em)
 
 	docs, err := ingestionFlow.Run(ctx, bytes.NewReader(content))
