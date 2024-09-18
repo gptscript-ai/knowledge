@@ -20,7 +20,7 @@ Credential: github.com/gptscript-ai/gateway-creds as github.com/gptscript-ai/gat
 Param: query: The query to search for in the knowledge base. It will be used for semantic similarity search, so enhance it accordingly to yield good results.
 Param: debug: (OPTIONAL) Set to "true" to enable debug mode - only use if you are explicitly asked to do so.
 
-#!${GPTSCRIPT_TOOL_DIR}/bin/gptscript-go-tool retrieve --dataset ${GPTSCRIPT_THREAD_ID} --dataset ${GPTSCRIPT_SCRIPT_ID} "${GPTSCRIPT_INPUT}"
+#!${GPTSCRIPT_TOOL_DIR}/bin/gptscript-go-tool retrieve ${GPTSCRIPT_THREAD_ID:+--dataset=${GPTSCRIPT_THREAD_ID}} ${GPTSCRIPT_SCRIPT_ID:+--dataset=${GPTSCRIPT_SCRIPT_ID}} "${GPTSCRIPT_INPUT}"
 
 ---
 Name: Knowledge Retrieval Context
@@ -30,7 +30,7 @@ Type: context
 Input Filter: QueryRelevancy
 Output Filter: KnowledgeInstructions
 
-#!${GPTSCRIPT_TOOL_DIR}/bin/gptscript-go-tool retrieve --dataset ${GPTSCRIPT_THREAD_ID} --dataset ${GPTSCRIPT_SCRIPT_ID} "${GPTSCRIPT_INPUT}"
+#!${GPTSCRIPT_TOOL_DIR}/bin/gptscript-go-tool retrieve ${GPTSCRIPT_THREAD_ID:+--dataset=${GPTSCRIPT_THREAD_ID}} ${GPTSCRIPT_SCRIPT_ID:+--dataset=${GPTSCRIPT_SCRIPT_ID}} "${GPTSCRIPT_INPUT}"
 
 ---
 Name: QueryRelevancy
