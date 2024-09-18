@@ -18,7 +18,7 @@ import (
 
 type ClientIngest struct {
 	Client
-	Dataset string `usage:"Target Dataset ID" short:"d" default:"default" env:"KNOW_TARGET_DATASET"`
+	Dataset string `usage:"Target Dataset ID" short:"d" default:"default" env:"KNOW_DATASET"`
 	Prune   bool   `usage:"Prune deleted files" env:"KNOW_INGEST_PRUNE"`
 	ClientIngestOpts
 	textsplitter.TextSplitterOpts

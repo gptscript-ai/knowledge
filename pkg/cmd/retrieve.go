@@ -15,7 +15,7 @@ import (
 
 type ClientRetrieve struct {
 	Client
-	Datasets []string `usage:"Target Dataset IDs" short:"d" default:"default" env:"KNOW_TARGET_DATASETS" name:"dataset"`
+	Datasets []string `usage:"Target Dataset IDs" short:"d" default:"default" env:"KNOW_DATASETS" name:"dataset"`
 	Archive  string   `usage:"Path to the archive file"`
 	ClientRetrieveOpts
 	ClientFlowsConfig
