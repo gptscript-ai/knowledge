@@ -12,8 +12,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	dstypes "github.com/gptscript-ai/knowledge/pkg/datastore/types"
-
 	"github.com/acorn-io/z"
 	dstypes "github.com/gptscript-ai/knowledge/pkg/datastore/types"
 

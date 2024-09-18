@@ -29,7 +29,6 @@ type IngestOpts struct {
 
 // Ingest loads a document from a reader and adds it to the dataset.
 func (s *Datastore) Ingest(ctx context.Context, datasetID string, name string, content []byte, opts IngestOpts) ([]string, error) {
-
 	if name == "" {
 		return nil, fmt.Errorf("name is required")
 	}
