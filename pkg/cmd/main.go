@@ -44,22 +44,21 @@ func (c *Knowledge) Run(cmd *cobra.Command, _ []string) error {
 	return cmd.Help()
 }
 
-func (c *Knowledge) Customize(cmd *cobra.Command) {
-	cmd.PersistentPreRun = func(cmd *cobra.Command, _ []string) {
-		lvl := slog.LevelInfo
+func (c *Knowledge) PersistentPre(_ *cobra.Command, _ []string) error {
+	lvl := slog.LevelInfo
 
-		if c.Debug {
-			lvl = slog.LevelDebug
-			slog.SetLogLoggerLevel(lvl)
-		}
-
-		if c.Json {
-			slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-				AddSource: false,
-				Level:     lvl,
-			})))
-		}
+	if c.Debug {
+		lvl = slog.LevelDebug
 	}
+	slog.SetLogLoggerLevel(lvl)
+
+	if c.Json {
+		slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+			AddSource: false,
+			Level:     lvl,
+		})))
+	}
+	return nil
 }
 
 type Version struct{}
