@@ -14,6 +14,7 @@ import (
 	"github.com/gptscript-ai/knowledge/pkg/config"
 	etypes "github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/types"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
+	"github.com/gptscript-ai/knowledge/pkg/log"
 	"github.com/gptscript-ai/knowledge/pkg/output"
 
 	"github.com/adrg/xdg"
@@ -68,6 +69,23 @@ func GetDatastorePaths(dsn, vectordbPath string) (string, string, bool, error) {
 	return dsn, vectordbPath, isArchive, nil
 }
 
+func LogEmbeddingFunc(embeddingFunc cg.EmbeddingFunc) cg.EmbeddingFunc {
+	return func(ctx context.Context, text string) ([]float32, error) {
+		l := log.FromCtx(ctx).With("stage", "embedding")
+
+		l.With("status", "starting").Info("Creating embedding")
+
+		embedding, err := embeddingFunc(ctx, text)
+		if err != nil {
+			l.With("status", "failed").Error("Failed to create embedding", "error", err)
+			return nil, err
+		}
+
+		l.With("status", "completed").Info("Created embedding")
+		return embedding, nil
+	}
+}
+
 func NewDatastore(dsn string, automigrate bool, vectorDBPath string, embeddingProvider etypes.EmbeddingModelProvider) (*Datastore, error) {
 	dsn, vectorDBPath, isArchive, err := GetDatastorePaths(dsn, vectorDBPath)
 	if err != nil {
@@ -106,7 +124,7 @@ func NewDatastore(dsn string, automigrate bool, vectorDBPath string, embeddingPr
 
 	ds := &Datastore{
 		Index:                  idx,
-		Vectorstore:            chromem.New(vsdb, embeddingFunc),
+		Vectorstore:            chromem.New(vsdb, LogEmbeddingFunc(embeddingFunc)),
 		EmbeddingModelProvider: embeddingProvider,
 	}
 

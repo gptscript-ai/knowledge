@@ -160,8 +160,12 @@ func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID
 				defer sem.Release(1)
 
 				ingestedFilesCount++
-				currentMetadata := metadataStack[len(metadataStack)-1]
-				return ingestionFunc(path, currentMetadata.Metadata[filepath.Base(path)]) // FIXME: metadata
+				var fileMetadata FileMetadata
+				if len(metadataStack) > 0 {
+					currentMetadata := metadataStack[len(metadataStack)-1]
+					fileMetadata = currentMetadata.Metadata[filepath.Base(path)]
+				}
+				return ingestionFunc(path, fileMetadata)
 			})
 		}
 
