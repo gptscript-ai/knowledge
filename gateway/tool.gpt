@@ -73,6 +73,12 @@ History: "<USER_MESSAGES></USER_MESSAGES>"
 Output: -
 Reasoning: The input is too generic and doesn't contain any specific keywords or entities. There is no relevant history to enrich the input with, so it's not good enough to be used as a query.
 
+## Example 4
+Input: "What's my Day 6 Travel Plan?"
+History: "<USER_MESSAGES></USER_MESSAGES>"
+Output: "What's my Day 6 Travel Plan?"
+Reasoning: The query is about something that belongs to the user so it's unlikely to be present in the training data. It must be in some uploaded file. The query is also good enough, since it contains keywords and a specific day.
+
 ---
 Name: KnowledgeInstructions
 Params: output: the message
