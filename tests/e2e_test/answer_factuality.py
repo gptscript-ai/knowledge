@@ -25,6 +25,8 @@ ANSWER:
 """
 
 
+## To me, This is the most important metric on the Answer generation side. 
+# Ideally, LLM should generate answer with as much details as possible but without hallucination.
 
 def answer_factuality(answers: List[str], ground_truths: List[str]):
     """
