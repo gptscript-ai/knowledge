@@ -39,7 +39,8 @@ tests/venv/
 tests/__pycache__/
 
 .DS_Store
-
+*__pycache__
+*files
 
 vendor/
 
