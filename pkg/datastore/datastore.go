@@ -115,11 +115,16 @@ func NewDatastore(dsn string, automigrate bool, vectorDBPath string, embeddingPr
 		}
 	}
 
+	embeddingFunc, err := embeddingProvider.EmbeddingFunc()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create embedding function: %w", err)
+	}
+
 	slog.Debug("Using embedding model provider", "provider", embeddingProvider.Name(), "config", output.RedactSensitive(embeddingProvider.Config()))
 
 	ds := &Datastore{
 		Index:                  idx,
-		Vectorstore:            chromem.New(vsdb, nil),
+		Vectorstore:            chromem.New(vsdb, embeddingFunc),
 		EmbeddingModelProvider: embeddingProvider,
 	}
 
