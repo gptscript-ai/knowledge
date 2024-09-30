@@ -144,7 +144,7 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, name string, c
 	}
 
 	if ingestionFlow.Load == nil {
-		statusLog.With("status", "unsupported").Info(fmt.Sprintf("Unsupported file types: %s", filetype))
+		statusLog.With("status", "skipped").With("reason", "unsupported").Info(fmt.Sprintf("Unsupported file types: %s", filetype))
 		return nil, fmt.Errorf("%w (file %q)", &documentloader.UnsupportedFileTypeError{FileType: filetype}, opts.FileMetadata.AbsolutePath)
 	}
 
@@ -165,8 +165,7 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, name string, c
 	}
 
 	if len(docs) == 0 {
-		statusLog.With("status", "skipped").With("reason", "no documents").Debug("No documents loaded")
-		statusLog.With("status", "finished").Info("Ingested document", "num_documents", 0)
+		statusLog.With("status", "skipped").Info("Ingested document", "num_documents", 0)
 		return nil, nil
 	}
 
