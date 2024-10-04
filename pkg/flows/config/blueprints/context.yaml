@@ -15,19 +15,12 @@ flows:
       retriever:
         name: merge
         options:
-          topK: 10
+          topK: 20
           retrievers:
-            - name: subquery
+            - name: basic
               weight: 0.7
               options:
-                limit: 3 # max. 3 subqueries
-                topK: 10 # topK per search
-                model:
-                  openai:
-                    apiKey: "${OPENAI_API_KEY}"
-                    model: gpt-4o
-                    apiType: OPEN_AI
-                    baseURL: "${OPENAI_BASE_URL}"
+                topK: 20
             - name: bm25
               weight: 0.3
               options:
@@ -42,7 +35,7 @@ flows:
             threshold: 0.4
         - name: reduce
           options:
-            topK: 10
+            topK: 20
 
 
 

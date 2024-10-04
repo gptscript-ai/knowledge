@@ -20,23 +20,16 @@ flows:
                 apiType: OPEN_AI
                 baseURL: "${OPENAI_BASE_URL}"
       retriever:
-        name: subquery
+        name: basic
         options:
-          limit: 3 # max. 3 subqueries
-          topK: 10 # topK per search
-          model:
-            openai:
-              apiKey: "${OPENAI_API_KEY}"
-              model: gpt-4o
-              apiType: OPEN_AI
-              baseURL: "${OPENAI_BASE_URL}"
+          topK: 20
       postprocessors:
         - name: similarity
           options:
             threshold: 0.6
         - name: reduce
           options:
-            topK: 10
+            topK: 20
 
 
 
