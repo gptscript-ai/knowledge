@@ -1,11 +1,12 @@
 package vertex
 
 import (
-	"dario.cat/mergo"
 	"fmt"
+	"strings"
+
+	"dario.cat/mergo"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/load"
 	cg "github.com/philippgille/chromem-go"
-	"strings"
 )
 
 type EmbeddingProviderVertex struct {
@@ -48,11 +49,10 @@ func (p *EmbeddingProviderVertex) fillDefaults() error {
 }
 
 func (p *EmbeddingProviderVertex) EmbeddingFunc() (cg.EmbeddingFunc, error) {
-	cfg := cg.NewVertexConfig(p.APIKey, p.Project, cg.EmbeddingModelVertex(p.Model))
 	if p.APIEndpoint != "" {
-		cfg = cfg.WithAPIEndpoint(p.APIEndpoint)
+		return cg.NewEmbeddingFuncVertex(p.APIKey, p.Project, cg.EmbeddingModelVertex(p.Model), cg.WithVertexAPIEndpoint(p.APIEndpoint)), nil
 	}
-	return cg.NewEmbeddingFuncVertex(cfg), nil
+	return cg.NewEmbeddingFuncVertex(p.APIKey, p.Project, cg.EmbeddingModelVertex(p.Model)), nil
 }
 
 func (p *EmbeddingProviderVertex) Config() any {

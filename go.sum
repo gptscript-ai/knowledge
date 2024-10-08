@@ -203,8 +203,8 @@ github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
 github.com/iwilltry42/bm25-go v0.0.0-20240909111832-a928590cc9da h1:aqahDXw6bOtbupzBGZpnV57M3JShpN0jrtd6cyclH8I=
 github.com/iwilltry42/bm25-go v0.0.0-20240909111832-a928590cc9da/go.mod h1:AmA5WoRtPljzo03tlOVOoLKPh9doUNUQrtrHaq5VkUg=
-github.com/iwilltry42/chromem-go v0.0.0-20241007125139-c67134210c5b h1:WnxefSvaBsbg0nDmBuJziI/eGlhW33r/hcjUmZfRIHE=
-github.com/iwilltry42/chromem-go v0.0.0-20241007125139-c67134210c5b/go.mod h1:hTd+wGEm/fFPQl7ilfCwQXkgEUxceYh86iIdoKMolPo=
+github.com/iwilltry42/chromem-go v0.0.0-20241008123102-a14ad41590c3 h1:RvBuDVIqScpOD5NWj1LggfI3EFHjLyy4g6ijjk6zSns=
+github.com/iwilltry42/chromem-go v0.0.0-20241008123102-a14ad41590c3/go.mod h1:hTd+wGEm/fFPQl7ilfCwQXkgEUxceYh86iIdoKMolPo=
 github.com/iwilltry42/golc v0.0.113-0.20240802113826-d065a3c5b0c7 h1:2AzzbKVW1iP2F+ovqJKq801l6tgxYPt9m2zFKbs+i/Y=
 github.com/iwilltry42/golc v0.0.113-0.20240802113826-d065a3c5b0c7/go.mod h1:w692KzkSTSvXROfyu+jYauNXB4YaL1s8zHPDMnNW88o=
 github.com/iwilltry42/pdf v0.0.0-20240517145113-99fbaebc5dd3 h1:rCVwFT7Q+HxpijWfSzKTYX4pCDMS7oy/I/WzU30VXyI=
