@@ -132,7 +132,7 @@ func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID
 
 					ingestedFilesCount++
 					slog.Debug("Ingesting file", "path", absPath, "metadata", currentMetadata)
-					return ingestionFunc(sp, currentMetadata.Metadata[filepath.Base(sp)]) // FIXME: metadata
+					return ingestionFunc(sp, currentMetadata.Metadata[absPath]) // FIXME: metadata
 				})
 				return nil
 			})
