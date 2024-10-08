@@ -73,6 +73,12 @@ History: "<USER_MESSAGES></USER_MESSAGES>"
 Output: -
 Reasoning: The input is too generic and doesn't contain any specific keywords or entities. There is no relevant history to enrich the input with, so it's not good enough to be used as a query.
 
+## Example 4
+Input: "What's my Day 6 Travel Plan?"
+History: "<USER_MESSAGES></USER_MESSAGES>"
+Output: "What's my Day 6 Travel Plan?"
+Reasoning: The query is about something that belongs to the user so it's unlikely to be present in the training data. It must be in some uploaded file. The query is also good enough, since it contains keywords and a specific day.
+
 ---
 Name: KnowledgeInstructions
 Params: output: the message
@@ -90,14 +96,19 @@ async def main():
     continuation = os.getenv('CONTINUATION', '') == 'true'
     is_chat = os.getenv('CHAT', '') == 'true'
 
-    # only use the part of the output starting with "Retrieved the following"
-    if "Retrieved the following" in output:
-        output = "Retrieved the following"+output.split("Retrieved the following")[1]
+    # We're looping here instead of just search + split, since there are some edge cases, where
+    # the actual result output was followed by more logs that shouldn't be in the output.
+    result = ""
+    for part in output.split("\n"):
+        if part.startswith('{"originalQuery"'):
+           result = part
+           break
 
+    if result != "":
         msg = f"""
 Use the content within the following <KNOWLEDGE></KNOWLEDGE> tags as your learned knowledge.
 <KNOWLEDGE>
-{output}
+{result}
 </KNOWLEDGE>
 If this knowledge seems irrelevant to the user query, ignore it.
 Avoid mentioning that you retrieved the information from the context or the knowledge tool.
@@ -108,7 +119,6 @@ Answer in the language that the user asked the question in.
         msg = "No data retrieved from knowledge base."
 
     print(msg)
-
 
 asyncio.run(main())
 
