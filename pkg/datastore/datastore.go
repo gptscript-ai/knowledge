@@ -103,7 +103,7 @@ func NewDatastore(dsn string, automigrate bool, vectorDBPath string, embeddingPr
 
 	var vsdb *cg.DB
 	if !isArchive {
-		vsdb, err = cg.NewPersistentDB(vectorDBPath, false)
+		vsdb, err = cg.NewPersistentDB(vectorDBPath, false, cg.WithOnCorruptedCollectionBehavior(cg.OnCorruptedDelete))
 		if err != nil {
 			return nil, err
 		}
