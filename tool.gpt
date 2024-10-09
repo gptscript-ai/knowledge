@@ -16,7 +16,7 @@ If the answers that the knowledge tool returns seem irrelevant, you may use anot
 ---
 Name: Knowledge Retrieval
 Description: Retrieve information from files uploaded by the user.
-Credential: github.com/gptscript-ai/gateway-creds as github.com/gptscript-ai/gateway
+Tools: github.com/gptscript-ai/credentials/model-provider
 Param: query: The query to search for in the knowledge base. It will be used for semantic similarity search, so enhance it accordingly to yield good results.
 Param: debug: (OPTIONAL) Set to "true" to enable debug mode - only use if you are explicitly asked to do so.
 
@@ -25,7 +25,7 @@ Param: debug: (OPTIONAL) Set to "true" to enable debug mode - only use if you ar
 ---
 Name: Knowledge Retrieval Context
 Description: Add knowledge retrieved from uploaded files to the context.
-Credential: github.com/gptscript-ai/gateway-creds as github.com/gptscript-ai/gateway
+Tools: github.com/gptscript-ai/credentials/model-provider
 Type: context
 Input Filter: QueryRelevancy
 Output Filter: KnowledgeInstructions
