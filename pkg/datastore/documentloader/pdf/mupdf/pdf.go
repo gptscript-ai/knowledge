@@ -19,6 +19,8 @@ import (
 // Compile time check to ensure PDF satisfies the DocumentLoader interface.
 var _ types.DocumentLoader = (*PDF)(nil)
 
+var mupdfLock sync.Mutex
+
 type PDFOptions struct {
 	// Password for encrypted PDF files.
 	Password string
@@ -88,6 +90,9 @@ func (l *PDF) Load(ctx context.Context) ([]vs.Document, error) {
 	docs := make([]vs.Document, 0, l.document.NumPage())
 	numPages := l.document.NumPage()
 
+	// We need a lock here, since MuPDF is not thread-safe and there are some edge cases that can cause a CGO panic.
+	// See https://github.com/gptscript-ai/knowledge/issues/135
+	mupdfLock.Lock()
 	g, childCtx := errgroup.WithContext(ctx)
 	g.SetLimit(l.opts.NumThread)
 	for pageNum := 0; pageNum < numPages; pageNum++ {
@@ -131,7 +136,10 @@ func (l *PDF) Load(ctx context.Context) ([]vs.Document, error) {
 		})
 	}
 
-	return docs, g.Wait()
+	err := g.Wait()
+	mupdfLock.Unlock()
+
+	return docs, err
 }
 
 // LoadAndSplit loads PDF documents from the provided reader and splits them using the specified text splitter.
