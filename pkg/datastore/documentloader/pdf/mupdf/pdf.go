@@ -93,6 +93,7 @@ func (l *PDF) Load(ctx context.Context) ([]vs.Document, error) {
 	// We need a lock here, since MuPDF is not thread-safe and there are some edge cases that can cause a CGO panic.
 	// See https://github.com/gptscript-ai/knowledge/issues/135
 	mupdfLock.Lock()
+	defer mupdfLock.Unlock()
 	g, childCtx := errgroup.WithContext(ctx)
 	g.SetLimit(l.opts.NumThread)
 	for pageNum := 0; pageNum < numPages; pageNum++ {
@@ -136,10 +137,7 @@ func (l *PDF) Load(ctx context.Context) ([]vs.Document, error) {
 		})
 	}
 
-	err := g.Wait()
-	mupdfLock.Unlock()
-
-	return docs, err
+	return docs, g.Wait()
 }
 
 // LoadAndSplit loads PDF documents from the provided reader and splits them using the specified text splitter.
