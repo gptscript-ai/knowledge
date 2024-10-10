@@ -31,6 +31,7 @@ func New() *cobra.Command {
 		new(ClientExportDatasets),
 		new(ClientImportDatasets),
 		new(ClientEditDataset),
+		new(ClientLoad),
 		new(Version),
 	)
 }

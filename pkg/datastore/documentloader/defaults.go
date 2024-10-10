@@ -46,7 +46,7 @@ type ArchiveOpts struct {
 	ErrOnFailedFile          bool
 }
 
-func DefaultDocLoaderFunc(filetype string, opts DefaultDocLoaderFuncOpts) func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
+func DefaultDocLoaderFunc(filetype string, opts DefaultDocLoaderFuncOpts) LoaderFunc {
 	switch filetype {
 	case ".pdf", "application/pdf":
 		return func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
