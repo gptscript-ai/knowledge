@@ -178,3 +178,11 @@ async def main():
 
 asyncio.run(main())
 
+---
+Name: Knowledge Load
+Description: Load a file and transform it to markdown
+Params: input: Path to input file
+Params: output: Path to output file where the extracted markdown content should be written to. Should end with .md
+Params: loader: Optionally choose a specific loader for the file to not rely on the default. Only use if explicitly specified.
+
+#!${GPTSCRIPT_TOOL_DIR}/bin/gptscript-go-tool load ${INPUT} ${OUTPUT} ${LOADER:+--loader=${LOADER}}
