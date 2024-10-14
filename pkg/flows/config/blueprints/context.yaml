@@ -2,16 +2,6 @@ flows:
   context:
     default: true
     retrieval:
-      querymodifiers:
-        # Enhance
-        - name: enhance
-          options:
-            model:
-              openai:
-                apiKey: "${OPENAI_API_KEY}"
-                model: gpt-4o
-                apiType: OPEN_AI
-                baseURL: "${OPENAI_BASE_URL}"
       retriever:
         name: merge
         options:
