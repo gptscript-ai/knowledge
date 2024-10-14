@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"math"
 
-	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
+	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore/types"
 )
 
 func FindMinMaxScores(docs []vs.Document) (float32, float32) {

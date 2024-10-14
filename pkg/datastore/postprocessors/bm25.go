@@ -7,7 +7,7 @@ import (
 
 	"github.com/gptscript-ai/knowledge/pkg/datastore/lib/bm25"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
-	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
+	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore/types"
 )
 
 const BM25PostprocessorName = "bm25"

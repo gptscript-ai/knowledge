@@ -3,7 +3,7 @@ package transformers
 import (
 	"context"
 
-	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
+	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore/types"
 )
 
 type GenericTransformer struct {

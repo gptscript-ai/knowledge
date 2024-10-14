@@ -2,10 +2,11 @@ package defaults
 
 import (
 	"context"
-	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader/pdf/gopdf"
-	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 	"io"
 	"log/slog"
+
+	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader/pdf/gopdf"
+	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore/types"
 )
 
 var DefaultPDFReaderFunc func(ctx context.Context, reader io.Reader) ([]vs.Document, error) = func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {

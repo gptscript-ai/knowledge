@@ -10,7 +10,7 @@ import (
 	"github.com/acorn-io/z"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/lib/scores"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/store"
-	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
+	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore/types"
 	"github.com/mitchellh/mapstructure"
 	"github.com/philippgille/chromem-go"
 	"golang.org/x/sync/errgroup"

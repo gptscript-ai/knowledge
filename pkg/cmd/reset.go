@@ -21,7 +21,7 @@ func (s *ClientResetDatastore) Customize(cmd *cobra.Command) {
 }
 
 func (s *ClientResetDatastore) Run(cmd *cobra.Command, args []string) error {
-	dsn, vectordbPath, _, err := datastore.GetDatastorePaths(s.DSN, s.VectorDBConfig.VectorDBPath)
+	dsn, vectordbPath, _, err := datastore.GetDefaultDSNs(s.DSN, s.VectorDBConfig.VectorDBPath)
 	if err != nil {
 		return err
 	}

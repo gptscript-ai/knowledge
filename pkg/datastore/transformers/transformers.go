@@ -3,17 +3,17 @@ package transformers
 import (
 	"fmt"
 
-	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
+	dstypes "github.com/gptscript-ai/knowledge/pkg/datastore/types"
 )
 
-var TransformerMap = map[string]types.DocumentTransformer{
+var TransformerMap = map[string]dstypes.DocumentTransformer{
 	ExtraMetadataName:               &ExtraMetadata{},
 	FilterMarkdownDocsNoContentName: &FilterMarkdownDocsNoContent{},
 	KeywordExtractorName:            &KeywordExtractor{},
 	MetadataManipulatorName:         &MetadataManipulator{},
 }
 
-func GetTransformer(name string) (types.DocumentTransformer, error) {
+func GetTransformer(name string) (dstypes.DocumentTransformer, error) {
 	transformer, ok := TransformerMap[name]
 	if !ok {
 		return nil, fmt.Errorf("unknown transformer %q", name)

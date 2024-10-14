@@ -8,12 +8,14 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/google/uuid"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
 	"github.com/gptscript-ai/knowledge/pkg/env"
 	"github.com/gptscript-ai/knowledge/pkg/log"
-	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 	"github.com/gptscript-ai/knowledge/pkg/vectorstore/errors"
+	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore/types"
 	"github.com/philippgille/chromem-go"
 )
 
@@ -26,11 +28,39 @@ type ChromemStore struct {
 }
 
 // New creates a new Chromem vector store.
-func New(db *chromem.DB, embeddingFunc chromem.EmbeddingFunc) *ChromemStore {
-	return &ChromemStore{
-		db:            db,
-		embeddingFunc: embeddingFunc,
+// Three types are supported:
+// 1. In-memory: chromem://:memory:
+// 2. Persistent: chromem://path/to/db-file
+// 3. In-memory, loaded from archive: chromem://archive://path/to/archive-file
+func New(dsn string, embeddingFunc chromem.EmbeddingFunc) (*ChromemStore, error) {
+	dsn = strings.TrimPrefix(dsn, "chromem://")
+
+	if dsn == ":memory:" {
+		return &ChromemStore{
+			db:            chromem.NewDB(),
+			embeddingFunc: embeddingFunc,
+		}, nil
 	}
+
+	var vsdb *chromem.DB
+	var err error
+	if strings.HasPrefix(dsn, types.ArchivePrefix) {
+		// Import from archive -> in-memory DB, not persisted back to the archive
+		vsdb = chromem.NewDB()
+		if err = vsdb.ImportFromFile(strings.TrimPrefix(dsn, types.ArchivePrefix), ""); err != nil {
+			return nil, fmt.Errorf("failed to import vector database: %w", err)
+		}
+	} else {
+		vsdb, err = chromem.NewPersistentDB(dsn, false, chromem.WithOnCorruptedCollectionBehavior(chromem.OnCorruptedDelete))
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &ChromemStore{
+		db:            vsdb,
+		embeddingFunc: embeddingFunc,
+	}, nil
 }
 
 func (s *ChromemStore) CreateCollection(_ context.Context, name string) error {

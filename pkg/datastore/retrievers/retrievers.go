@@ -10,11 +10,11 @@ import (
 	"github.com/gptscript-ai/knowledge/pkg/datastore/lib/scores"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/store"
 	"github.com/gptscript-ai/knowledge/pkg/output"
+	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore/types"
 	"github.com/mitchellh/mapstructure"
 	"github.com/philippgille/chromem-go"
 
 	"github.com/gptscript-ai/knowledge/pkg/datastore/defaults"
-	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 )
 
 type Retriever interface {

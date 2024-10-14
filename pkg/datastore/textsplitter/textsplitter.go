@@ -2,12 +2,12 @@ package textsplitter
 
 import (
 	"fmt"
-	dstypes "github.com/gptscript-ai/knowledge/pkg/datastore/types"
 	"log/slog"
 
 	"dario.cat/mergo"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/defaults"
-	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
+	dstypes "github.com/gptscript-ai/knowledge/pkg/datastore/types"
+	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore/types"
 	"github.com/mitchellh/mapstructure"
 	lcgosplitter "github.com/tmc/langchaingo/textsplitter"
 )

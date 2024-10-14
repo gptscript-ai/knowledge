@@ -17,7 +17,7 @@ import (
 	"github.com/acorn-io/z"
 	"github.com/gen2brain/go-fitz"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/openai"
-	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
+	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore/types"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/sync/semaphore"
 )

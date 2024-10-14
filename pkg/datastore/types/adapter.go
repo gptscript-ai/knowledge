@@ -1,7 +1,7 @@
 package types
 
 import (
-	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
+	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore/types"
 	golcschema "github.com/hupe1980/golc/schema"
 	lcgoschema "github.com/tmc/langchaingo/schema"
 )

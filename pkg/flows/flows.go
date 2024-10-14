@@ -10,6 +10,7 @@ import (
 	"github.com/acorn-io/z"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/store"
 	"github.com/gptscript-ai/knowledge/pkg/log"
+	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore/types"
 	"github.com/mitchellh/mapstructure"
 	"github.com/philippgille/chromem-go"
 
@@ -20,7 +21,6 @@ import (
 	"github.com/gptscript-ai/knowledge/pkg/datastore/textsplitter"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/transformers"
 	dstypes "github.com/gptscript-ai/knowledge/pkg/datastore/types"
-	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
 )
 
 type IngestionFlowGlobals struct {
