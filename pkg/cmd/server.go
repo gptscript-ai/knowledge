@@ -2,11 +2,12 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings"
-	"github.com/spf13/cobra"
 	"log/slog"
 	"os/signal"
 	"syscall"
+
+	"github.com/gptscript-ai/knowledge/pkg/datastore/embeddings"
+	"github.com/spf13/cobra"
 
 	"github.com/gptscript-ai/knowledge/pkg/config"
 	"github.com/gptscript-ai/knowledge/pkg/datastore"
@@ -47,7 +48,7 @@ func (s *Server) Run(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	ds, err := datastore.NewDatastore(s.DSN, s.AutoMigrate == "true", s.VectorDBConfig.VectorDBPath, provider)
+	ds, err := datastore.NewDatastore(cmd.Context(), s.DatabaseConfig.DSN, s.AutoMigrate == "true", s.VectorDBConfig.DSN, provider)
 	if err != nil {
 		return fmt.Errorf("failed to initialize datastore: %w", err)
 	}

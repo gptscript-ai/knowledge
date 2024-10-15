@@ -22,7 +22,7 @@ func (s *ClientImportDatasets) Customize(cmd *cobra.Command) {
 }
 
 func (s *ClientImportDatasets) Run(cmd *cobra.Command, args []string) error {
-	c, err := s.getClient()
+	c, err := s.getClient(cmd.Context())
 	if err != nil {
 		return err
 	}

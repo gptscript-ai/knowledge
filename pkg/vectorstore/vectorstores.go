@@ -7,6 +7,7 @@ import (
 
 	etypes "github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/types"
 	"github.com/gptscript-ai/knowledge/pkg/vectorstore/chromem"
+	"github.com/gptscript-ai/knowledge/pkg/vectorstore/pgvector"
 	"github.com/gptscript-ai/knowledge/pkg/vectorstore/types"
 	cg "github.com/philippgille/chromem-go"
 )
@@ -23,8 +24,7 @@ type VectorStore interface {
 	ExportCollectionsToFile(ctx context.Context, path string, collections ...string) error
 }
 
-func New(dsn string, embeddingProvider etypes.EmbeddingModelProvider) (VectorStore, error) {
-
+func New(ctx context.Context, dsn string, embeddingProvider etypes.EmbeddingModelProvider) (VectorStore, error) {
 	embeddingFunc, err := embeddingProvider.EmbeddingFunc()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create embedding function: %w", err)
@@ -37,6 +37,9 @@ func New(dsn string, embeddingProvider etypes.EmbeddingModelProvider) (VectorSto
 	switch s[0] {
 	case "chromem":
 		return chromem.New(dsn, embeddingFunc)
+	case "pgvector":
+
+		return pgvector.New(ctx, dsn, embeddingFunc)
 	default:
 		return nil, fmt.Errorf("unsupported dialect: %q", dialect)
 	}

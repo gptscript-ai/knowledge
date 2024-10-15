@@ -21,7 +21,7 @@ func (s *ClientResetDatastore) Customize(cmd *cobra.Command) {
 }
 
 func (s *ClientResetDatastore) Run(cmd *cobra.Command, args []string) error {
-	dsn, vectordbPath, _, err := datastore.GetDefaultDSNs(s.DSN, s.VectorDBConfig.VectorDBPath)
+	dsn, vectordbPath, _, err := datastore.GetDefaultDSNs(s.DatabaseConfig.DSN, s.VectorDBConfig.DSN)
 	if err != nil {
 		return err
 	}
@@ -34,6 +34,6 @@ func (s *ClientResetDatastore) Run(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to remove vector database directory: %w", err)
 	}
 
-	fmt.Printf("Successfully reset datastore (DSN: %q, VectorDBPath: %q)\n", dsn, vectordbPath)
+	fmt.Printf("Successfully reset datastore (DSN: %q, DSN: %q)\n", dsn, vectordbPath)
 	return nil
 }

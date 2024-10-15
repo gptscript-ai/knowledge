@@ -81,7 +81,7 @@ func LogEmbeddingFunc(embeddingFunc cg.EmbeddingFunc) cg.EmbeddingFunc {
 	}
 }
 
-func NewDatastore(indexDSN string, automigrate bool, vectorDSN string, embeddingProvider etypes.EmbeddingModelProvider) (*Datastore, error) {
+func NewDatastore(ctx context.Context, indexDSN string, automigrate bool, vectorDSN string, embeddingProvider etypes.EmbeddingModelProvider) (*Datastore, error) {
 	indexDSN, vectorDSN, isArchive, err := GetDefaultDSNs(indexDSN, vectorDSN)
 	if err != nil {
 		return nil, fmt.Errorf("failed to determine datastore paths: %w", err)
@@ -98,7 +98,7 @@ func NewDatastore(indexDSN string, automigrate bool, vectorDSN string, embedding
 
 	slog.Debug("Using embedding model provider", "provider", embeddingProvider.Name(), "config", output.RedactSensitive(embeddingProvider.Config()))
 
-	vsdb, err := vectorstore.New(vectorDSN, embeddingProvider)
+	vsdb, err := vectorstore.New(ctx, vectorDSN, embeddingProvider)
 	if err != nil {
 		return nil, err
 	}

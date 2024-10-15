@@ -3,6 +3,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/spf13/cobra"
 )
 
@@ -18,7 +19,7 @@ func (s *ClientListDatasets) Customize(cmd *cobra.Command) {
 }
 
 func (s *ClientListDatasets) Run(cmd *cobra.Command, args []string) error {
-	c, err := s.getClient()
+	c, err := s.getClient(cmd.Context())
 	if err != nil {
 		return err
 	}
