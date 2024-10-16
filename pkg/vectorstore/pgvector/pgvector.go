@@ -29,6 +29,10 @@ const (
 	// of the vector extension. The value is deliberately set to the same as python langchain
 	// https://github.com/langchain-ai/langchain/blob/v0.0.340/libs/langchain/langchain/vectorstores/pgvector.py#L167
 	pgLockIDExtension = 1573678846307946496
+
+	// pgLockIDCreateCollection is used for advisor lock to fix issue arising from concurrent
+	// creation of the collection. The same value represents the same lock.
+	pgLockIDCreateCollection = 1573678846307946497
 )
 
 var (
@@ -125,6 +129,7 @@ func (v VectorStore) init(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	defer tx.Rollback(ctx) // rollback on error (noop after commit)
 	if err := v.createVectorExtensionIfNotExists(ctx, tx); err != nil {
 		return err
 	}
@@ -134,19 +139,8 @@ func (v VectorStore) init(ctx context.Context) error {
 	if err := v.createEmbeddingTableIfNotExists(ctx, tx); err != nil {
 		return err
 	}
-	if err := tx.Commit(ctx); err != nil {
-		return err
-	}
 
-	_, err = v.getCollectionUUID(ctx, "default")
-	if errors.Is(err, pgx.ErrNoRows) {
-		slog.Debug("Creating default collection", "store", "pgvector", "err", err.Error())
-		if err := v.CreateCollection(ctx, "default"); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return tx.Commit(ctx)
 }
 
 func (v VectorStore) createVectorExtensionIfNotExists(ctx context.Context, tx pgx.Tx) error {
@@ -250,15 +244,24 @@ func (v VectorStore) getCollectionUUID(ctx context.Context, collection string) (
 }
 
 func (v VectorStore) CreateCollection(ctx context.Context, collection string) error {
+	slog.Debug("Creating collection", "collection", collection, "store", "pgvector")
 	tx, err := v.conn.Begin(ctx)
 	if err != nil {
 		return err
 	}
-	_, err = tx.Exec(ctx, fmt.Sprintf(`INSERT INTO %s (uuid, name)
-    		VALUES($1, $2)`, v.collectionTableName), uuid.New().String(), collection)
+	defer tx.Rollback(ctx) // rollback on error (noop after commit)
+
+	// Acquire an advisory lock
+	_, err = tx.Exec(ctx, "SELECT pg_advisory_xact_lock($1)", pgLockIDCreateCollection)
+	if err != nil {
+		return fmt.Errorf("failed to acquire advisory lock: %w", err)
+	}
+
+	_, err = tx.Exec(ctx, fmt.Sprintf(`INSERT INTO %s (uuid, name) VALUES($1, $2)`, v.collectionTableName), uuid.New().String(), collection)
 	if err != nil {
 		return fmt.Errorf("failed to create collection %s: %w", collection, err)
 	}
+
 	return tx.Commit(ctx)
 }
 
