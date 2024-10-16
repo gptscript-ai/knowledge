@@ -21,19 +21,20 @@ func (s *ClientResetDatastore) Customize(cmd *cobra.Command) {
 }
 
 func (s *ClientResetDatastore) Run(cmd *cobra.Command, args []string) error {
-	dsn, vectordbPath, _, err := datastore.GetDefaultDSNs(s.DatabaseConfig.DSN, s.VectorDBConfig.DSN)
+	// TODO: adjust to new changeable datastore parts
+	indexDSN, vectorDSN, _, err := datastore.GetDefaultDSNs(s.DatabaseConfig.DSN, s.VectorDBConfig.DSN)
 	if err != nil {
 		return err
 	}
 
-	if err := os.RemoveAll(strings.TrimPrefix(dsn, "sqlite://")); err != nil {
+	if err := os.RemoveAll(strings.TrimPrefix(indexDSN, "sqlite://")); err != nil {
 		return fmt.Errorf("failed to remove database file: %w", err)
 	}
 
-	if err := os.RemoveAll(vectordbPath); err != nil {
+	if err := os.RemoveAll(vectorDSN); err != nil {
 		return fmt.Errorf("failed to remove vector database directory: %w", err)
 	}
 
-	fmt.Printf("Successfully reset datastore (DSN: %q, DSN: %q)\n", dsn, vectordbPath)
+	fmt.Printf("Successfully reset datastore (DSN: %q, DSN: %q)\n", indexDSN, vectorDSN)
 	return nil
 }
