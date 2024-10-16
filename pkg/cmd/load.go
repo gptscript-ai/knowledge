@@ -59,7 +59,6 @@ func (s *ClientLoad) Run(cmd *cobra.Command, args []string) error {
 
 	var texts []string
 	for _, doc := range docs {
-
 		if len(doc.Content) == 0 {
 			continue
 		}

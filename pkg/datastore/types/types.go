@@ -3,7 +3,7 @@ package types
 import (
 	"context"
 
-	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
+	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore/types"
 )
 
 const (

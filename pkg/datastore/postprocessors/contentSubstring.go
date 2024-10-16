@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
-	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
+	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore/types"
 )
 
 const ContentSubstringFilterPostprocessorName = "content_substring_filter"

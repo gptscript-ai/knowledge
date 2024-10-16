@@ -52,7 +52,7 @@ This is a constraint of the Vector Database and Similarity Search, as different 
 }
 
 func (s *ClientIngest) Run(cmd *cobra.Command, args []string) error {
-	c, err := s.getClient()
+	c, err := s.getClient(cmd.Context())
 	if err != nil {
 		return err
 	}

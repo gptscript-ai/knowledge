@@ -2,12 +2,13 @@ package config
 
 import (
 	"fmt"
+	"os"
+	"path"
+
 	"github.com/knadh/koanf/parsers/json"
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/rawbytes"
 	"github.com/knadh/koanf/v2"
-	"os"
-	"path"
 )
 
 type Config struct {
@@ -25,12 +26,12 @@ type ModelProviderConfig struct {
 }
 
 type DatabaseConfig struct {
-	DSN         string `usage:"Server database connection string (default \"sqlite://$XDG_DATA_HOME/gptscript/knowledge/knowledge.db\")" default:"" env:"KNOW_DB_DSN"`
+	DSN         string `name:"index-dsn" usage:"Index Database Connection string (relational DB) (default \"sqlite://$XDG_DATA_HOME/gptscript/knowledge/knowledge.db\")" default:"" env:"KNOW_INDEX_DSN"`
 	AutoMigrate string `usage:"Auto migrate database" default:"true" env:"KNOW_DB_AUTO_MIGRATE"`
 }
 
 type VectorDBConfig struct {
-	VectorDBPath string `usage:"VectorDBPath to the vector database (default \"$XDG_DATA_HOME/gptscript/knowledge/vector.db\")" default:"" env:"KNOW_VECTOR_DB_PATH"`
+	DSN string `name:"vector-dsn" usage:"DSN to the vector database (default \"chromem:$XDG_DATA_HOME/gptscript/knowledge/vector.db\")" default:"" env:"KNOW_VECTOR_DSN"`
 }
 
 func LoadConfig(configFile string) (*Config, error) {

@@ -5,12 +5,13 @@ import (
 	"encoding/csv"
 	"errors"
 	"fmt"
-	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader/pdf/gopdf"
 	"io"
 	"log/slog"
 	"strings"
 
-	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader/pdf/gopdf"
+	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore/types"
+
 	golcdocloaders "github.com/hupe1980/golc/documentloader"
 	"github.com/lu4p/cat"
 	"github.com/mitchellh/mapstructure"

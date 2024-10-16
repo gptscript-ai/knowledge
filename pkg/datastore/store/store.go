@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/gptscript-ai/knowledge/pkg/index"
-	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
+	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore/types"
 	"github.com/philippgille/chromem-go"
 )
 

@@ -13,7 +13,6 @@ import (
 
 	"github.com/gptscript-ai/knowledge/pkg/config"
 	etypes "github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/types"
-	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
 	"github.com/gptscript-ai/knowledge/pkg/log"
 	"github.com/gptscript-ai/knowledge/pkg/output"
 
@@ -21,7 +20,6 @@ import (
 	"github.com/gptscript-ai/knowledge/pkg/index"
 	"github.com/gptscript-ai/knowledge/pkg/llm"
 	"github.com/gptscript-ai/knowledge/pkg/vectorstore"
-	"github.com/gptscript-ai/knowledge/pkg/vectorstore/chromem"
 	cg "github.com/philippgille/chromem-go"
 )
 
@@ -33,40 +31,37 @@ type Datastore struct {
 	EmbeddingModelProvider etypes.EmbeddingModelProvider
 }
 
-// GetDatastorePaths returns the paths for the datastore and vectorstore databases.
+// GetDefaultDSNs returns the paths for the datastore and vectorstore databases.
 // In addition, it returns a boolean indicating whether the datastore is an archive.
-func GetDatastorePaths(dsn, vectordbPath string) (string, string, bool, error) {
+func GetDefaultDSNs(indexDSN, vectorDSN string) (string, string, bool, error) {
 	var isArchive bool
 
-	if dsn == "" {
-		var err error
-		dsn, err = xdg.DataFile("gptscript/knowledge/knowledge.db")
-		if err != nil {
-			return "", "", isArchive, err
-		}
-		dsn = "sqlite://" + dsn
-		slog.Debug("Using default DSN", "dsn", dsn)
-	}
-
-	if strings.HasPrefix(dsn, types.ArchivePrefix) {
-		dsn = "sqlite://" + strings.TrimPrefix(dsn, types.ArchivePrefix)
+	if strings.Contains(indexDSN, "://archive://") || strings.Contains(vectorDSN, "://archive://") {
 		isArchive = true
 	}
 
-	if vectordbPath == "" {
+	if indexDSN == "" {
 		var err error
-		vectordbPath, err = xdg.DataFile("gptscript/knowledge/vector.db")
+		indexDSN, err = xdg.DataFile("gptscript/knowledge/knowledge.db")
 		if err != nil {
 			return "", "", isArchive, err
 		}
-		slog.Debug("Using default VectorDBPath", "vectordbPath", vectordbPath)
-	}
-	if strings.HasPrefix(vectordbPath, types.ArchivePrefix) {
-		vectordbPath = strings.TrimPrefix(vectordbPath, types.ArchivePrefix)
-		isArchive = true
+		indexDSN = "sqlite://" + indexDSN
+		slog.Debug("Using default Index DSN", "indexDSN", indexDSN)
 	}
 
-	return dsn, vectordbPath, isArchive, nil
+	if vectorDSN == "" {
+		path, err := xdg.DataFile("gptscript/knowledge/vector.db")
+		if err != nil {
+			return "", "", isArchive, err
+		}
+
+		vectorDSN = "chromem://" + path
+
+		slog.Debug("Using default Vector DSN", "vectorDSN", vectorDSN)
+	}
+
+	return indexDSN, vectorDSN, isArchive, nil
 }
 
 func LogEmbeddingFunc(embeddingFunc cg.EmbeddingFunc) cg.EmbeddingFunc {
@@ -86,13 +81,13 @@ func LogEmbeddingFunc(embeddingFunc cg.EmbeddingFunc) cg.EmbeddingFunc {
 	}
 }
 
-func NewDatastore(dsn string, automigrate bool, vectorDBPath string, embeddingProvider etypes.EmbeddingModelProvider) (*Datastore, error) {
-	dsn, vectorDBPath, isArchive, err := GetDatastorePaths(dsn, vectorDBPath)
+func NewDatastore(ctx context.Context, indexDSN string, automigrate bool, vectorDSN string, embeddingProvider etypes.EmbeddingModelProvider) (*Datastore, error) {
+	indexDSN, vectorDSN, isArchive, err := GetDefaultDSNs(indexDSN, vectorDSN)
 	if err != nil {
 		return nil, fmt.Errorf("failed to determine datastore paths: %w", err)
 	}
 
-	idx, err := index.New(dsn, automigrate)
+	idx, err := index.New(indexDSN, automigrate)
 	if err != nil {
 		return nil, err
 	}
@@ -101,33 +96,20 @@ func NewDatastore(dsn string, automigrate bool, vectorDBPath string, embeddingPr
 		return nil, fmt.Errorf("failed to auto-migrate index: %w", err)
 	}
 
-	var vsdb *cg.DB
-	if !isArchive {
-		vsdb, err = cg.NewPersistentDB(vectorDBPath, false, cg.WithOnCorruptedCollectionBehavior(cg.OnCorruptedDelete))
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		// Import from archive -> in-memory DB, not persisted back to the archive
-		vsdb = cg.NewDB()
-		if err := vsdb.ImportFromFile(vectorDBPath, ""); err != nil {
-			return nil, fmt.Errorf("failed to import vector database: %w", err)
-		}
-	}
-
-	embeddingFunc, err := embeddingProvider.EmbeddingFunc()
-	if err != nil {
-		return nil, fmt.Errorf("failed to create embedding function: %w", err)
-	}
-
 	slog.Debug("Using embedding model provider", "provider", embeddingProvider.Name(), "config", output.RedactSensitive(embeddingProvider.Config()))
+
+	vsdb, err := vectorstore.New(ctx, vectorDSN, embeddingProvider)
+	if err != nil {
+		return nil, err
+	}
 
 	ds := &Datastore{
 		Index:                  idx,
-		Vectorstore:            chromem.New(vsdb, embeddingFunc),
+		Vectorstore:            vsdb,
 		EmbeddingModelProvider: embeddingProvider,
 	}
 
+	// If loaded from archive, do not create a default dataset
 	if isArchive {
 		return ds, nil
 	}

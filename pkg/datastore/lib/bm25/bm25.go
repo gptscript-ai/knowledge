@@ -3,7 +3,7 @@ package bm25
 import (
 	"strings"
 
-	"github.com/gptscript-ai/knowledge/pkg/vectorstore"
+	"github.com/gptscript-ai/knowledge/pkg/vectorstore/types"
 	"github.com/iwilltry42/bm25-go/bm25"
 	"github.com/jmcarbo/stopwords"
 )
@@ -13,11 +13,11 @@ const (
 	DefaultB  = 0.75
 )
 
-func BM25Run(docs []vectorstore.Document, query string, k1, b float64, cleanStopwords []string) ([]float64, error) {
+func BM25Run(docs []types.Document, query string, k1, b float64, cleanStopwords []string) ([]float64, error) {
 	return Score(BuildCorpus(docs, cleanStopwords), query, k1, b)
 }
 
-func BuildCorpus(docs []vectorstore.Document, cleanStopwords []string) []string {
+func BuildCorpus(docs []types.Document, cleanStopwords []string) []string {
 	corpus := make([]string, len(docs))
 	for i, doc := range docs {
 		content := doc.Content

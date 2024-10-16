@@ -5,11 +5,11 @@ import (
 	"log/slog"
 
 	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
+	types2 "github.com/gptscript-ai/knowledge/pkg/vectorstore/types"
 	"github.com/philippgille/chromem-go"
 
 	"github.com/gptscript-ai/knowledge/pkg/datastore/defaults"
 	"github.com/gptscript-ai/knowledge/pkg/flows"
-	"github.com/gptscript-ai/knowledge/pkg/vectorstore"
 )
 
 type RetrieveOpts struct {
@@ -65,6 +65,6 @@ func (s *Datastore) Retrieve(ctx context.Context, datasetIDs []string, query str
 	return retrievalFlow.Run(ctx, s, query, datasetIDs, &flows.RetrievalFlowOpts{Where: nil, WhereDocument: whereDocs})
 }
 
-func (s *Datastore) SimilaritySearch(ctx context.Context, query string, numDocuments int, datasetID string, where map[string]string, whereDocument []chromem.WhereDocument) ([]vectorstore.Document, error) {
+func (s *Datastore) SimilaritySearch(ctx context.Context, query string, numDocuments int, datasetID string, where map[string]string, whereDocument []chromem.WhereDocument) ([]types2.Document, error) {
 	return s.Vectorstore.SimilaritySearch(ctx, query, numDocuments, datasetID, where, whereDocument)
 }

@@ -2,7 +2,7 @@ package textsplitter
 
 import (
 	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
-	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
+	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore/types"
 	golcschema "github.com/hupe1980/golc/schema"
 	lcgosplitter "github.com/tmc/langchaingo/textsplitter"
 )

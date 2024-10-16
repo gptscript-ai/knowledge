@@ -1,4 +1,4 @@
-package vectorstore
+package types
 
 type Document struct {
 	ID              string         `json:"id"`

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"archive/zip"
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -89,13 +90,13 @@ func (s *Client) loadArchive() error {
 		return fmt.Errorf("knowledge archive must contain exactly one .db and one .gob file")
 	}
 
-	s.DSN = types.ArchivePrefix + dbFile
-	s.VectorDBPath = types.ArchivePrefix + vectorStoreFile
+	s.DatabaseConfig.DSN = types.ArchivePrefix + dbFile
+	s.VectorDBConfig.DSN = types.ArchivePrefix + vectorStoreFile
 
 	return nil
 }
 
-func (s *Client) getClient() (client.Client, error) {
+func (s *Client) getClient(ctx context.Context) (client.Client, error) {
 	if err := s.loadArchive(); err != nil {
 		return nil, err
 	}
@@ -111,7 +112,7 @@ func (s *Client) getClient() (client.Client, error) {
 			return nil, err
 		}
 
-		ds, err := datastore.NewDatastore(s.DSN, s.AutoMigrate == "true", s.VectorDBConfig.VectorDBPath, provider)
+		ds, err := datastore.NewDatastore(ctx, s.DatabaseConfig.DSN, s.AutoMigrate == "true", s.VectorDBConfig.DSN, provider)
 		if err != nil {
 			return nil, err
 		}

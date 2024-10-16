@@ -51,7 +51,7 @@ func (s *ClientRetrieve) Run(cmd *cobra.Command, args []string) error {
 	}
 	slog.Info("Retrieving sources for query", "query", query, "datasets", datasetIDs)
 
-	c, err := s.getClient()
+	c, err := s.getClient(cmd.Context())
 	if err != nil {
 		return err
 	}

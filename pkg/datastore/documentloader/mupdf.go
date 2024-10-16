@@ -5,14 +5,15 @@ package documentloader
 import (
 	"context"
 	"fmt"
+	"io"
+	"log/slog"
+
 	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader/ocr/openai"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader/pdf/defaults"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader/pdf/mupdf"
 	"github.com/gptscript-ai/knowledge/pkg/output"
-	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore"
+	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore/types"
 	"github.com/mitchellh/mapstructure"
-	"io"
-	"log/slog"
 )
 
 func init() {
