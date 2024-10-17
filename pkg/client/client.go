@@ -29,6 +29,8 @@ type Client interface {
 	CreateDataset(ctx context.Context, datasetID string) (*index.Dataset, error)
 	DeleteDataset(ctx context.Context, datasetID string) error
 	GetDataset(ctx context.Context, datasetID string) (*index.Dataset, error)
+	FindFile(ctx context.Context, searchFile index.File) (*index.File, error)
+	DeleteFile(ctx context.Context, datasetID, fileID string) error
 	ListDatasets(ctx context.Context) ([]types.Dataset, error)
 	Ingest(ctx context.Context, datasetID string, name string, data []byte, opts datastore.IngestOpts) ([]string, error)
 	IngestPaths(ctx context.Context, datasetID string, opts *IngestPathsOpts, paths ...string) (int, error) // returns number of files ingested
