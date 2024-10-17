@@ -7,6 +7,7 @@ import (
 	"log/slog"
 
 	"github.com/gptscript-ai/knowledge/pkg/index"
+	"gorm.io/gorm"
 )
 
 // ErrDBFileNotFound is returned when a file is not found.
@@ -61,4 +62,25 @@ func (s *Datastore) PruneFiles(ctx context.Context, datasetID string, pathPrefix
 	}
 
 	return files, nil
+}
+
+func (s *Datastore) FindFile(ctx context.Context, searchFile index.File) (*index.File, error) {
+	if searchFile.Dataset == "" {
+		return nil, fmt.Errorf("dataset must be provided")
+	}
+
+	var file index.File
+	var tx *gorm.DB
+	if searchFile.ID != "" {
+		tx = s.Index.WithContext(ctx).Preload("Documents").Where("dataset = ? AND id = ?", searchFile.Dataset, searchFile.ID).First(&file)
+	} else if searchFile.AbsolutePath != "" {
+		tx = s.Index.WithContext(ctx).Preload("Documents").Where("dataset = ? AND absolute_path = ?", searchFile.Dataset, searchFile.AbsolutePath).First(&file)
+	} else {
+		return nil, fmt.Errorf("either fileID or fileAbsPath must be provided")
+	}
+	if tx.Error != nil {
+		return nil, ErrDBFileNotFound
+	}
+
+	return &file, nil
 }

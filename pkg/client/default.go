@@ -30,6 +30,16 @@ func NewDefaultClient(serverURL string) *DefaultClient {
 	}
 }
 
+func (c *DefaultClient) FindFile(_ context.Context, searchFile index.File) (*index.File, error) {
+	// TODO: implement
+	return nil, fmt.Errorf("not implemented")
+}
+
+func (c *DefaultClient) DeleteFile(_ context.Context, datasetID, fileID string) error {
+	// TODO: implement
+	return fmt.Errorf("not implemented")
+}
+
 func (c *DefaultClient) CreateDataset(_ context.Context, datasetID string) (*index.Dataset, error) {
 	ds := types.Dataset{
 		ID: datasetID,

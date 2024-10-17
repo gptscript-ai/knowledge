@@ -25,6 +25,14 @@ func NewStandaloneClient(ds *datastore.Datastore) (*StandaloneClient, error) {
 	}, nil
 }
 
+func (c *StandaloneClient) FindFile(ctx context.Context, searchFile index.File) (*index.File, error) {
+	return c.Datastore.FindFile(ctx, searchFile)
+}
+
+func (c *StandaloneClient) DeleteFile(ctx context.Context, datasetID, fileID string) error {
+	return c.Datastore.DeleteFile(ctx, datasetID, fileID)
+}
+
 func (c *StandaloneClient) CreateDataset(ctx context.Context, datasetID string) (*index.Dataset, error) {
 	ds := index.Dataset{
 		ID: datasetID,
