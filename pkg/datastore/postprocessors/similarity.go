@@ -17,6 +17,7 @@ type SimilarityPostprocessor struct {
 
 func (s *SimilarityPostprocessor) Transform(ctx context.Context, response *types.RetrievalResponse) error {
 	for i, resp := range response.Responses {
+		docCount := len(resp.ResultDocuments)
 		var filteredDocs []vs.Document
 		for _, doc := range resp.ResultDocuments {
 			if doc.SimilarityScore >= s.Threshold {
@@ -30,6 +31,7 @@ func (s *SimilarityPostprocessor) Transform(ctx context.Context, response *types
 			}
 		}
 		response.Responses[i].ResultDocuments = filteredDocs
+		slog.Debug("Filtered documents", "originalDocCount", docCount, "docsBelowThreshold", len(filteredDocs), "keepMin", s.KeepMin, "threshold", s.Threshold)
 	}
 	return nil
 }
