@@ -2,11 +2,12 @@ package index
 
 import (
 	"context"
-	"gorm.io/gorm"
 	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"gorm.io/gorm"
 )
 
 func GetDataset(db *gorm.DB, id string) (*Dataset, error) {
@@ -38,7 +39,7 @@ func (db *DB) ExportDatasetsToFile(ctx context.Context, path string, ids ...stri
 
 	slog.Debug("Exporting datasets to file", "path", path)
 
-	ndb, err := New("sqlite://"+path, true)
+	ndb, err := New(ctx, "sqlite://"+path, true)
 	if err != nil {
 		return err
 	}
@@ -63,7 +64,7 @@ func (db *DB) ExportDatasetsToFile(ctx context.Context, path string, ids ...stri
 func (db *DB) ImportDatasetsFromFile(ctx context.Context, path string) error {
 	gdb := db.gormDB.WithContext(ctx)
 
-	ndb, err := New("sqlite://"+strings.TrimPrefix(path, "sqlite://"), false)
+	ndb, err := New(ctx, "sqlite://"+strings.TrimPrefix(path, "sqlite://"), false)
 	if err != nil {
 		return err
 	}
