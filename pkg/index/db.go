@@ -5,19 +5,17 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
 	"strings"
 	"time"
 
+	"github.com/gptscript-ai/knowledge/pkg/index/postgres"
 	"github.com/gptscript-ai/knowledge/pkg/index/sqlite"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
-
-type Index interface {
-	New(ctx context.Context, dsn string, gormCfg *gorm.Config) (*gorm.DB, *sql.DB, error)
-}
 
 type DB struct {
 	gormDB      *gorm.DB
@@ -39,13 +37,15 @@ func New(ctx context.Context, dsn string, autoMigrate bool) (*DB, error) {
 		}
 	)
 
-	s := strings.Split(dsn, "://")
-	dialect := s[0]
-	dsn = s[1]
+	dialect := strings.Split(dsn, "://")[0]
+
+	slog.Debug("indexdb", "dialect", dialect, "dsn", dsn)
 
 	switch dialect {
 	case "sqlite":
 		db, sqlDB, err = sqlite.New(ctx, dsn, gormCfg)
+	case "postgres":
+		db, sqlDB, err = postgres.New(ctx, dsn, gormCfg)
 	default:
 		err = fmt.Errorf("unsupported dialect: %q", dialect)
 	}
