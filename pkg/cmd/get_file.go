@@ -71,5 +71,5 @@ func (s *ClientGetFile) Run(cmd *cobra.Command, args []string) error {
 
 	fmt.Println(string(jsonOutput))
 
-	return c.DeleteFile(cmd.Context(), s.Dataset, file.ID)
+	return nil
 }
