@@ -22,27 +22,24 @@ import (
 func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID string, ingestionFunc func(path string, metadata map[string]any) error, paths ...string) (int, error) {
 	ingestedFilesCount := 0
 
-	var ignorePatterns []gitignore.Pattern
+	var ignoreFilePatterns []gitignore.Pattern
 	var err error
 	if opts.IgnoreFile != "" {
-		ignorePatterns, err = readIgnoreFile(opts.IgnoreFile)
+		ignoreFilePatterns, err = readIgnoreFile(opts.IgnoreFile)
 		if err != nil {
 			return ingestedFilesCount, fmt.Errorf("failed to read ignore file %q: %w", opts.IgnoreFile, err)
 		}
 	}
 
+	var ignoreExtensionsPatterns []gitignore.Pattern
 	if len(opts.IgnoreExtensions) > 0 {
 		for _, ext := range opts.IgnoreExtensions {
 			if ext != "" {
 				p := "*." + strings.TrimPrefix(ext, ".")
-				ignorePatterns = append(ignorePatterns, gitignore.ParsePattern(p, nil))
+				ignoreExtensionsPatterns = append(ignoreExtensionsPatterns, gitignore.ParsePattern(p, nil))
 			}
 		}
 	}
-
-	ignorePatterns = append(ignorePatterns, DefaultIgnorePatterns...)
-
-	ignore := gitignore.NewMatcher(ignorePatterns)
 
 	if opts.Concurrency < 1 {
 		opts.Concurrency = 10
@@ -56,6 +53,23 @@ func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID
 
 	for _, p := range paths {
 		path := p
+
+		// Build ignore matcher using patterns in increasing priority
+		// 1. Default ignore file
+		// 2. User-provided ignore file
+		// 3. User-provided ignore extensions
+		// 4. Default ignore patterns
+		var currentIgnorePatterns []gitignore.Pattern
+		defaultIgnoreFilePatterns, err := useDefaultIgnoreFileIfExists(path)
+		if err != nil {
+			return ingestedFilesCount, fmt.Errorf("failed to use default ignore file: %w", err)
+		}
+		currentIgnorePatterns = append(defaultIgnoreFilePatterns, ignoreFilePatterns...)
+		currentIgnorePatterns = append(currentIgnorePatterns, ignoreExtensionsPatterns...)
+		currentIgnorePatterns = append(currentIgnorePatterns, DefaultIgnorePatterns...)
+
+		ignore := gitignore.NewMatcher(currentIgnorePatterns)
+
 		var touchedFilePaths []string
 
 		if strings.HasPrefix(filepath.Base(filepath.Clean(path)), ".") {
