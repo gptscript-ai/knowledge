@@ -123,7 +123,12 @@ func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID
 					metadataStack = append(metadataStack, *newMetadata)
 					return nil
 				}
-				if isIgnored(ignore, subPath) {
+
+				rel, err := filepath.Rel(path, subPath)
+				if err != nil {
+					return fmt.Errorf("failed to get rel path, error: %w", err)
+				}
+				if isIgnored(ignore, rel) {
 					slog.Debug("Ignoring file", "path", subPath, "ignorefile", opts.IgnoreFile, "ignoreExtensions", opts.IgnoreExtensions)
 					return nil
 				}
