@@ -9,10 +9,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/glebarez/sqlite"
+	"github.com/gptscript-ai/knowledge/pkg/index/sqlite"
+
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
+
+type Index interface {
+	New(ctx context.Context, dsn string, gormCfg *gorm.Config) (*gorm.DB, *sql.DB, error)
+}
 
 type DB struct {
 	gormDB      *gorm.DB
@@ -20,42 +25,33 @@ type DB struct {
 	autoMigrate bool
 }
 
-func New(dsn string, autoMigrate bool) (*DB, error) {
+func New(ctx context.Context, dsn string, autoMigrate bool) (*DB, error) {
 	var (
-		gdb   gorm.Dialector
-		conns = 1
+		db      *gorm.DB
+		sqlDB   *sql.DB
+		err     error
+		gormCfg = &gorm.Config{
+			Logger: logger.New(log.Default(), logger.Config{
+				SlowThreshold: 200 * time.Millisecond,
+				Colorful:      true,
+				LogLevel:      logger.Silent,
+			}),
+		}
 	)
-	if strings.HasPrefix(dsn, "sqlite://") {
-		gdb = sqlite.Open(strings.TrimPrefix(dsn, "sqlite://"))
-	} else {
-		return nil, fmt.Errorf("unsupported database dialect %q", dsn)
+
+	s := strings.Split(dsn, "://")
+	dialect := s[0]
+	dsn = s[1]
+
+	switch dialect {
+	case "sqlite":
+		db, sqlDB, err = sqlite.New(ctx, dsn, gormCfg)
+	default:
+		err = fmt.Errorf("unsupported dialect: %q", dialect)
 	}
-	db, err := gorm.Open(gdb, &gorm.Config{
-		SkipDefaultTransaction: true,
-		Logger: logger.New(log.Default(), logger.Config{
-			SlowThreshold: 200 * time.Millisecond,
-			Colorful:      true,
-			LogLevel:      logger.Silent,
-		}),
-	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to open index DB: %w", err)
 	}
-
-	// Enable foreign key constraint to make sure that deletes cascade
-	tx := db.Exec("PRAGMA foreign_keys = ON")
-	if tx.Error != nil {
-		return nil, tx.Error
-	}
-
-	sqlDB, err := db.DB()
-	if err != nil {
-		return nil, err
-	}
-
-	sqlDB.SetConnMaxLifetime(3 * time.Minute)
-	sqlDB.SetMaxIdleConns(conns)
-	sqlDB.SetMaxOpenConns(conns)
 
 	return &DB{
 		gormDB:      db,

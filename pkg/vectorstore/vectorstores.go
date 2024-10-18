@@ -34,7 +34,7 @@ func New(ctx context.Context, dsn string, embeddingProvider etypes.EmbeddingMode
 	dialect := s[0]
 	dsn = s[1]
 
-	switch s[0] {
+	switch dialect {
 	case "chromem":
 		return chromem.New(dsn, embeddingFunc)
 	case "pgvector":

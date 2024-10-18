@@ -87,7 +87,7 @@ func NewDatastore(ctx context.Context, indexDSN string, automigrate bool, vector
 		return nil, fmt.Errorf("failed to determine datastore paths: %w", err)
 	}
 
-	idx, err := index.New(indexDSN, automigrate)
+	idx, err := index.New(ctx, indexDSN, automigrate)
 	if err != nil {
 		return nil, err
 	}
