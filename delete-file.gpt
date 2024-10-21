@@ -1,0 +1,4 @@
+Name: Knowledge File Deletion
+Description: Delete a file.
+
+#!${GPTSCRIPT_TOOL_DIR}/bin/gptscript-go-tool delete-file "${GPTSCRIPT_INPUT}"
