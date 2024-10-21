@@ -19,6 +19,7 @@ require (
 	github.com/acorn-io/cmd v0.0.0-20240625164600-6c594fbd857e
 	github.com/acorn-io/z v0.0.0-20231104012607-4cab1b3ec5e5
 	github.com/adrg/xdg v0.4.0
+	github.com/asg017/sqlite-vec-go-bindings v0.1.4-alpha.2
 	github.com/cohere-ai/cohere-go/v2 v2.8.2
 	github.com/gabriel-vasile/mimetype v1.4.4
 	github.com/gen2brain/go-fitz v1.23.7
@@ -39,6 +40,7 @@ require (
 	github.com/ledongthuc/pdf v0.0.0-20240201131950-da5b75280b06
 	github.com/lu4p/cat v0.1.5
 	github.com/mitchellh/mapstructure v1.5.0
+	github.com/ncruces/go-sqlite3 v0.19.0
 	github.com/pgvector/pgvector-go v0.2.2
 	github.com/philippgille/chromem-go v0.6.1-0.20240811154507-a1944285b284
 	github.com/spf13/cobra v1.8.1
@@ -135,6 +137,7 @@ require (
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
+	github.com/ncruces/julianday v1.0.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/otiai10/gosseract/v2 v2.2.4 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
@@ -154,6 +157,7 @@ require (
 	github.com/skeema/knownhosts v1.2.2 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect
+	github.com/tetratelabs/wazero v1.8.1 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	github.com/unidoc/unioffice v1.33.0 // indirect

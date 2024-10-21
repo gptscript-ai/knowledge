@@ -10,7 +10,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/google/uuid"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/types"
 	"github.com/gptscript-ai/knowledge/pkg/env"
 	"github.com/gptscript-ai/knowledge/pkg/log"
@@ -80,7 +79,7 @@ func (s *ChromemStore) AddDocuments(ctx context.Context, docs []vs.Document, col
 	ids := make([]string, len(docs))
 	chromemDocs := make([]chromem.Document, len(docs))
 	for docIdx, doc := range docs {
-		ids[docIdx] = uuid.NewString()
+		ids[docIdx] = doc.ID
 		mc := make(map[string]any)
 		maps.Copy(mc, doc.Metadata)
 		if len(doc.Content) == 0 {

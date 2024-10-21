@@ -8,6 +8,7 @@ import (
 	"slices"
 
 	"github.com/acorn-io/z"
+	"github.com/google/uuid"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/store"
 	"github.com/gptscript-ai/knowledge/pkg/log"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore/types"
@@ -142,6 +143,12 @@ func (f *IngestionFlow) Run(ctx context.Context, reader io.Reader) ([]vs.Documen
 		return nil, fmt.Errorf("failed to transform documents: %w", err)
 	}
 	transformerLog.With("status", "completed").Info("Transformed documents", "new_num_documents", len(docs))
+
+	for i, doc := range docs {
+		if doc.ID == "" {
+			docs[i].ID = uuid.NewString()
+		}
+	}
 
 	return docs, nil
 }
