@@ -54,7 +54,6 @@ func (v *VectorStore) Close() error {
 }
 
 func (v *VectorStore) prepareTables(ctx context.Context) error {
-
 	err := v.db.Exec(fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s
 		(
 			id TEXT PRIMARY KEY,
@@ -84,11 +83,9 @@ func (v *VectorStore) CreateCollection(ctx context.Context, collection string) e
 		embedding float[%d] distance_metric=cosine
 	)
     `, collection, dimensionality))
-
 }
 
 func (v *VectorStore) AddDocuments(ctx context.Context, docs []vs.Document, collection string) ([]string, error) {
-
 	stmt, _, err := v.db.Prepare(fmt.Sprintf(`INSERT INTO %s_vec(document_id, embedding) VALUES (?, ?)`, collection))
 	if err != nil {
 		return nil, fmt.Errorf("failed to prepare statement: %w", err)
@@ -215,7 +212,6 @@ func (v *VectorStore) SimilaritySearch(ctx context.Context, query string, numDoc
 	}
 
 	return docs, nil
-
 }
 
 func (v *VectorStore) RemoveCollection(ctx context.Context, collection string) error {
@@ -265,7 +261,6 @@ func (v *VectorStore) RemoveDocument(ctx context.Context, documentID string, col
 		if stmt.Err() != nil {
 			return fmt.Errorf("failed to execute statement: %w", stmt.Err())
 		}
-
 	} else {
 		ids = []string{documentID}
 	}
@@ -284,7 +279,6 @@ func (v *VectorStore) RemoveDocument(ctx context.Context, documentID string, col
 	}
 
 	for _, id := range ids {
-
 		slog.Debug("deleting document from sqlite-vec", "id", id)
 
 		if err := embStmt.BindText(1, id); err != nil {
@@ -310,7 +304,6 @@ func (v *VectorStore) RemoveDocument(ctx context.Context, documentID string, col
 		if err := colStmt.Reset(); err != nil {
 			return fmt.Errorf("failed to reset statement: %w", err)
 		}
-
 	}
 
 	return nil
@@ -358,7 +351,6 @@ func (v *VectorStore) GetDocuments(ctx context.Context, collection string, where
 		if stmt.Err() != nil {
 			return nil, fmt.Errorf("failed to execute statement: %w", stmt.Err())
 		}
-
 	}
 	return docs, nil
 }
