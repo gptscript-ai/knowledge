@@ -13,6 +13,7 @@ import (
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore/types"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pgvector/pgvector-go"
 	cg "github.com/philippgille/chromem-go"
 	"github.com/tmc/langchaingo/embeddings"
@@ -112,7 +113,7 @@ func New(ctx context.Context, dsn string, embeddingFunc cg.EmbeddingFunc) (*Vect
 		hnswIndex:           nil,
 	}
 
-	store.conn, err = pgx.Connect(ctx, dsn)
+	store.conn, err = pgxpool.New(ctx, dsn)
 	if err != nil {
 		return nil, err
 	}
