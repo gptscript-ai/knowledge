@@ -24,7 +24,6 @@ func isIgnored(ignore gitignore.Matcher, path string) bool {
 }
 
 func readDefaultIgnoreFile(dirPath string) ([]gitignore.Pattern, error) {
-
 	ignoreFilePath := filepath.Join(dirPath, DefaultIgnoreFile)
 	_, err := os.Stat(ignoreFilePath)
 	if err != nil {
@@ -38,7 +37,6 @@ func readDefaultIgnoreFile(dirPath string) ([]gitignore.Pattern, error) {
 }
 
 func useDefaultIgnoreFileIfExists(path string) ([]gitignore.Pattern, error) {
-
 	var err error
 	path, err = filepath.Abs(path)
 	if err != nil {

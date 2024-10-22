@@ -5,15 +5,19 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 
 	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader/structured"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/filetypes"
+	"github.com/knadh/koanf/maps"
 	"github.com/spf13/cobra"
 )
 
 type ClientLoad struct {
-	Loader string `usage:"Choose a document loader to use"`
+	Loader       string `usage:"Choose a document loader to use"`
+	OutputFormat string `name:"format" usage:"Choose an output format" default:"structured"`
 }
 
 func (s *ClientLoad) Customize(cmd *cobra.Command) {
@@ -25,6 +29,10 @@ func (s *ClientLoad) Customize(cmd *cobra.Command) {
 func (s *ClientLoad) Run(cmd *cobra.Command, args []string) error {
 	input := args[0]
 	output := args[1]
+
+	if !slices.Contains([]string{"structured", "markdown"}, s.OutputFormat) {
+		return fmt.Errorf("unsupported output format %q", s.OutputFormat)
+	}
 
 	inputBytes, err := os.ReadFile(input)
 	if err != nil {
@@ -57,23 +65,64 @@ func (s *ClientLoad) Run(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to load documents: %w", err)
 	}
 
-	var texts []string
-	for _, doc := range docs {
-		if len(doc.Content) == 0 {
-			continue
+	var text string
+
+	switch s.OutputFormat {
+	case "markdown":
+		var texts []string
+		for _, doc := range docs {
+			if len(doc.Content) == 0 {
+				continue
+			}
+
+			metadata, err := json.Marshal(doc.Metadata)
+			if err != nil {
+				return fmt.Errorf("failed to marshal metadata: %w", err)
+			}
+
+			content := fmt.Sprintf("!metadata %s\n%s", metadata, doc.Content)
+
+			texts = append(texts, content)
 		}
 
-		metadata, err := json.Marshal(doc.Metadata)
-		if err != nil {
-			return fmt.Errorf("failed to marshal metadata: %w", err)
+		text = strings.Join(texts, "\n---docbreak---\n")
+
+	case "structured":
+		var structuredInput structured.StructuredInput
+		structuredInput.Metadata = map[string]any{}
+		structuredInput.Documents = make([]structured.StructuredInputDocument, 0, len(docs))
+
+		commonMetadata := maps.Copy(docs[0].Metadata)
+		for _, doc := range docs {
+			commonMetadata = extractCommon(commonMetadata, doc.Metadata)
+			structuredInput.Documents = append(structuredInput.Documents, structured.StructuredInputDocument{
+				Metadata: doc.Metadata,
+				Content:  doc.Content,
+			})
 		}
 
-		content := fmt.Sprintf("!metadata %s\n%s", metadata, doc.Content)
+		commonMetadata["source"] = input
+		structuredInput.Metadata = commonMetadata
 
-		texts = append(texts, content)
+		for i, doc := range structuredInput.Documents {
+			structuredInput.Documents[i].Metadata = dropCommon(doc.Metadata, commonMetadata)
+		}
+
+		jsonBytes := bytes.NewBuffer(nil)
+		encoder := json.NewEncoder(jsonBytes)
+		encoder.SetIndent("", "  ")
+		if err := encoder.Encode(structuredInput); err != nil {
+			return fmt.Errorf("failed to encode structured input: %w", err)
+		}
+		text = jsonBytes.String()
+	default:
+		return fmt.Errorf("unsupported output format %q", s.OutputFormat)
 	}
 
-	text := strings.Join(texts, "\n---docbreak---\n")
+	if output == "-" {
+		fmt.Println(text)
+		return nil
+	}
 
 	outputFile, err := os.Create(output)
 	if err != nil {
@@ -86,4 +135,26 @@ func (s *ClientLoad) Run(cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
+}
+
+func dropCommon(target, common map[string]any) map[string]any {
+	for key, _ := range target {
+		if _, exists := common[key]; exists {
+			delete(target, key)
+		}
+	}
+
+	return target
+}
+
+func extractCommon(target, other map[string]any) map[string]any {
+	for key, value := range target {
+		if v, exists := other[key]; exists && v == value {
+			target[key] = value
+		} else {
+			delete(target, key)
+		}
+	}
+
+	return target
 }

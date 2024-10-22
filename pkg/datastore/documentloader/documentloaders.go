@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader/pdf/gopdf"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader/structured"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore/types"
 
 	golcdocloaders "github.com/hupe1980/golc/documentloader"
@@ -42,6 +43,8 @@ func GetDocumentLoaderConfig(name string) (any, error) {
 		return golcdocloaders.CSVOptions{}, nil
 	case "notebook":
 		return golcdocloaders.NotebookOptions{}, nil
+	case "structured":
+		return structured.Structured{}, nil
 	default:
 		return nil, fmt.Errorf("unknown document loader %q", name)
 	}
@@ -151,6 +154,11 @@ func GetDocumentLoaderFunc(name string, config any) (LoaderFunc, error) {
 			}
 			return FromLangchain(lcgodocloaders.NewText(strings.NewReader(text))).Load(ctx)
 		}, nil
+	case "structured":
+		if config != nil {
+			return nil, fmt.Errorf("structured document loader does not accept configuration")
+		}
+		return new(structured.Structured).Load, nil
 	default:
 		return nil, fmt.Errorf("unknown document loader %q", name)
 	}
