@@ -182,12 +182,13 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, name string, c
 	// Add documents to VectorStore -> This generates the embeddings
 	slog.Debug("Ingesting documents", "count", len(docs))
 
-	ctx = log.ToCtx(ctx, log.FromCtx(ctx).With("phase", "store").With("num_documents", len(docs)))
+	statusLog = statusLog.With("num_documents", len(docs))
+	ctx = log.ToCtx(ctx, statusLog)
 
 	docIDs, err := s.Vectorstore.AddDocuments(ctx, docs, datasetID)
 	if err != nil {
-		slog.Error("Failed to add documents", "error", err)
-		return nil, fmt.Errorf("failed to add documents: %w", err)
+		statusLog.With("component", "vectorstore").Error("Failed to add documents", "error", err)
+		return nil, fmt.Errorf("failed to add documents from file %q: %w", opts.FileMetadata.AbsolutePath, err)
 	}
 
 	// Record file and documents in database
