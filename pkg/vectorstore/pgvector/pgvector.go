@@ -192,7 +192,7 @@ func (v VectorStore) createEmbeddingTableIfNotExists(ctx context.Context, tx pgx
 	sql := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s (
 	collection_id uuid,
 	embedding vector%s,
-	document varchar,
+	document bytea,
 	cmetadata json,
 	"uuid" uuid NOT NULL,
 	CONSTRAINT knowledge_pg_embedding_collection_id_fkey
@@ -312,7 +312,7 @@ func (v VectorStore) AddDocuments(ctx context.Context, docs []vs.Document, colle
 				return
 			}
 
-			b.Queue(sql, doc.ID, doc.Content, pgvector.NewVector(vec), doc.Metadata, cid)
+			b.Queue(sql, doc.ID, []byte(doc.Content), pgvector.NewVector(vec), doc.Metadata, cid)
 
 		}(doc)
 
@@ -395,9 +395,11 @@ LIMIT $3`, v.embeddingTableName,
 	docs := make([]vs.Document, 0)
 	for rows.Next() {
 		doc := vs.Document{}
-		if err := rows.Scan(&doc.ID, &doc.Content, &doc.Metadata, &doc.SimilarityScore); err != nil {
+		var contentB []byte
+		if err := rows.Scan(&doc.ID, &contentB, &doc.Metadata, &doc.SimilarityScore); err != nil {
 			return nil, err
 		}
+		doc.Content = string(contentB)
 		docs = append(docs, doc)
 	}
 	return docs, rows.Err()
