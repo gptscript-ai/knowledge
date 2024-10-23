@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/acorn-io/z"
 	"github.com/gptscript-ai/knowledge/pkg/log"
@@ -114,11 +115,13 @@ func (s *ClientIngest) Run(cmd *cobra.Command, args []string) error {
 	}
 
 	ctx := log.ToCtx(cmd.Context(), slog.With("flow", "ingestion").With("rootPath", filePath))
+	startTime := time.Now()
+
 	filesIngested, err := c.IngestPaths(ctx, datasetID, ingestOpts, filePath)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("Ingested %d files from %q into dataset %q\n", filesIngested, filePath, datasetID)
+	fmt.Printf("Ingested %d files from %q into dataset %q (took: %s)\n", filesIngested, filePath, datasetID, time.Since(startTime))
 	return nil
 }
