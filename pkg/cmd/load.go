@@ -62,7 +62,7 @@ func (s *ClientLoad) Run(cmd *cobra.Command, args []string) error {
 
 	docs, err := loader(cmd.Context(), bytes.NewReader(inputBytes))
 	if err != nil {
-		return fmt.Errorf("failed to load documents: %w", err)
+		return fmt.Errorf("failed to load documents from file %q using loader %q: %w", input, s.Loader, err)
 	}
 
 	var text string
