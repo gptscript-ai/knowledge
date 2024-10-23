@@ -142,6 +142,7 @@ func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID
 				touchedFilePaths = append(touchedFilePaths, absPath)
 
 				currentMetadata := metadataStack[len(metadataStack)-1]
+				slog.Debug("metadata stack", "stack", metadataStack, "path", sp, "absPath", absPath, "metadata", currentMetadata.Metadata)
 
 				g.Go(func() error {
 					if err := sem.Acquire(ctx, 1); err != nil {
@@ -149,7 +150,7 @@ func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID
 					}
 					defer sem.Release(1)
 
-					slog.Debug("Ingesting file", "path", absPath, "metadata", currentMetadata)
+					slog.Debug("Ingesting file", "path", absPath, "metadata", currentMetadata, "metadataForFile", currentMetadata.Metadata[filepath.Base(sp)], "lookup", filepath.Base(sp))
 					err = ingestionFunc(sp, currentMetadata.Metadata[filepath.Base(sp)]) // FIXME: metadata
 					if err == nil {
 						ingestedFilesCount++
@@ -181,16 +182,13 @@ func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID
 				}
 				defer sem.Release(1)
 
+				ingestedFilesCount++
 				var fileMetadata FileMetadata
 				if len(metadataStack) > 0 {
 					currentMetadata := metadataStack[len(metadataStack)-1]
 					fileMetadata = currentMetadata.Metadata[filepath.Base(path)]
 				}
-				err = ingestionFunc(path, fileMetadata)
-				if err == nil {
-					ingestedFilesCount++
-				}
-				return err
+				return ingestionFunc(path, fileMetadata)
 			})
 		}
 

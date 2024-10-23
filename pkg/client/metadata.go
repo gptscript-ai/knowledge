@@ -11,7 +11,8 @@ import (
 const MetadataFilename = ".knowledge.json"
 
 type Metadata struct {
-	Metadata map[string]FileMetadata `json:"metadata"` // Map of file paths to metadata
+	MetadataFileAbsPath string
+	Metadata            map[string]FileMetadata `json:"metadata"` // Map of file paths to metadata
 	// TODO (idea): add other fields like description here, so we can hierarchically build a dataset description? Challenge is pruning and merging.
 }
 
