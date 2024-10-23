@@ -318,6 +318,11 @@ func (v VectorStore) AddDocuments(ctx context.Context, docs []vs.Document, colle
 
 		docs[docIdx] = doc
 	}
+	wg.Wait()
+
+	if sharedErr != nil {
+		return nil, sharedErr
+	}
 
 	return ids, v.conn.SendBatch(ctx, b).Close()
 }
