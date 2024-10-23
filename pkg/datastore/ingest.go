@@ -191,7 +191,7 @@ func (s *Datastore) Ingest(ctx context.Context, datasetID string, name string, c
 	startTime := time.Now()
 	docIDs, err := s.Vectorstore.AddDocuments(ctx, docs, datasetID)
 	if err != nil {
-		statusLog.With("component", "vectorstore").Error("Failed to add documents", "error", err)
+		statusLog.With("component", "vectorstore").With("status", "failed").With("error", err.Error()).Error("Failed to add documents")
 		return nil, fmt.Errorf("failed to add documents from file %q: %w", opts.FileMetadata.AbsolutePath, err)
 	}
 	statusLog.Debug("Added documents to vectorstore", "duration", time.Since(startTime))
