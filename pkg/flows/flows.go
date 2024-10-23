@@ -6,6 +6,7 @@ import (
 	"io"
 	"log/slog"
 	"slices"
+	"time"
 
 	"github.com/acorn-io/z"
 	"github.com/google/uuid"
@@ -172,6 +173,8 @@ type RetrievalFlowOpts struct {
 }
 
 func (f *RetrievalFlow) Run(ctx context.Context, store store.Store, query string, datasetIDs []string, opts *RetrievalFlowOpts) (*dstypes.RetrievalResponse, error) {
+	retrievalFlowStartTime := time.Now()
+
 	if opts == nil {
 		opts = &RetrievalFlowOpts{}
 	}
@@ -212,6 +215,10 @@ func (f *RetrievalFlow) Run(ctx context.Context, store store.Store, query string
 		}
 	}
 	slog.Debug("Postprocessed RetrievalResponse", "num_responses", len(response.Responses), "original_query", query)
+
+	response.Stats = dstypes.Stats{
+		RetrievalTimeSeconds: time.Since(retrievalFlowStartTime).Seconds(),
+	}
 
 	return response, nil
 }

@@ -3,6 +3,7 @@ package vectorstore
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strings"
 
 	etypes "github.com/gptscript-ai/knowledge/pkg/datastore/embeddings/types"
@@ -31,9 +32,9 @@ func New(ctx context.Context, dsn string, embeddingProvider etypes.EmbeddingMode
 		return nil, fmt.Errorf("failed to create embedding function: %w", err)
 	}
 
-	s := strings.Split(dsn, "://")
-	dialect := s[0]
-	dsn = s[1]
+	dialect := strings.Split(dsn, "://")[0]
+
+	slog.Debug("vectordb", "dialect", dialect, "dsn", dsn)
 
 	switch dialect {
 	case "chromem":

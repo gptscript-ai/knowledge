@@ -32,8 +32,13 @@ type Response struct {
 	ResultDocuments []vs.Document `json:"resultDocuments"`
 }
 
+type Stats struct {
+	RetrievalTimeSeconds float64 `json:"retrievalTimeSeconds,omitempty"`
+}
+
 type RetrievalResponse struct {
 	Query     string     `json:"originalQuery"`
 	Datasets  []string   `json:"queriedDatasets"`
 	Responses []Response `json:"subqueryResults"`
+	Stats     Stats      `json:"stats,omitempty"`
 }
