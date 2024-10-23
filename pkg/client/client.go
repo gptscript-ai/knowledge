@@ -23,6 +23,7 @@ type IngestPathsOpts struct {
 	IsDuplicateFuncName  string
 	Prune                bool // Prune deleted files
 	ErrOnUnsupportedFile bool
+	ExitOnFailedFile     bool
 }
 
 type Client interface {

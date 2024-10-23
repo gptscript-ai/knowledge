@@ -67,7 +67,11 @@ func (c *StandaloneClient) ListDatasets(ctx context.Context) ([]types.Dataset, e
 }
 
 func (c *StandaloneClient) Ingest(ctx context.Context, datasetID string, name string, data []byte, opts datastore.IngestOpts) ([]string, error) {
-	return c.Datastore.Ingest(ctx, datasetID, name, data, opts)
+	ids, err := c.Datastore.Ingest(ctx, datasetID, name, data, opts)
+	if err != nil {
+		log.FromCtx(ctx).With("status", "failed").With("error", err.Error()).Error("Ingest failed")
+	}
+	return ids, err
 }
 
 func (c *StandaloneClient) IngestPaths(ctx context.Context, datasetID string, opts *IngestPathsOpts, paths ...string) (int, error) {
@@ -111,7 +115,7 @@ func (c *StandaloneClient) IngestPaths(ctx context.Context, datasetID string, op
 			iopts.IngestionFlows = opts.IngestionFlows
 		}
 
-		_, err = c.Ingest(log.ToCtx(ctx, log.FromCtx(ctx).With("filepath", path)), datasetID, filename, file, iopts)
+		_, err = c.Ingest(log.ToCtx(ctx, log.FromCtx(ctx).With("filepath", path).With("absolute_path", iopts.FileMetadata.AbsolutePath)), datasetID, filename, file, iopts)
 
 		if err != nil && !opts.ErrOnUnsupportedFile && errors.Is(err, &documentloader.UnsupportedFileTypeError{}) {
 			err = nil

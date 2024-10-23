@@ -35,6 +35,7 @@ type ClientIngestOpts struct {
 	NoCreateDataset       bool   `usage:"Do NOT create the dataset if it doesn't exist" default:"true" env:"KNOW_INGEST_NO_CREATE_DATASET"`
 	DeduplicationFuncName string `usage:"Name of the deduplication function to use" name:"dedupe-func" env:"KNOW_INGEST_DEDUPE_FUNC"`
 	ErrOnUnsupportedFile  bool   `usage:"Error on unsupported file types" default:"false" env:"KNOW_INGEST_ERR_ON_UNSUPPORTED_FILE"`
+	ExitOnFailedFile      bool   `usage:"Exit directly on failed file" default:"false" env:"KNOW_INGEST_EXIT_ON_FAILED_FILE"`
 }
 
 func (s *ClientIngest) Customize(cmd *cobra.Command) {
@@ -80,6 +81,7 @@ func (s *ClientIngest) Run(cmd *cobra.Command, args []string) error {
 		IsDuplicateFuncName:  s.DeduplicationFuncName,
 		Prune:                s.Prune,
 		ErrOnUnsupportedFile: s.ErrOnUnsupportedFile,
+		ExitOnFailedFile:     s.ExitOnFailedFile,
 	}
 
 	if s.FlowsFile != "" {
@@ -119,7 +121,7 @@ func (s *ClientIngest) Run(cmd *cobra.Command, args []string) error {
 
 	filesIngested, err := c.IngestPaths(ctx, datasetID, ingestOpts, filePath)
 	if err != nil {
-		return err
+		return fmt.Errorf("ingested %d files but encountered at least one error: %w", filesIngested, err)
 	}
 
 	fmt.Printf("Ingested %d files from %q into dataset %q (took: %s)\n", filesIngested, filePath, datasetID, time.Since(startTime))
