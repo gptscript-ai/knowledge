@@ -149,9 +149,12 @@ func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID
 					}
 					defer sem.Release(1)
 
-					ingestedFilesCount++
 					slog.Debug("Ingesting file", "path", absPath, "metadata", currentMetadata)
-					return ingestionFunc(sp, currentMetadata.Metadata[filepath.Base(sp)]) // FIXME: metadata
+					err = ingestionFunc(sp, currentMetadata.Metadata[filepath.Base(sp)]) // FIXME: metadata
+					if err == nil {
+						ingestedFilesCount++
+					}
+					return err
 				})
 				return nil
 			})
@@ -178,13 +181,16 @@ func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID
 				}
 				defer sem.Release(1)
 
-				ingestedFilesCount++
 				var fileMetadata FileMetadata
 				if len(metadataStack) > 0 {
 					currentMetadata := metadataStack[len(metadataStack)-1]
 					fileMetadata = currentMetadata.Metadata[filepath.Base(path)]
 				}
-				return ingestionFunc(path, fileMetadata)
+				err = ingestionFunc(path, fileMetadata)
+				if err == nil {
+					ingestedFilesCount++
+				}
+				return err
 			})
 		}
 
