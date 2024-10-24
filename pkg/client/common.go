@@ -94,12 +94,13 @@ func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID
 		}
 
 		if fileInfo.IsDir() {
-			initialMetadata := &Metadata{Metadata: map[string]FileMetadata{}}
-			directoryMetadata, err := loadAndMergeMetadata(path, initialMetadata)
+			directoryMetadata, err := loadDirMetadata(path)
 			if err != nil {
 				return ingestedFilesCount, err
 			}
-			metadataStack = append(metadataStack, *directoryMetadata)
+			if directoryMetadata != nil {
+				metadataStack = append(metadataStack, *directoryMetadata)
+			}
 
 			// Process directory
 			err = filepath.WalkDir(path, func(subPath string, d os.DirEntry, err error) error {
@@ -115,12 +116,13 @@ func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID
 					}
 
 					// One dir level deeper -> load new metadata
-					parentMetadata := metadataStack[len(metadataStack)-1]
-					newMetadata, err := loadAndMergeMetadata(subPath, &parentMetadata)
+					newMetadata, err := loadDirMetadata(subPath)
 					if err != nil {
 						return err
 					}
-					metadataStack = append(metadataStack, *newMetadata)
+					if newMetadata != nil {
+						metadataStack = append(metadataStack, *newMetadata)
+					}
 					return nil
 				}
 
@@ -141,17 +143,19 @@ func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID
 				}
 				touchedFilePaths = append(touchedFilePaths, absPath)
 
-				currentMetadata := metadataStack[len(metadataStack)-1]
-				slog.Debug("metadata stack", "stack", metadataStack, "path", sp, "absPath", absPath, "metadata", currentMetadata.Metadata)
-
 				g.Go(func() error {
 					if err := sem.Acquire(ctx, 1); err != nil {
 						return err
 					}
 					defer sem.Release(1)
 
-					slog.Debug("Ingesting file", "path", absPath, "metadata", currentMetadata, "metadataForFile", currentMetadata.Metadata[filepath.Base(sp)], "lookup", filepath.Base(sp))
-					err = ingestionFunc(sp, currentMetadata.Metadata[filepath.Base(sp)]) // FIXME: metadata
+					fileMeta, err := findMetadata(absPath, metadataStack)
+					if err != nil {
+						return fmt.Errorf("failed to find metadata for %s: %w", absPath, err)
+					}
+					slog.Debug("Ingesting file", "absPath", absPath, "metadata", fileMeta)
+
+					err = ingestionFunc(sp, fileMeta)
 					if err == nil {
 						ingestedFilesCount++
 					}
@@ -183,12 +187,11 @@ func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID
 				defer sem.Release(1)
 
 				ingestedFilesCount++
-				var fileMetadata FileMetadata
-				if len(metadataStack) > 0 {
-					currentMetadata := metadataStack[len(metadataStack)-1]
-					fileMetadata = currentMetadata.Metadata[filepath.Base(path)]
+				fileMeta, err := findMetadata(absPath, metadataStack)
+				if err != nil {
+					return fmt.Errorf("failed to find metadata for %s: %w", absPath, err)
 				}
-				return ingestionFunc(path, fileMetadata)
+				return ingestionFunc(path, fileMeta)
 			})
 		}
 
