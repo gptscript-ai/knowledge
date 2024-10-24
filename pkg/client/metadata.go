@@ -3,6 +3,7 @@ package client
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
@@ -18,45 +19,60 @@ type Metadata struct {
 
 type FileMetadata map[string]any
 
-func loadAndMergeMetadata(dirPath string, parentMetadata *Metadata) (*Metadata, error) {
+// loadAndMergeMetadata checks if the given directory contains a metadata file.
+// If so, it reads it in and merges it with the previous level of metadata.
+// Doing so, the parentMetadata is trimmed down to only the entries relevant to this directory.
+func loadDirMetadata(dirPath string) (*Metadata, error) {
 	metadataPath := filepath.Join(dirPath, MetadataFilename)
-	dirName := filepath.Base(dirPath)
-	if _, err := os.Stat(metadataPath); err == nil { // Metadata file exists
-		fileContent, err := os.ReadFile(metadataPath)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read metadata file %s: %w", metadataPath, err)
-		}
-
-		var newMetadata Metadata
-		if err := json.Unmarshal(fileContent, &newMetadata); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal metadata file %s: %w", metadataPath, err)
-		}
-
-		// Merge with parent metadata, overriding existing keys
-		mergedMetadata := &Metadata{Metadata: make(map[string]FileMetadata, len(parentMetadata.Metadata)+len(newMetadata.Metadata))}
-		for filename, fileMetadata := range parentMetadata.Metadata {
-			if !strings.HasPrefix(filename, dirName) {
-				// skip entries which are not meant for this (sub-)directory
-				continue
-			}
-			fname := strings.TrimPrefix(strings.TrimPrefix(filename, dirName), string(filepath.Separator))
-			mergedMetadata.Metadata[fname] = fileMetadata
-		}
-
-		if newMetadata.Metadata != nil {
-			for filename, fileMetadata := range newMetadata.Metadata {
-				for k, v := range fileMetadata {
-					if mergedMetadata.Metadata[filename] == nil {
-						mergedMetadata.Metadata[filename] = make(FileMetadata, len(fileMetadata))
-					}
-					mergedMetadata.Metadata[filename][k] = v
-				}
-			}
-		}
-
-		return mergedMetadata, nil
+	metaAbsPath, err := filepath.Abs(metadataPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get absolute path for %s: %w", metadataPath, err)
+	}
+	dirPath = filepath.Dir(metadataPath)
+	if _, err := os.Stat(metadataPath); err != nil {
+		return nil, nil
+	}
+	// Metadata file exists
+	fileContent, err := os.ReadFile(metadataPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read metadata file %s: %w", metadataPath, err)
 	}
 
-	// No metadata file, return parent metadata as is
-	return parentMetadata, nil
+	metadata := &Metadata{
+		MetadataFileAbsPath: metaAbsPath,
+	}
+	if err := json.Unmarshal(fileContent, &metadata); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal metadata file %s: %w", metadataPath, err)
+	}
+
+	slog.Info("Loaded metadata", "path", metadataPath, "metadata", metadata.Metadata)
+
+	return metadata, nil
+
+}
+
+func findMetadata(path string, metadataStack []Metadata) (FileMetadata, error) {
+
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		return nil, err
+	}
+
+	metadata := make(map[string]any)
+
+	for _, metadataEntry := range metadataStack {
+		target := strings.TrimPrefix(strings.TrimPrefix(absPath, filepath.Dir(metadataEntry.MetadataFileAbsPath)), string(filepath.Separator))
+
+		if m, ok := metadataEntry.Metadata[target]; ok {
+			for k, v := range m {
+				metadata[k] = v
+			}
+		}
+
+	}
+
+	slog.Debug("Found metadata", "path", path, "metadata", metadata)
+
+	return metadata, nil
+
 }
