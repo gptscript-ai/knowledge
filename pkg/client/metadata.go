@@ -3,7 +3,6 @@ package client
 import (
 	"encoding/json"
 	"fmt"
-	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
@@ -45,8 +44,6 @@ func loadDirMetadata(dirPath string) (*Metadata, error) {
 		return nil, fmt.Errorf("failed to unmarshal metadata file %s: %w", metadataPath, err)
 	}
 
-	slog.Info("Loaded metadata", "path", metadataPath, "metadata", metadata.Metadata)
-
 	return metadata, nil
 }
 
@@ -68,6 +65,5 @@ func findMetadata(path string, metadataStack []Metadata) (FileMetadata, error) {
 		}
 	}
 
-	slog.Debug("Found metadata", "path", path, "metadata", metadata)
 	return metadata, nil
 }
