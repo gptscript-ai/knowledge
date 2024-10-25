@@ -48,11 +48,9 @@ func loadDirMetadata(dirPath string) (*Metadata, error) {
 	slog.Info("Loaded metadata", "path", metadataPath, "metadata", metadata.Metadata)
 
 	return metadata, nil
-
 }
 
 func findMetadata(path string, metadataStack []Metadata) (FileMetadata, error) {
-
 	absPath, err := filepath.Abs(path)
 	if err != nil {
 		return nil, err
@@ -68,11 +66,8 @@ func findMetadata(path string, metadataStack []Metadata) (FileMetadata, error) {
 				metadata[k] = v
 			}
 		}
-
 	}
 
 	slog.Debug("Found metadata", "path", path, "metadata", metadata)
-
 	return metadata, nil
-
 }

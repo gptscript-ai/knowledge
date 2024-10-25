@@ -313,7 +313,6 @@ func (v VectorStore) AddDocuments(ctx context.Context, docs []vs.Document, colle
 			}
 
 			b.Queue(sql, doc.ID, []byte(doc.Content), pgvector.NewVector(vec), doc.Metadata, cid)
-
 		}(doc)
 
 		docs[docIdx] = doc
