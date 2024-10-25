@@ -13,14 +13,6 @@ flows:
         name: basic
         options:
           topK: 20
-      postprocessors:
-        - name: similarity
-          options:
-            threshold: 0.4
-            keepMin: 1
-        - name: reduce
-          options:
-            topK: 20
 
 
 
