@@ -36,6 +36,24 @@ func DefaultOptions() Options {
 // Option is a function that can be used to set options for a text splitter.
 type Option func(*Options)
 
+func WithConfig(cfg MarkdownTextSplitter) Option {
+	return func(o *Options) {
+		if cfg.ChunkSize != 0 {
+			o.ChunkSize = cfg.ChunkSize
+		}
+		if cfg.ChunkOverlap != 0 {
+			o.ChunkOverlap = cfg.ChunkOverlap
+		}
+		if cfg.SecondSplitter != nil {
+			o.SecondSplitter = cfg.SecondSplitter
+		}
+		if cfg.MaxHeadingLevel != 0 {
+			o.MaxHeadingLevel = cfg.MaxHeadingLevel
+		}
+		o.IgnoreHeadingOnly = cfg.IgnoreHeadingOnly
+	}
+}
+
 // WithChunkSize sets the chunk size for a text splitter.
 func WithChunkSize(chunkSize int) Option {
 	return func(o *Options) {

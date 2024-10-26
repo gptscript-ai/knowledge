@@ -6,6 +6,7 @@ import (
 
 	"dario.cat/mergo"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/defaults"
+	mdbasic "github.com/gptscript-ai/knowledge/pkg/datastore/textsplitter/markdown_basic"
 	dstypes "github.com/gptscript-ai/knowledge/pkg/datastore/types"
 	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore/types"
 	"github.com/mitchellh/mapstructure"
@@ -57,6 +58,8 @@ func GetTextSplitterConfig(name string) (any, error) {
 	switch name {
 	case "text", "markdown":
 		return TextSplitterOpts{}, nil
+	case "markdown_basic":
+		return mdbasic.MarkdownTextSplitter{}, nil
 	default:
 		return nil, fmt.Errorf("unknown text splitter %q", name)
 	}
@@ -94,6 +97,19 @@ func GetTextSplitter(name string, config any) (dstypes.TextSplitter, error) {
 		}
 		slog.Debug("MarkdownSplitter", "config", cfg)
 		return FromLangchain(NewLcgoMarkdownSplitter(cfg)), nil
+	case "markdown_basic":
+		cfg := mdbasic.MarkdownTextSplitter{}
+		if config != nil {
+			var customCfg mdbasic.MarkdownTextSplitter
+			if err := mapstructure.Decode(config, &customCfg); err != nil {
+				return nil, fmt.Errorf("failed to decode markdown basic splitter configuration: %w", err)
+			}
+			if err := mergo.Merge(&customCfg, cfg); err != nil {
+				return nil, fmt.Errorf("failed to merge markdown basic splitter configuration: %w", err)
+			}
+			cfg = customCfg
+		}
+		return mdbasic.NewMarkdownTextSplitter(mdbasic.WithConfig(cfg)), nil
 	default:
 		return nil, fmt.Errorf("unknown text splitter %q", name)
 	}

@@ -4,9 +4,19 @@ flows:
     globals:
       ingestion:
         textsplitter:
-          chunkSize: 800
-          chunkOverlap: 400
+          chunkSize: 1024
+          chunkOverlap: 256
     ingestion:
+      - filetypes: [".md"]
+        documentloader:
+          name: plaintext
+        textsplitter:
+          name: markdown_basic
+          options:
+            maxHeadingLevel: 2
+            ignoreHeadingOnly: true
+        transformers:
+          - name: filter_markdown_docs_no_content
       - filetypes: ["*"]
     retrieval:
       retriever:
