@@ -1,0 +1,6 @@
+Name: Knowledge Loading
+Description: Load a document, convert it to Knowledge JSON Format and store it to a file.
+Params: Input: Input File
+Params: Output: Output File
+
+#!${GPTSCRIPT_TOOL_DIR}/bin/gptscript-go-tool load "${INPUT}" "${OUTPUT}"
