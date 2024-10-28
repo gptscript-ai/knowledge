@@ -24,6 +24,7 @@ type IngestPathsOpts struct {
 	Prune                bool // Prune deleted files
 	ErrOnUnsupportedFile bool
 	ExitOnFailedFile     bool
+	Metadata             map[string]string
 }
 
 type Client interface {

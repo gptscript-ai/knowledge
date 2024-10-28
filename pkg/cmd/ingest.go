@@ -28,15 +28,16 @@ type ClientIngest struct {
 }
 
 type ClientIngestOpts struct {
-	IgnoreExtensions      string `usage:"Comma-separated list of file extensions to ignore" env:"KNOW_INGEST_IGNORE_EXTENSIONS"`
-	IgnoreFile            string `usage:"Path to a .gitignore style file" env:"KNOW_INGEST_IGNORE_FILE"`
-	IncludeHidden         bool   `usage:"Include hidden files and directories" default:"false" env:"KNOW_INGEST_INCLUDE_HIDDEN"`
-	Concurrency           int    `usage:"Number of concurrent ingestion processes" default:"10" env:"KNOW_INGEST_CONCURRENCY"`
-	NoRecursive           bool   `usage:"Don't recursively ingest directories" default:"false" env:"KNOW_NO_INGEST_RECURSIVE"`
-	NoCreateDataset       bool   `usage:"Do NOT create the dataset if it doesn't exist" default:"true" env:"KNOW_INGEST_NO_CREATE_DATASET"`
-	DeduplicationFuncName string `usage:"Name of the deduplication function to use" name:"dedupe-func" env:"KNOW_INGEST_DEDUPE_FUNC"`
-	ErrOnUnsupportedFile  bool   `usage:"Error on unsupported file types" default:"false" env:"KNOW_INGEST_ERR_ON_UNSUPPORTED_FILE"`
-	ExitOnFailedFile      bool   `usage:"Exit directly on failed file" default:"false" env:"KNOW_INGEST_EXIT_ON_FAILED_FILE"`
+	IgnoreExtensions      string            `usage:"Comma-separated list of file extensions to ignore" env:"KNOW_INGEST_IGNORE_EXTENSIONS"`
+	IgnoreFile            string            `usage:"Path to a .gitignore style file" env:"KNOW_INGEST_IGNORE_FILE"`
+	IncludeHidden         bool              `usage:"Include hidden files and directories" default:"false" env:"KNOW_INGEST_INCLUDE_HIDDEN"`
+	Concurrency           int               `usage:"Number of concurrent ingestion processes" default:"10" env:"KNOW_INGEST_CONCURRENCY"`
+	NoRecursive           bool              `usage:"Don't recursively ingest directories" default:"false" env:"KNOW_NO_INGEST_RECURSIVE"`
+	NoCreateDataset       bool              `usage:"Do NOT create the dataset if it doesn't exist" default:"true" env:"KNOW_INGEST_NO_CREATE_DATASET"`
+	DeduplicationFuncName string            `usage:"Name of the deduplication function to use" name:"dedupe-func" env:"KNOW_INGEST_DEDUPE_FUNC"`
+	ErrOnUnsupportedFile  bool              `usage:"Error on unsupported file types" default:"false" env:"KNOW_INGEST_ERR_ON_UNSUPPORTED_FILE"`
+	ExitOnFailedFile      bool              `usage:"Exit directly on failed file" default:"false" env:"KNOW_INGEST_EXIT_ON_FAILED_FILE"`
+	Metadata              map[string]string `usage:"Metadata to attach to the ingested files" env:"KNOW_INGEST_METADATA"`
 }
 
 func (s *ClientIngest) Customize(cmd *cobra.Command) {
@@ -91,6 +92,7 @@ func (s *ClientIngest) run(ctx context.Context, filePath string) error {
 		Prune:                s.Prune,
 		ErrOnUnsupportedFile: s.ErrOnUnsupportedFile,
 		ExitOnFailedFile:     s.ExitOnFailedFile,
+		Metadata:             s.Metadata,
 	}
 
 	if s.FlowsFile != "" {

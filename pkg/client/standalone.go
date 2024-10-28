@@ -3,9 +3,10 @@ package client
 import (
 	"context"
 	"fmt"
-	"os"
 	"path/filepath"
+	"time"
 
+	"github.com/gptscript-ai/go-gptscript"
 	"github.com/gptscript-ai/knowledge/pkg/datastore"
 	dstypes "github.com/gptscript-ai/knowledge/pkg/datastore/types"
 	"github.com/gptscript-ai/knowledge/pkg/index"
@@ -15,11 +16,17 @@ import (
 
 type StandaloneClient struct {
 	*datastore.Datastore
+	GPTScript *gptscript.GPTScript
 }
 
-func NewStandaloneClient(ds *datastore.Datastore) (*StandaloneClient, error) {
+func NewStandaloneClient(ctx context.Context, ds *datastore.Datastore) (*StandaloneClient, error) {
+	gs, err := newGPTScript(ctx)
+	if err != nil {
+		return nil, err
+	}
 	return &StandaloneClient{
 		Datastore: ds,
+		GPTScript: gs,
 	}, nil
 }
 
@@ -79,20 +86,10 @@ func (c *StandaloneClient) IngestPaths(ctx context.Context, datasetID string, op
 	}
 
 	ingestFile := func(path string, extraMetadata map[string]any) error {
-		// Gather metadata
-		finfo, err := os.Stat(path)
-		if err != nil {
-			return fmt.Errorf("failed to stat file %s: %w", path, err)
-		}
 
-		abspath, err := filepath.Abs(path)
+		file, err := c.GPTScript.ReadFileInWorkspace(ctx, path)
 		if err != nil {
-			return fmt.Errorf("failed to get absolute path for %s: %w", path, err)
-		}
-
-		file, err := os.ReadFile(path)
-		if err != nil {
-			return fmt.Errorf("failed to open file %s: %w", path, err)
+			return fmt.Errorf("failed to read file %q: %w", path, err)
 		}
 
 		filename := filepath.Base(path)
@@ -100,9 +97,9 @@ func (c *StandaloneClient) IngestPaths(ctx context.Context, datasetID string, op
 		iopts := datastore.IngestOpts{
 			FileMetadata: &index.FileMetadata{
 				Name:         filepath.Base(path),
-				AbsolutePath: abspath,
-				Size:         finfo.Size(),
-				ModifiedAt:   finfo.ModTime(),
+				AbsolutePath: path,
+				Size:         int64(len(file)), // TODO: get from file metadata once the workspace SDK supports it
+				ModifiedAt:   time.Now(),       // TODO: get from file metadata once the workspace SDK supports it
 			},
 			IsDuplicateFuncName: opts.IsDuplicateFuncName,
 			ExtraMetadata:       extraMetadata,

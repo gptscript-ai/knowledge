@@ -12,6 +12,8 @@ import (
 	"strings"
 
 	"github.com/go-git/go-git/v5/plumbing/format/gitignore"
+	"github.com/gptscript-ai/go-gptscript"
+	"github.com/gptscript-ai/gptscript/pkg/sdkserver"
 	"github.com/gptscript-ai/knowledge/pkg/datastore"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader"
 	remotes "github.com/gptscript-ai/knowledge/pkg/datastore/documentloader/remote"
@@ -20,6 +22,33 @@ import (
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/sync/semaphore"
 )
+
+func newGPTScript(ctx context.Context) (*gptscript.GPTScript, error) {
+	workspaceTool := os.Getenv("WORKSPACE_TOOL")
+	if workspaceTool == "" {
+		workspaceTool = "github.com/gptscript-ai/workspace-provider"
+	}
+	if os.Getenv("GPTSCRIPT_URL") != "" {
+		return gptscript.NewGPTScript(gptscript.GlobalOptions{
+			URL:           os.Getenv("GPTSCRIPT_URL"),
+			WorkspaceTool: workspaceTool,
+		})
+	}
+
+	url, err := sdkserver.EmbeddedStart(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := os.Setenv("GPTSCRIPT_URL", url); err != nil {
+		return nil, err
+	}
+
+	return gptscript.NewGPTScript(gptscript.GlobalOptions{
+		URL:           url,
+		WorkspaceTool: workspaceTool,
+	})
+}
 
 func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID string, ingestionFunc func(path string, metadata map[string]any) error, paths ...string) (int, int, error) {
 	ingestedFilesCount := 0
@@ -152,10 +181,11 @@ func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID
 					}
 					defer sem.Release(1)
 
-					fileMeta, err := findMetadata(absPath, metadataStack)
+					fileMeta, err := findMetadata(absPath, metadataStack, opts.Metadata)
 					if err != nil {
 						return fmt.Errorf("failed to find metadata for %s: %w", absPath, err)
 					}
+
 					slog.Debug("Ingesting file", "absPath", absPath, "metadata", fileMeta)
 
 					err = ingestionFunc(sp, fileMeta)
@@ -190,7 +220,7 @@ func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID
 				}
 				defer sem.Release(1)
 
-				fileMeta, err := findMetadata(absPath, metadataStack)
+				fileMeta, err := findMetadata(absPath, metadataStack, opts.Metadata)
 				if err != nil {
 					return fmt.Errorf("failed to find metadata for %s: %w", absPath, err)
 				}

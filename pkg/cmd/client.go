@@ -121,7 +121,7 @@ func (s *Client) getClient(ctx context.Context) (client.Client, error) {
 		if err != nil {
 			return nil, err
 		}
-		c, err := client.NewStandaloneClient(ds)
+		c, err := client.NewStandaloneClient(ctx, ds)
 		if err != nil {
 			return nil, err
 		}

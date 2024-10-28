@@ -47,7 +47,7 @@ func loadDirMetadata(dirPath string) (*Metadata, error) {
 	return metadata, nil
 }
 
-func findMetadata(path string, metadataStack []Metadata) (FileMetadata, error) {
+func findMetadata(path string, metadataStack []Metadata, globalMetadata map[string]string) (FileMetadata, error) {
 	absPath, err := filepath.Abs(path)
 	if err != nil {
 		return nil, err
@@ -63,6 +63,10 @@ func findMetadata(path string, metadataStack []Metadata) (FileMetadata, error) {
 				metadata[k] = v
 			}
 		}
+	}
+
+	for k, v := range globalMetadata {
+		metadata[k] = v
 	}
 
 	return metadata, nil
