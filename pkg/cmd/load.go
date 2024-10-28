@@ -5,10 +5,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 	"slices"
 	"strings"
 
+	"github.com/gptscript-ai/knowledge/pkg/client"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader/structured"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/filetypes"
@@ -17,8 +17,9 @@ import (
 )
 
 type ClientLoad struct {
-	Loader       string `usage:"Choose a document loader to use"`
-	OutputFormat string `name:"format" usage:"Choose an output format" default:"structured"`
+	Loader       string            `usage:"Choose a document loader to use"`
+	OutputFormat string            `name:"format" usage:"Choose an output format" default:"structured"`
+	Metadata     map[string]string `usage:"Metadata to attach to the loaded files" env:"KNOW_LOAD_METADATA"`
 }
 
 func (s *ClientLoad) Customize(cmd *cobra.Command) {
@@ -28,6 +29,7 @@ func (s *ClientLoad) Customize(cmd *cobra.Command) {
 }
 
 func (s *ClientLoad) Run(cmd *cobra.Command, args []string) error {
+
 	input := args[0]
 	output := args[1]
 
@@ -43,7 +45,12 @@ func (s *ClientLoad) run(ctx context.Context, input, output string) error {
 		return fmt.Errorf("unsupported output format %q", s.OutputFormat)
 	}
 
-	inputBytes, err := os.ReadFile(input)
+	c, err := client.NewStandaloneClient(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	inputBytes, err := c.GPTScript.ReadFileInWorkspace(ctx, input)
 	if err != nil {
 		return fmt.Errorf("failed to read input file %q: %w", input, err)
 	}
@@ -84,6 +91,10 @@ func (s *ClientLoad) run(ctx context.Context, input, output string) error {
 				continue
 			}
 
+			for k, v := range s.Metadata {
+				doc.Metadata[k] = v
+			}
+
 			metadata, err := json.Marshal(doc.Metadata)
 			if err != nil {
 				return fmt.Errorf("failed to marshal metadata: %w", err)
@@ -111,6 +122,10 @@ func (s *ClientLoad) run(ctx context.Context, input, output string) error {
 		}
 
 		commonMetadata["source"] = input
+
+		for k, v := range s.Metadata {
+			commonMetadata[k] = v
+		}
 		structuredInput.Metadata = commonMetadata
 
 		for i, doc := range structuredInput.Documents {
@@ -133,17 +148,7 @@ func (s *ClientLoad) run(ctx context.Context, input, output string) error {
 		return nil
 	}
 
-	outputFile, err := os.Create(output)
-	if err != nil {
-		return fmt.Errorf("failed to create output file %q: %w", output, err)
-	}
-
-	_, err = outputFile.WriteString(text)
-	if err != nil {
-		return fmt.Errorf("failed to write to output file %q: %w", output, err)
-	}
-
-	return nil
+	return c.GPTScript.WriteFileInWorkspace(ctx, output, []byte(text))
 }
 
 func dropCommon(target, common map[string]any) map[string]any {
