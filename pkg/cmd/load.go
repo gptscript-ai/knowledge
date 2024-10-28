@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -30,6 +31,14 @@ func (s *ClientLoad) Run(cmd *cobra.Command, args []string) error {
 	input := args[0]
 	output := args[1]
 
+	err := s.run(cmd.Context(), input, output)
+	if err != nil {
+		exitErr(err)
+	}
+	return nil
+}
+
+func (s *ClientLoad) run(ctx context.Context, input, output string) error {
 	if !slices.Contains([]string{"structured", "markdown"}, s.OutputFormat) {
 		return fmt.Errorf("unsupported output format %q", s.OutputFormat)
 	}
@@ -60,7 +69,7 @@ func (s *ClientLoad) Run(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("unsupported file type %q", input)
 	}
 
-	docs, err := loader(cmd.Context(), bytes.NewReader(inputBytes))
+	docs, err := loader(ctx, bytes.NewReader(inputBytes))
 	if err != nil {
 		return fmt.Errorf("failed to load documents from file %q using loader %q: %w", input, s.Loader, err)
 	}

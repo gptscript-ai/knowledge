@@ -2,13 +2,11 @@ package client
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 
 	"github.com/gptscript-ai/knowledge/pkg/datastore"
-	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader"
 	dstypes "github.com/gptscript-ai/knowledge/pkg/datastore/types"
 	"github.com/gptscript-ai/knowledge/pkg/index"
 	"github.com/gptscript-ai/knowledge/pkg/log"
@@ -74,10 +72,10 @@ func (c *StandaloneClient) Ingest(ctx context.Context, datasetID string, name st
 	return ids, err
 }
 
-func (c *StandaloneClient) IngestPaths(ctx context.Context, datasetID string, opts *IngestPathsOpts, paths ...string) (int, error) {
+func (c *StandaloneClient) IngestPaths(ctx context.Context, datasetID string, opts *IngestPathsOpts, paths ...string) (int, int, error) {
 	_, err := getOrCreateDataset(ctx, c, datasetID, !opts.NoCreateDataset)
 	if err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 
 	ingestFile := func(path string, extraMetadata map[string]any) error {
@@ -116,10 +114,6 @@ func (c *StandaloneClient) IngestPaths(ctx context.Context, datasetID string, op
 		}
 
 		_, err = c.Ingest(log.ToCtx(ctx, log.FromCtx(ctx).With("filepath", path).With("absolute_path", iopts.FileMetadata.AbsolutePath)), datasetID, filename, file, iopts)
-
-		if err != nil && !opts.ErrOnUnsupportedFile && errors.Is(err, &documentloader.UnsupportedFileTypeError{}) {
-			err = nil
-		}
 
 		return err
 	}

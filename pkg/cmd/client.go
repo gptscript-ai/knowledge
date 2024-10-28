@@ -31,6 +31,11 @@ type ClientFlowsConfig struct {
 	Flow      string `usage:"Flow name" env:"KNOW_FLOW"`
 }
 
+func exitErr(err error) {
+	fmt.Println(fmt.Sprintf(`{"error": %q}`, err.Error()))
+	os.Exit(1)
+}
+
 func (s *Client) loadArchive() error {
 	if s.datastoreArchive == "" {
 		return nil

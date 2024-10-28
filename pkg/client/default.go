@@ -126,10 +126,10 @@ func (c *DefaultClient) Ingest(_ context.Context, datasetID string, name string,
 	return res.Documents, nil
 }
 
-func (c *DefaultClient) IngestPaths(ctx context.Context, datasetID string, opts *IngestPathsOpts, paths ...string) (int, error) {
+func (c *DefaultClient) IngestPaths(ctx context.Context, datasetID string, opts *IngestPathsOpts, paths ...string) (int, int, error) {
 	_, err := getOrCreateDataset(ctx, c, datasetID, !opts.NoCreateDataset)
 	if err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 
 	ingestFile := func(path string, extraMetadata map[string]any) error {

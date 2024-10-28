@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"os"
@@ -54,13 +55,21 @@ This is a constraint of the Vector Database and Similarity Search, as different 
 }
 
 func (s *ClientIngest) Run(cmd *cobra.Command, args []string) error {
-	c, err := s.getClient(cmd.Context())
+	filePath := args[0]
+	err := s.run(cmd.Context(), filePath)
+	if err != nil {
+		exitErr(err)
+	}
+	return nil
+}
+
+func (s *ClientIngest) run(ctx context.Context, filePath string) error {
+	c, err := s.getClient(ctx)
 	if err != nil {
 		return err
 	}
 
 	datasetID := s.Dataset
-	filePath := args[0]
 
 	finfo, err := os.Stat(filePath)
 	if err != nil {
@@ -116,14 +125,15 @@ func (s *ClientIngest) Run(cmd *cobra.Command, args []string) error {
 		slog.Debug("Loaded ingestion flows from config", "flows_file", s.FlowsFile, "dataset", datasetID, "flows", len(ingestOpts.IngestionFlows))
 	}
 
-	ctx := log.ToCtx(cmd.Context(), slog.With("flow", "ingestion").With("rootPath", filePath))
+	ctx = log.ToCtx(ctx, slog.With("flow", "ingestion").With("rootPath", filePath))
 	startTime := time.Now()
 
-	filesIngested, err := c.IngestPaths(ctx, datasetID, ingestOpts, filePath)
+	filesIngested, skippedUnsupported, err := c.IngestPaths(ctx, datasetID, ingestOpts, filePath)
 	if err != nil {
-		return fmt.Errorf("ingested %d files but encountered at least one error: %w", filesIngested, err)
+		slog.Error("Failed to ingest files", "error", err, "succeeded", filesIngested, "skippedUnsupported", skippedUnsupported)
+		return fmt.Errorf("ingestion failed for at least one file: %w", err)
 	}
 
-	fmt.Printf("Ingested %d files from %q into dataset %q (took: %s)\n", filesIngested, filePath, datasetID, time.Since(startTime))
+	slog.Info("Ingested files into dataset", "ingested", filesIngested, "source", filePath, "dataset", datasetID, "skippedUnsupported", skippedUnsupported, "took", time.Since(startTime))
 	return nil
 }
