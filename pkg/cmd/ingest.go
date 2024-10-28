@@ -59,7 +59,7 @@ func (s *ClientIngest) Run(cmd *cobra.Command, args []string) error {
 	filePath := args[0]
 	err := s.run(cmd.Context(), filePath)
 	if err != nil {
-		exitErr(err)
+		exitErr0(err)
 	}
 	return nil
 }
@@ -72,27 +72,33 @@ func (s *ClientIngest) run(ctx context.Context, filePath string) error {
 
 	datasetID := s.Dataset
 
-	finfo, err := os.Stat(filePath)
-	if err != nil {
-		return err
-	}
-	if !finfo.IsDir() && path.Ext(filePath) != ".zip" {
-		slog.Debug("ingesting single file, setting err-on-unsupported-file to true", "file", filePath)
+	if !strings.HasPrefix(filePath, "ws://") {
+		finfo, err := os.Stat(filePath)
+		if err != nil {
+			return err
+		}
+		if !finfo.IsDir() && path.Ext(filePath) != ".zip" {
+			slog.Debug("ingesting single file, setting err-on-unsupported-file to true", "file", filePath)
+			s.ErrOnUnsupportedFile = true
+		}
+	} else {
 		s.ErrOnUnsupportedFile = true
 	}
 
 	ingestOpts := &client.IngestPathsOpts{
+		SharedIngestionOpts: client.SharedIngestionOpts{
+			TextSplitterOpts:    &s.TextSplitterOpts,
+			IsDuplicateFuncName: s.DeduplicationFuncName,
+			Metadata:            s.Metadata,
+		},
 		IgnoreExtensions:     strings.Split(s.IgnoreExtensions, ","),
 		Concurrency:          s.Concurrency,
 		Recursive:            !s.NoRecursive,
-		TextSplitterOpts:     &s.TextSplitterOpts,
 		IgnoreFile:           s.IgnoreFile,
 		IncludeHidden:        s.IncludeHidden,
-		IsDuplicateFuncName:  s.DeduplicationFuncName,
 		Prune:                s.Prune,
 		ErrOnUnsupportedFile: s.ErrOnUnsupportedFile,
 		ExitOnFailedFile:     s.ExitOnFailedFile,
-		Metadata:             s.Metadata,
 	}
 
 	if s.FlowsFile != "" {

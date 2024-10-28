@@ -291,8 +291,8 @@ github.com/gptscript-ai/broadcaster v0.0.0-20240625175512-c43682019b86 h1:m9yLtI
 github.com/gptscript-ai/broadcaster v0.0.0-20240625175512-c43682019b86/go.mod h1:lK3K5EZx4dyT24UG3yCt0wmspkYqrj4D/8kxdN3relk=
 github.com/gptscript-ai/chat-completion-client v0.0.0-20240813051153-a440ada7e3c3 h1:EQiFTZv+BnOWJX2B9XdF09fL2Zj7h19n1l23TpWCafc=
 github.com/gptscript-ai/chat-completion-client v0.0.0-20240813051153-a440ada7e3c3/go.mod h1:7P/o6/IWa1KqsntVf68hSnLKuu3+xuqm6lYhch1w4jo=
-github.com/gptscript-ai/go-gptscript v0.9.6-0.20241023195750-c09e0f56b39b h1:EDd5OCtZ43YVSzKuQlXLiXCIQ6qhsrqLqY5Ows5ohlY=
-github.com/gptscript-ai/go-gptscript v0.9.6-0.20241023195750-c09e0f56b39b/go.mod h1:/FVuLwhz+sIfsWUgUHWKi32qT0i6+IXlUlzs70KKt/Q=
+github.com/gptscript-ai/go-gptscript v0.9.6-0.20241028114905-1fce3cceae35 h1:ljdLe1+L7+NR/W4+wXM9xOJULGQfa+Y5v0W40bGdRtk=
+github.com/gptscript-ai/go-gptscript v0.9.6-0.20241028114905-1fce3cceae35/go.mod h1:/FVuLwhz+sIfsWUgUHWKi32qT0i6+IXlUlzs70KKt/Q=
 github.com/gptscript-ai/gptscript v0.9.5 h1:EWq+AyJ6CBdU9hS6xOnqBQGpWIy74Zx/Fd6tN0I6Bxc=
 github.com/gptscript-ai/gptscript v0.9.5/go.mod h1:+CC86EbcmMMBgvv5NBqHzep63SobtB5vhNOq4i6aPrA=
 github.com/hashicorp/errwrap v1.0.0 h1:hLrqtEDnRye3+sgx6z4qVLNuviH3MR5aQ0ykNJa/UYA=

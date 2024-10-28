@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"slices"
 	"strings"
 
@@ -29,13 +30,12 @@ func (s *ClientLoad) Customize(cmd *cobra.Command) {
 }
 
 func (s *ClientLoad) Run(cmd *cobra.Command, args []string) error {
-
 	input := args[0]
 	output := args[1]
 
 	err := s.run(cmd.Context(), input, output)
 	if err != nil {
-		exitErr(err)
+		exitErr0(err)
 	}
 	return nil
 }
@@ -50,7 +50,12 @@ func (s *ClientLoad) run(ctx context.Context, input, output string) error {
 		return err
 	}
 
-	inputBytes, err := c.GPTScript.ReadFileInWorkspace(ctx, input)
+	var inputBytes []byte
+	if strings.HasPrefix(input, "ws://") {
+		inputBytes, err = c.GPTScript.ReadFileInWorkspace(ctx, strings.TrimPrefix(input, "ws://"))
+	} else {
+		inputBytes, err = os.ReadFile(input)
+	}
 	if err != nil {
 		return fmt.Errorf("failed to read input file %q: %w", input, err)
 	}
@@ -148,7 +153,11 @@ func (s *ClientLoad) run(ctx context.Context, input, output string) error {
 		return nil
 	}
 
-	return c.GPTScript.WriteFileInWorkspace(ctx, output, []byte(text))
+	if strings.HasPrefix(output, "ws://") {
+		return c.GPTScript.WriteFileInWorkspace(ctx, strings.TrimPrefix(output, "ws://"), []byte(text))
+	}
+
+	return os.WriteFile(output, []byte(text), 0666)
 }
 
 func dropCommon(target, common map[string]any) map[string]any {

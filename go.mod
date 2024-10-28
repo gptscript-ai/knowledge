@@ -27,7 +27,7 @@ require (
 	github.com/glebarez/sqlite v1.11.0
 	github.com/go-git/go-git/v5 v5.12.0
 	github.com/google/uuid v1.6.0
-	github.com/gptscript-ai/go-gptscript v0.9.6-0.20241023195750-c09e0f56b39b
+	github.com/gptscript-ai/go-gptscript v0.9.6-0.20241028114905-1fce3cceae35
 	github.com/gptscript-ai/gptscript v0.9.5
 	github.com/hupe1980/golc v0.0.112
 	github.com/iwilltry42/bm25-go v0.0.0-20240909111832-a928590cc9da

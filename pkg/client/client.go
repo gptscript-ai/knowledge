@@ -11,20 +11,28 @@ import (
 	"github.com/gptscript-ai/knowledge/pkg/server/types"
 )
 
+type IngestWorkspaceOpts struct {
+	SharedIngestionOpts
+}
+
+type SharedIngestionOpts struct {
+	TextSplitterOpts    *textsplitter.TextSplitterOpts
+	IngestionFlows      []flows.IngestionFlow
+	IsDuplicateFuncName string
+	Metadata            map[string]string
+}
+
 type IngestPathsOpts struct {
+	SharedIngestionOpts
 	IgnoreExtensions     []string
 	Concurrency          int
 	Recursive            bool
-	TextSplitterOpts     *textsplitter.TextSplitterOpts
-	IngestionFlows       []flows.IngestionFlow
 	IgnoreFile           string
 	IncludeHidden        bool
 	NoCreateDataset      bool
-	IsDuplicateFuncName  string
 	Prune                bool // Prune deleted files
 	ErrOnUnsupportedFile bool
 	ExitOnFailedFile     bool
-	Metadata             map[string]string
 }
 
 type Client interface {
