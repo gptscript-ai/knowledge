@@ -20,7 +20,7 @@ import (
 type ClientLoad struct {
 	Loader       string            `usage:"Choose a document loader to use"`
 	OutputFormat string            `name:"format" usage:"Choose an output format" default:"structured"`
-	Metadata     map[string]string `usage:"Metadata to attach to the loaded files" env:"KNOW_LOAD_METADATA"`
+	Metadata     map[string]string `usage:"Metadata to attach to the loaded files" env:"METADATA"`
 }
 
 func (s *ClientLoad) Customize(cmd *cobra.Command) {
