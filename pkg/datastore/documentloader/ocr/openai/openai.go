@@ -1,4 +1,4 @@
-//go:build mupdf
+//go:build !(linux && arm64) && !(windows && arm64)
 
 package openai
 
@@ -99,11 +99,9 @@ If you identify a specific page type, like book cover, table of contents, etc., 
 	g, ctx := errgroup.WithContext(ctx)
 
 	for i, img := range images {
-
 		pageNo := i + 1
 
 		g.Go(func() error {
-
 			if err := sem.Acquire(ctx, 1); err != nil {
 				return err
 			}
@@ -163,7 +161,6 @@ func encodeImageToBase64(img image.Image) (string, error) {
 }
 
 func (o *OpenAIOCR) sendImageToOpenAI(base64Image string) (string, error) {
-
 	url := fmt.Sprintf("%s/chat/completions", o.BaseURL)
 
 	headers := map[string]string{
