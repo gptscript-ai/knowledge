@@ -37,7 +37,7 @@ func (s *ClientDeleteFile) Run(cmd *cobra.Command, args []string) error {
 		Dataset: s.Dataset,
 	}
 
-	if strings.HasPrefix(fileRef, "/") {
+	if strings.HasPrefix(fileRef, "/") || strings.HasPrefix(fileRef, "ws://") {
 		searchFile.AbsolutePath = fileRef
 	} else if _, err := uuid.Parse(fileRef); err == nil {
 		searchFile.ID = fileRef
