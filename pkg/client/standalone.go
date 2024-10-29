@@ -21,7 +21,7 @@ type StandaloneClient struct {
 }
 
 func NewStandaloneClient(ctx context.Context, ds *datastore.Datastore) (*StandaloneClient, error) {
-	gs, err := newGPTScript(ctx)
+	gs, err := gptscript.NewGPTScript()
 	if err != nil {
 		return nil, err
 	}
