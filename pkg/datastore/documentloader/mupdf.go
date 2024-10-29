@@ -1,4 +1,4 @@
-//go:build mupdf
+//go:build !(linux && arm64) && !(windows && arm64)
 
 package documentloader
 
@@ -17,7 +17,6 @@ import (
 )
 
 func init() {
-
 	defaults.DefaultPDFReaderFunc = func(ctx context.Context, reader io.Reader) ([]vs.Document, error) {
 		slog.Debug("Default PDF Reader is MuPDF")
 		r, err := mupdf.NewPDF(reader)
