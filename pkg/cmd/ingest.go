@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"os"
@@ -27,15 +28,16 @@ type ClientIngest struct {
 }
 
 type ClientIngestOpts struct {
-	IgnoreExtensions      string `usage:"Comma-separated list of file extensions to ignore" env:"KNOW_INGEST_IGNORE_EXTENSIONS"`
-	IgnoreFile            string `usage:"Path to a .gitignore style file" env:"KNOW_INGEST_IGNORE_FILE"`
-	IncludeHidden         bool   `usage:"Include hidden files and directories" default:"false" env:"KNOW_INGEST_INCLUDE_HIDDEN"`
-	Concurrency           int    `usage:"Number of concurrent ingestion processes" default:"10" env:"KNOW_INGEST_CONCURRENCY"`
-	NoRecursive           bool   `usage:"Don't recursively ingest directories" default:"false" env:"KNOW_NO_INGEST_RECURSIVE"`
-	NoCreateDataset       bool   `usage:"Do NOT create the dataset if it doesn't exist" default:"true" env:"KNOW_INGEST_NO_CREATE_DATASET"`
-	DeduplicationFuncName string `usage:"Name of the deduplication function to use" name:"dedupe-func" env:"KNOW_INGEST_DEDUPE_FUNC"`
-	ErrOnUnsupportedFile  bool   `usage:"Error on unsupported file types" default:"false" env:"KNOW_INGEST_ERR_ON_UNSUPPORTED_FILE"`
-	ExitOnFailedFile      bool   `usage:"Exit directly on failed file" default:"false" env:"KNOW_INGEST_EXIT_ON_FAILED_FILE"`
+	IgnoreExtensions      string            `usage:"Comma-separated list of file extensions to ignore" env:"KNOW_INGEST_IGNORE_EXTENSIONS"`
+	IgnoreFile            string            `usage:"Path to a .gitignore style file" env:"KNOW_INGEST_IGNORE_FILE"`
+	IncludeHidden         bool              `usage:"Include hidden files and directories" default:"false" env:"KNOW_INGEST_INCLUDE_HIDDEN"`
+	Concurrency           int               `usage:"Number of concurrent ingestion processes" default:"10" env:"KNOW_INGEST_CONCURRENCY"`
+	NoRecursive           bool              `usage:"Don't recursively ingest directories" default:"false" env:"KNOW_NO_INGEST_RECURSIVE"`
+	NoCreateDataset       bool              `usage:"Do NOT create the dataset if it doesn't exist" default:"true" env:"KNOW_INGEST_NO_CREATE_DATASET"`
+	DeduplicationFuncName string            `usage:"Name of the deduplication function to use" name:"dedupe-func" env:"KNOW_INGEST_DEDUPE_FUNC"`
+	ErrOnUnsupportedFile  bool              `usage:"Error on unsupported file types" default:"false" env:"KNOW_INGEST_ERR_ON_UNSUPPORTED_FILE"`
+	ExitOnFailedFile      bool              `usage:"Exit directly on failed file" default:"false" env:"KNOW_INGEST_EXIT_ON_FAILED_FILE"`
+	Metadata              map[string]string `usage:"Metadata to attach to the ingested files" env:"KNOW_INGEST_METADATA"`
 }
 
 func (s *ClientIngest) Customize(cmd *cobra.Command) {
@@ -54,31 +56,46 @@ This is a constraint of the Vector Database and Similarity Search, as different 
 }
 
 func (s *ClientIngest) Run(cmd *cobra.Command, args []string) error {
-	c, err := s.getClient(cmd.Context())
+	filePath := args[0]
+	err := s.run(cmd.Context(), filePath)
+	if err != nil {
+		exitErr0(err)
+	}
+	return nil
+}
+
+func (s *ClientIngest) run(ctx context.Context, filePath string) error {
+	c, err := s.getClient(ctx)
 	if err != nil {
 		return err
 	}
 
 	datasetID := s.Dataset
-	filePath := args[0]
 
-	finfo, err := os.Stat(filePath)
-	if err != nil {
-		return err
-	}
-	if !finfo.IsDir() && path.Ext(filePath) != ".zip" {
-		slog.Debug("ingesting single file, setting err-on-unsupported-file to true", "file", filePath)
+	if !strings.HasPrefix(filePath, "ws://") {
+		finfo, err := os.Stat(filePath)
+		if err != nil {
+			return err
+		}
+		if !finfo.IsDir() && path.Ext(filePath) != ".zip" {
+			slog.Debug("ingesting single file, setting err-on-unsupported-file to true", "file", filePath)
+			s.ErrOnUnsupportedFile = true
+		}
+	} else {
 		s.ErrOnUnsupportedFile = true
 	}
 
 	ingestOpts := &client.IngestPathsOpts{
+		SharedIngestionOpts: client.SharedIngestionOpts{
+			TextSplitterOpts:    &s.TextSplitterOpts,
+			IsDuplicateFuncName: s.DeduplicationFuncName,
+			Metadata:            s.Metadata,
+		},
 		IgnoreExtensions:     strings.Split(s.IgnoreExtensions, ","),
 		Concurrency:          s.Concurrency,
 		Recursive:            !s.NoRecursive,
-		TextSplitterOpts:     &s.TextSplitterOpts,
 		IgnoreFile:           s.IgnoreFile,
 		IncludeHidden:        s.IncludeHidden,
-		IsDuplicateFuncName:  s.DeduplicationFuncName,
 		Prune:                s.Prune,
 		ErrOnUnsupportedFile: s.ErrOnUnsupportedFile,
 		ExitOnFailedFile:     s.ExitOnFailedFile,
@@ -116,14 +133,15 @@ func (s *ClientIngest) Run(cmd *cobra.Command, args []string) error {
 		slog.Debug("Loaded ingestion flows from config", "flows_file", s.FlowsFile, "dataset", datasetID, "flows", len(ingestOpts.IngestionFlows))
 	}
 
-	ctx := log.ToCtx(cmd.Context(), slog.With("flow", "ingestion").With("rootPath", filePath))
+	ctx = log.ToCtx(ctx, slog.With("flow", "ingestion").With("rootPath", filePath))
 	startTime := time.Now()
 
-	filesIngested, err := c.IngestPaths(ctx, datasetID, ingestOpts, filePath)
+	filesIngested, skippedUnsupported, err := c.IngestPaths(ctx, datasetID, ingestOpts, filePath)
 	if err != nil {
-		return fmt.Errorf("ingested %d files but encountered at least one error: %w", filesIngested, err)
+		slog.Error("Failed to ingest files", "error", err, "succeeded", filesIngested, "skippedUnsupported", skippedUnsupported)
+		return fmt.Errorf("ingestion failed for at least one file: %w", err)
 	}
 
-	fmt.Printf("Ingested %d files from %q into dataset %q (took: %s)\n", filesIngested, filePath, datasetID, time.Since(startTime))
+	slog.Info("Ingested files into dataset", "ingested", filesIngested, "source", filePath, "dataset", datasetID, "skippedUnsupported", skippedUnsupported, "took", time.Since(startTime))
 	return nil
 }

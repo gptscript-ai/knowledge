@@ -2,13 +2,13 @@ package client
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
+	"github.com/gptscript-ai/go-gptscript"
 	"github.com/gptscript-ai/knowledge/pkg/datastore"
-	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader"
 	dstypes "github.com/gptscript-ai/knowledge/pkg/datastore/types"
 	"github.com/gptscript-ai/knowledge/pkg/index"
 	"github.com/gptscript-ai/knowledge/pkg/log"
@@ -17,11 +17,17 @@ import (
 
 type StandaloneClient struct {
 	*datastore.Datastore
+	GPTScript *gptscript.GPTScript
 }
 
-func NewStandaloneClient(ds *datastore.Datastore) (*StandaloneClient, error) {
+func NewStandaloneClient(ctx context.Context, ds *datastore.Datastore) (*StandaloneClient, error) {
+	gs, err := newGPTScript(ctx)
+	if err != nil {
+		return nil, err
+	}
 	return &StandaloneClient{
 		Datastore: ds,
+		GPTScript: gs,
 	}, nil
 }
 
@@ -74,10 +80,61 @@ func (c *StandaloneClient) Ingest(ctx context.Context, datasetID string, name st
 	return ids, err
 }
 
-func (c *StandaloneClient) IngestPaths(ctx context.Context, datasetID string, opts *IngestPathsOpts, paths ...string) (int, error) {
+func (c *StandaloneClient) IngestFromWorkspace(ctx context.Context, datasetID string, opts *IngestWorkspaceOpts, file string) error {
+	_, err := getOrCreateDataset(ctx, c, datasetID, true)
+	if err != nil {
+		return err
+	}
+
+	file = strings.TrimPrefix(file, "ws://")
+
+	meta := make(map[string]any, len(opts.Metadata))
+	for k, v := range opts.Metadata {
+		meta[k] = v
+	}
+
+	finfo, err := c.GPTScript.StatFileInWorkspace(ctx, file)
+	if err != nil {
+		return fmt.Errorf("failed to stat file %q: %w", file, err)
+	}
+
+	fileContent, err := c.GPTScript.ReadFileInWorkspace(ctx, file)
+	if err != nil {
+		return fmt.Errorf("failed to read file %q: %w", file, err)
+	}
+
+	iopts := datastore.IngestOpts{
+		FileMetadata: &index.FileMetadata{
+			Name:         finfo.Name,
+			AbsolutePath: fmt.Sprintf("ws://%s/%s", finfo.WorkspaceID, file),
+			Size:         finfo.Size,
+			ModifiedAt:   finfo.ModTime,
+		},
+		IsDuplicateFuncName: opts.IsDuplicateFuncName,
+		ExtraMetadata:       meta,
+		TextSplitterOpts:    opts.TextSplitterOpts,
+		IngestionFlows:      opts.IngestionFlows,
+	}
+
+	_, err = c.Ingest(log.ToCtx(ctx, log.FromCtx(ctx).With("filepath", file).With("absolute_path", iopts.FileMetadata.AbsolutePath)), datasetID, finfo.Name, fileContent, iopts)
+
+	return err
+}
+
+func (c *StandaloneClient) IngestPaths(ctx context.Context, datasetID string, opts *IngestPathsOpts, paths ...string) (int, int, error) {
+	if strings.HasPrefix(paths[0], "ws://") {
+		if len(paths) > 1 {
+			return 0, 0, fmt.Errorf("cannot ingest multiple paths from workspace")
+		}
+
+		return 1, 0, c.IngestFromWorkspace(ctx, datasetID, &IngestWorkspaceOpts{
+			SharedIngestionOpts: opts.SharedIngestionOpts,
+		}, paths[0])
+	}
+
 	_, err := getOrCreateDataset(ctx, c, datasetID, !opts.NoCreateDataset)
 	if err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 
 	ingestFile := func(path string, extraMetadata map[string]any) error {
@@ -116,10 +173,6 @@ func (c *StandaloneClient) IngestPaths(ctx context.Context, datasetID string, op
 		}
 
 		_, err = c.Ingest(log.ToCtx(ctx, log.FromCtx(ctx).With("filepath", path).With("absolute_path", iopts.FileMetadata.AbsolutePath)), datasetID, filename, file, iopts)
-
-		if err != nil && !opts.ErrOnUnsupportedFile && errors.Is(err, &documentloader.UnsupportedFileTypeError{}) {
-			err = nil
-		}
 
 		return err
 	}

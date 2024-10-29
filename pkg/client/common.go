@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha1"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -11,7 +12,10 @@ import (
 	"strings"
 
 	"github.com/go-git/go-git/v5/plumbing/format/gitignore"
+	"github.com/gptscript-ai/go-gptscript"
+	"github.com/gptscript-ai/gptscript/pkg/sdkserver"
 	"github.com/gptscript-ai/knowledge/pkg/datastore"
+	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader"
 	remotes "github.com/gptscript-ai/knowledge/pkg/datastore/documentloader/remote"
 	dstypes "github.com/gptscript-ai/knowledge/pkg/datastore/types"
 	"github.com/gptscript-ai/knowledge/pkg/index"
@@ -19,15 +23,43 @@ import (
 	"golang.org/x/sync/semaphore"
 )
 
-func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID string, ingestionFunc func(path string, metadata map[string]any) error, paths ...string) (int, error) {
+func newGPTScript(ctx context.Context) (*gptscript.GPTScript, error) {
+	workspaceTool := os.Getenv("WORKSPACE_TOOL")
+	if workspaceTool == "" {
+		workspaceTool = "github.com/gptscript-ai/workspace-provider"
+	}
+	if os.Getenv("GPTSCRIPT_URL") != "" {
+		return gptscript.NewGPTScript(gptscript.GlobalOptions{
+			URL:           os.Getenv("GPTSCRIPT_URL"),
+			WorkspaceTool: workspaceTool,
+		})
+	}
+
+	url, err := sdkserver.EmbeddedStart(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := os.Setenv("GPTSCRIPT_URL", url); err != nil {
+		return nil, err
+	}
+
+	return gptscript.NewGPTScript(gptscript.GlobalOptions{
+		URL:           url,
+		WorkspaceTool: workspaceTool,
+	})
+}
+
+func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID string, ingestionFunc func(path string, metadata map[string]any) error, paths ...string) (int, int, error) {
 	ingestedFilesCount := 0
+	skippedUnsupportedFilesCount := 0
 
 	var ignoreFilePatterns []gitignore.Pattern
 	var err error
 	if opts.IgnoreFile != "" {
 		ignoreFilePatterns, err = readIgnoreFile(opts.IgnoreFile)
 		if err != nil {
-			return ingestedFilesCount, fmt.Errorf("failed to read ignore file %q: %w", opts.IgnoreFile, err)
+			return ingestedFilesCount, skippedUnsupportedFilesCount, fmt.Errorf("failed to read ignore file %q: %w", opts.IgnoreFile, err)
 		}
 	}
 
@@ -62,7 +94,7 @@ func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID
 		var currentIgnorePatterns []gitignore.Pattern
 		defaultIgnoreFilePatterns, err := useDefaultIgnoreFileIfExists(path)
 		if err != nil {
-			return ingestedFilesCount, fmt.Errorf("failed to use default ignore file: %w", err)
+			return ingestedFilesCount, skippedUnsupportedFilesCount, fmt.Errorf("failed to use default ignore file: %w", err)
 		}
 		currentIgnorePatterns = append(defaultIgnoreFilePatterns, ignoreFilePatterns...)
 		currentIgnorePatterns = append(currentIgnorePatterns, ignoreExtensionsPatterns...)
@@ -83,20 +115,20 @@ func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID
 			// Load remote files
 			remotePath, err := remotes.LoadRemote(path)
 			if err != nil {
-				return ingestedFilesCount, fmt.Errorf("failed to load from remote %q: %w", path, err)
+				return ingestedFilesCount, skippedUnsupportedFilesCount, fmt.Errorf("failed to load from remote %q: %w", path, err)
 			}
 			path = remotePath
 		}
 
 		fileInfo, err := os.Stat(path)
 		if err != nil {
-			return ingestedFilesCount, fmt.Errorf("failed to get file info for %s: %w", path, err)
+			return ingestedFilesCount, skippedUnsupportedFilesCount, fmt.Errorf("failed to get file info for %s: %w", path, err)
 		}
 
 		if fileInfo.IsDir() {
 			directoryMetadata, err := loadDirMetadata(path)
 			if err != nil {
-				return ingestedFilesCount, err
+				return ingestedFilesCount, skippedUnsupportedFilesCount, err
 			}
 			if directoryMetadata != nil {
 				metadataStack = append(metadataStack, *directoryMetadata)
@@ -149,14 +181,18 @@ func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID
 					}
 					defer sem.Release(1)
 
-					fileMeta, err := findMetadata(absPath, metadataStack)
+					fileMeta, err := findMetadata(absPath, metadataStack, opts.Metadata)
 					if err != nil {
 						return fmt.Errorf("failed to find metadata for %s: %w", absPath, err)
 					}
+
 					slog.Debug("Ingesting file", "absPath", absPath, "metadata", fileMeta)
 
 					err = ingestionFunc(sp, fileMeta)
-					if err == nil {
+					if err != nil && !opts.ErrOnUnsupportedFile && errors.Is(err, &documentloader.UnsupportedFileTypeError{}) {
+						skippedUnsupportedFilesCount++
+						err = nil
+					} else if err == nil {
 						ingestedFilesCount++
 					}
 					return err
@@ -164,7 +200,7 @@ func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID
 				return nil
 			})
 			if err != nil {
-				return ingestedFilesCount, err
+				return ingestedFilesCount, skippedUnsupportedFilesCount, err
 			}
 		} else {
 			if isIgnored(ignore, path) {
@@ -173,7 +209,7 @@ func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID
 			}
 			absPath, err := filepath.Abs(path)
 			if err != nil {
-				return ingestedFilesCount, fmt.Errorf("failed to get absolute path for %s: %w", path, err)
+				return ingestedFilesCount, skippedUnsupportedFilesCount, fmt.Errorf("failed to get absolute path for %s: %w", path, err)
 			}
 			touchedFilePaths = append(touchedFilePaths, absPath)
 
@@ -184,12 +220,19 @@ func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID
 				}
 				defer sem.Release(1)
 
-				ingestedFilesCount++
-				fileMeta, err := findMetadata(absPath, metadataStack)
+				fileMeta, err := findMetadata(absPath, metadataStack, opts.Metadata)
 				if err != nil {
 					return fmt.Errorf("failed to find metadata for %s: %w", absPath, err)
 				}
-				return ingestionFunc(path, fileMeta)
+
+				err = ingestionFunc(path, fileMeta)
+				if err != nil && !opts.ErrOnUnsupportedFile && errors.Is(err, &documentloader.UnsupportedFileTypeError{}) {
+					skippedUnsupportedFilesCount++
+					err = nil
+				} else if err == nil {
+					ingestedFilesCount++
+				}
+				return err
 			})
 		}
 
@@ -207,7 +250,7 @@ func ingestPaths(ctx context.Context, c Client, opts *IngestPathsOpts, datasetID
 	}
 
 	// Wait for all goroutines to finish
-	return ingestedFilesCount, g.Wait()
+	return ingestedFilesCount, skippedUnsupportedFilesCount, g.Wait()
 }
 
 func HashPath(path string) string {
@@ -249,11 +292,11 @@ func AskDir(ctx context.Context, c Client, path string, query string, opts *Inge
 		}
 	}
 
-	ingested, err := c.IngestPaths(ctx, datasetID, opts, path)
+	ingested, skippedUnsupported, err := c.IngestPaths(ctx, datasetID, opts, path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to ingest files: %w", err)
 	}
-	slog.Debug("Ingested files", "count", ingested, "path", abspath)
+	slog.Debug("Ingested files", "ingestedCount", ingested, "skippedUnsupported", skippedUnsupported, "path", abspath)
 
 	// retrieve documents
 	return c.Retrieve(ctx, []string{datasetID}, query, *ropts)

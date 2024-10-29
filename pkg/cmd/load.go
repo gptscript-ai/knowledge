@@ -2,12 +2,14 @@ package cmd
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
 	"slices"
 	"strings"
 
+	"github.com/gptscript-ai/knowledge/pkg/client"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/documentloader/structured"
 	"github.com/gptscript-ai/knowledge/pkg/datastore/filetypes"
@@ -16,8 +18,9 @@ import (
 )
 
 type ClientLoad struct {
-	Loader       string `usage:"Choose a document loader to use"`
-	OutputFormat string `name:"format" usage:"Choose an output format" default:"structured"`
+	Loader       string            `usage:"Choose a document loader to use"`
+	OutputFormat string            `name:"format" usage:"Choose an output format" default:"structured"`
+	Metadata     map[string]string `usage:"Metadata to attach to the loaded files" env:"METADATA"`
 }
 
 func (s *ClientLoad) Customize(cmd *cobra.Command) {
@@ -30,11 +33,29 @@ func (s *ClientLoad) Run(cmd *cobra.Command, args []string) error {
 	input := args[0]
 	output := args[1]
 
+	err := s.run(cmd.Context(), input, output)
+	if err != nil {
+		exitErr0(err)
+	}
+	return nil
+}
+
+func (s *ClientLoad) run(ctx context.Context, input, output string) error {
 	if !slices.Contains([]string{"structured", "markdown"}, s.OutputFormat) {
 		return fmt.Errorf("unsupported output format %q", s.OutputFormat)
 	}
 
-	inputBytes, err := os.ReadFile(input)
+	c, err := client.NewStandaloneClient(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	var inputBytes []byte
+	if strings.HasPrefix(input, "ws://") {
+		inputBytes, err = c.GPTScript.ReadFileInWorkspace(ctx, strings.TrimPrefix(input, "ws://"))
+	} else {
+		inputBytes, err = os.ReadFile(input)
+	}
 	if err != nil {
 		return fmt.Errorf("failed to read input file %q: %w", input, err)
 	}
@@ -60,7 +81,7 @@ func (s *ClientLoad) Run(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("unsupported file type %q", input)
 	}
 
-	docs, err := loader(cmd.Context(), bytes.NewReader(inputBytes))
+	docs, err := loader(ctx, bytes.NewReader(inputBytes))
 	if err != nil {
 		return fmt.Errorf("failed to load documents from file %q using loader %q: %w", input, s.Loader, err)
 	}
@@ -73,6 +94,10 @@ func (s *ClientLoad) Run(cmd *cobra.Command, args []string) error {
 		for _, doc := range docs {
 			if len(doc.Content) == 0 {
 				continue
+			}
+
+			for k, v := range s.Metadata {
+				doc.Metadata[k] = v
 			}
 
 			metadata, err := json.Marshal(doc.Metadata)
@@ -102,6 +127,10 @@ func (s *ClientLoad) Run(cmd *cobra.Command, args []string) error {
 		}
 
 		commonMetadata["source"] = input
+
+		for k, v := range s.Metadata {
+			commonMetadata[k] = v
+		}
 		structuredInput.Metadata = commonMetadata
 
 		for i, doc := range structuredInput.Documents {
@@ -124,17 +153,11 @@ func (s *ClientLoad) Run(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	outputFile, err := os.Create(output)
-	if err != nil {
-		return fmt.Errorf("failed to create output file %q: %w", output, err)
+	if strings.HasPrefix(output, "ws://") {
+		return c.GPTScript.WriteFileInWorkspace(ctx, strings.TrimPrefix(output, "ws://"), []byte(text))
 	}
 
-	_, err = outputFile.WriteString(text)
-	if err != nil {
-		return fmt.Errorf("failed to write to output file %q: %w", output, err)
-	}
-
-	return nil
+	return os.WriteFile(output, []byte(text), 0666)
 }
 
 func dropCommon(target, common map[string]any) map[string]any {

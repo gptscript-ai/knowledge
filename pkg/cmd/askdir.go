@@ -43,12 +43,14 @@ func (s *ClientAskDir) Run(cmd *cobra.Command, args []string) error {
 	query := args[0]
 
 	ingestOpts := &client.IngestPathsOpts{
+		SharedIngestionOpts: client.SharedIngestionOpts{
+			IsDuplicateFuncName: s.DeduplicationFuncName,
+		},
 		IgnoreExtensions:     strings.Split(s.IgnoreExtensions, ","),
 		Concurrency:          s.Concurrency,
 		Recursive:            !s.NoRecursive,
 		IgnoreFile:           s.IgnoreFile,
 		IncludeHidden:        s.IncludeHidden,
-		IsDuplicateFuncName:  s.DeduplicationFuncName,
 		Prune:                !s.NoPrune,
 		ErrOnUnsupportedFile: s.ErrOnUnsupportedFile,
 	}

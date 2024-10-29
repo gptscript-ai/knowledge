@@ -155,10 +155,13 @@ func GetDocumentLoaderFunc(name string, config any) (LoaderFunc, error) {
 			return FromLangchain(lcgodocloaders.NewText(strings.NewReader(text))).Load(ctx)
 		}, nil
 	case "structured":
+		var structuredCfg structured.Structured
 		if config != nil {
-			return nil, fmt.Errorf("structured document loader does not accept configuration")
+			if err := mapstructure.Decode(config, &structuredCfg); err != nil {
+				return nil, fmt.Errorf("failed to decode structured document loader configuration: %w", err)
+			}
 		}
-		return new(structured.Structured).Load, nil
+		return structuredCfg.Load, nil
 	default:
 		return nil, fmt.Errorf("unknown document loader %q", name)
 	}
