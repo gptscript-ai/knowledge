@@ -1,9 +1,11 @@
 package markdown_basic
 
 import (
-	lcgosplitter "github.com/tmc/langchaingo/textsplitter"
 	"strings"
 	"unicode/utf8"
+
+	vs "github.com/gptscript-ai/knowledge/pkg/vectorstore/types"
+	lcgosplitter "github.com/tmc/langchaingo/textsplitter"
 )
 
 // NewMarkdownTextSplitter creates a new Markdown text splitter.
@@ -39,6 +41,25 @@ type MarkdownTextSplitter struct {
 	MaxHeadingLevel int
 
 	IgnoreHeadingOnly bool
+}
+
+func (sp MarkdownTextSplitter) SplitDocuments(docs []vs.Document) ([]vs.Document, error) {
+	var newDocs []vs.Document
+	for _, doc := range docs {
+		chunks, err := sp.SplitText(doc.Content)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, chunk := range chunks {
+			newDocs = append(newDocs, vs.Document{
+				Content:  chunk,
+				Metadata: doc.Metadata,
+			})
+		}
+	}
+
+	return newDocs, nil
 }
 
 // SplitText splits a text into multiple text.
