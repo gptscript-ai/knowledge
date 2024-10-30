@@ -1,5 +1,7 @@
 # GPTScript Knowledge Tool
 
+**Archival Notice: ** The knowledge tool is continuing as a part of otto8 over here: [otto8-ai/tools](https://github.com/otto8-ai/tools/tree/main/knowledge)
+
 Standalone Knowledge Tool to be used with GPTScript and GPTStudio
 
 **[gptscript-ai.github.io/knowledge](https://gptscript-ai.github.io/knowledge)**
